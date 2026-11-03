@@ -33,7 +33,7 @@ export function importAnimations( gltf, fileName, target ) {
 	if ( clips.length === 0 ) {
 
 		throw new UserError( `«${ fileName }» no trae animaciones. Elige un archivo que tenga una animación ` +
-			'(por ejemplo, un GLB de Tripo AI descargado con una animación, o una de Mixamo convertida a GLB).' );
+			'(por ejemplo, un GLB de Tripo AI descargado con una animación, o un FBX de Mixamo).' );
 
 	}
 

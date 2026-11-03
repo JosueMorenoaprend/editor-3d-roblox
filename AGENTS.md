@@ -122,6 +122,9 @@ Cada auditoría agrega a `MEJORAS.md` los errores y mejoras nuevas que encuentre
 - **Pruebas que provocan errores de consola a propósito:** `test.use( { allowedConsoleErrors: /texto/ } )`.
 - **Leer datos de un GLB en las pruebas:** `readGLBJson()` (el JSON) y `readGLBAccessor()` (números de
   un accessor FLOAT, por ejemplo los tiempos o valores de una pista), en `tests/helpers/gltf.js`.
+- **FBX de prueba:** `tests/helpers/fbx.js` escribe FBX 7.4 en texto. `FBXLoader` descarta un texto si en
+  las posiciones 0, 1, 3, 6, 10, 15… aparecen las letras de la cabecera binaria (“Kaydara…”): no cambies
+  la cabecera fija del principio sin volver a probar que se lee.
 - **Capturas de una sección del panel:** `captureScrolledTo( page, testInfo, nombre, selector )` (en
   `tests/e2e/fixtures.js`). No uses `locator.screenshot()` en elementos más altos que la pantalla dentro
   del panel con scroll: la imagen sale rota.
@@ -143,7 +146,8 @@ src/main.js             arranca el editor y conecta los paneles
 src/app.js              estado compartido (App): modelo abierto, preferencias, eventos, run()
 src/style.css           estilos (también para pantallas chicas)
 src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
-  loader.js             abrir .glb/.gltf (GLTFLoader + Draco + Meshopt)
+  loader.js             abrir .glb/.gltf (GLTFLoader + Draco + Meshopt); animaciones .fbx (FBXLoader, se
+                        carga solo al usarlo)
   viewer.js             vista 3D: cámara, OrbitControls, luces, piso, cuadrícula
   model.js              LoadedModel: el modelo dentro de un "contenedor" con los ajustes
   info.js               triángulos, medidas, huesos, animaciones, texturas
@@ -183,7 +187,7 @@ src/ui/                 un archivo por panel de la interfaz (samples.js: botones
 tests/unit/             pruebas Vitest del núcleo (Node)
 tests/e2e/              pruebas Playwright (flujos reales en el navegador; playwright.config.js)
 tests/helpers/          ayudantes compartidos (validar GLB, FileReader para Node, personaje con huesos raros,
-                        humanoide en pose T, archivo de animación tipo Mixamo)
+                        humanoide en pose T, archivos de animación tipo Mixamo en GLB y en FBX de texto)
 bridge/                 (futuro) puente MCP "Claude en vivo"
 ```
 

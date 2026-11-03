@@ -62,6 +62,8 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
   instante al final, y el validador oficial rechazaba el GLB.
 - **Nuevo: elegir qué animaciones exportar.** En *Exportar*, debajo de “Incluir animaciones”, marca solo
   las que quieres llevar a Roblox; tu proyecto las sigue guardando todas.
+- **Nuevo: animaciones FBX de Mixamo.** “Agregar animaciones de otro archivo” ahora acepta archivos `.fbx`
+  (como los que descargas de Mixamo), sin tener que convertirlos antes.
 
 ## Versión 1
 

@@ -4,7 +4,9 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { importAnimations } from '../../src/core/animationImport.js';
 import { createBoneTestClip } from '../../src/core/boneTest.js';
 import { UserError } from '../../src/core/errors.js';
-import { parseGLB } from '../../src/core/loader.js';
+import { loadAnimationFiles, parseGLB } from '../../src/core/loader.js';
+import { rootMotion } from '../../src/core/inPlace.js';
+import { createMixamoFBX } from '../helpers/fbx.js';
 import { createSample } from '../../src/samples/index.js';
 import { buildTPoseHumanoid, openSample } from './helpers.js';
 
@@ -106,6 +108,43 @@ describe( 'agregar animaciones de otro archivo', () => {
 
 		mixer.stopAllAction();
 		target.restoreRestPose();
+
+	} );
+
+	it( 'lee una animación FBX de Mixamo (en centímetros) y la pasa al R15', async () => {
+
+		const file = new File( [ createMixamoFBX( { forward: 300 } ) ], 'saludo_mixamo.fbx' );
+		const { gltf, fileName } = await loadAnimationFiles( [ file ] );
+		expect( fileName ).toBe( 'saludo_mixamo.fbx' );
+		const { model: target } = openSample( 'r15' );
+		const { clips, kind, missing } = importAnimations( gltf, fileName, target );
+		expect( kind ).toBe( 'Mixamo' );
+		expect( missing ).toEqual( [] );
+		expect( clips.map( ( clip ) => clip.name ) ).toEqual( [ 'Saludo' ] );
+		expect( clips[ 0 ].validate() ).toBe( true );
+
+		// A la mitad, el brazo izquierdo del R15 queda 45° por encima de la horizontal, como en el FBX.
+		const mixer = new AnimationMixer( target.container );
+		mixer.clipAction( clips[ 0 ] ).play();
+		mixer.setTime( 0.5 );
+		target.container.updateMatrixWorld( true );
+		const at = ( name ) => target.container.worldToLocal( target.container.getObjectByName( name ).getWorldPosition( new Vector3() ) );
+		const arm = at( 'LeftLowerArm' ).sub( at( 'LeftUpperArm' ) ).normalize();
+		expect( arm.angleTo( new Vector3( 1, 1, 0 ).normalize() ) ).toBeLessThan( 0.01 );
+		mixer.stopAllAction();
+		target.restoreRestPose();
+
+		// Avanza 300 cm en el FBX → en el R15, escalado al largo de las piernas (0,476 m / 87 cm): las
+		// unidades (centímetros o metros) no importan.
+		expect( rootMotion( target, clips[ 0 ] ).end ).toBeCloseTo( 300 * ( ( 1.7 * 0.28 ) / 87 ), 3 );
+
+	} );
+
+	it( 'un FBX dañado explica qué hacer', async () => {
+
+		const broken = new File( [ 'esto no es un FBX' ], 'roto.fbx' );
+		await expect( loadAnimationFiles( [ broken ] ) ).rejects.toThrow( UserError );
+		await expect( loadAnimationFiles( [ broken ] ) ).rejects.toThrow( 'No pude leer "roto.fbx"' );
 
 	} );
 

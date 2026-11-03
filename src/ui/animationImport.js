@@ -5,7 +5,7 @@
 import { importAnimations } from '../core/animationImport.js';
 import { boneLabel, listBones } from '../core/boneMap.js';
 import { makeInPlace, noticeableMotion, rootMotion } from '../core/inPlace.js';
-import { loadModelFromFiles } from '../core/loader.js';
+import { loadAnimationFiles } from '../core/loader.js';
 import { addClipsWithUndo } from './clipHistory.js';
 import { $, escapeHtml, formatNumber, plural } from './dom.js';
 import { toast } from './toast.js';
@@ -34,11 +34,11 @@ export function initAnimationImport( app ) {
 
 		const read = await app.run( 'Leyendo animaciones…', async () => {
 
-			const { gltf, fileName } = await loadModelFromFiles( files );
+			const { gltf, fileName } = await loadAnimationFiles( files );
 			return { fileName, ...importAnimations( gltf, fileName, model ) };
 
 		}, 'No se pudieron agregar las animaciones', {
-			help: 'Prueba con otro archivo .glb que tenga animación. Tu personaje quedó igual.',
+			help: 'Prueba con otro archivo .glb o .fbx que tenga animación. Tu personaje quedó igual.',
 		} );
 
 		// Si mientras tanto se abrió otro modelo, lo leído ya no sirve.

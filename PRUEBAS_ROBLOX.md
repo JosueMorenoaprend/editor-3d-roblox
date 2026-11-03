@@ -97,8 +97,9 @@ Cómo anotar el resultado: cambia `[ ]` por `[x]` si funcionó, o escribe debajo
 ### T-02 · Pasar una animación real de Tripo o de Mixamo a tu personaje
 
 - [ ] **Pendiente de probar**
-1. Consigue una animación en GLB: en Tripo AI, un personaje con rig y una animación (por ejemplo, correr);
-   o en Mixamo, una animación descargada en FBX y convertida a GLB (por ejemplo, con Blender).
+1. Consigue una animación: en Tripo AI, un personaje con rig y una animación (por ejemplo, correr) en GLB;
+   o en Mixamo, una animación descargada en **FBX** (ya no hace falta convertirla). Prueba una “In Place” y
+   otra sin esa opción.
 2. En el editor, abre **tu** personaje y, en *Animaciones*, pulsa **Agregar animaciones de otro archivo…**
    y elige ese GLB.
 3. Pulsa **▶ Ver** y mira la vista 3D: ¿los brazos, las piernas y la cabeza se mueven como en la animación

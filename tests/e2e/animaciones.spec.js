@@ -1,6 +1,7 @@
 // Agregar a mi personaje las animaciones de otro archivo (de Tripo o Mixamo), verlas antes y exportarlas.
 import { readGLBAccessor, readGLBJson } from '../helpers/gltf.js';
 import { createMixamoDanceGLB, createMixamoRunForwardGLB } from '../helpers/animationFiles.js';
+import { createMixamoFBX } from '../helpers/fbx.js';
 import { createOddRigGLB } from '../helpers/oddRig.js';
 import { capture, captureScrolledTo, expect, exportAndValidate, openSample, test } from './fixtures.js';
 
@@ -139,5 +140,33 @@ test( 'una animación que avanza (Mixamo sin "In Place") queda en el lugar', asy
 		}
 
 	}
+
+} );
+
+test( 'agregar una animación FBX de Mixamo', async ( { page }, testInfo ) => {
+
+	const result = page.locator( '#anim-import-result' );
+	await page.goto( './' );
+	await openSample( page, 'Muñeco R15' );
+	await expect( page.locator( '#anim-import' ) ).toContainText( 'GLB o FBX' );
+	await page.locator( '#anim-import-input' ).setInputFiles( { name: 'saludo_mixamo.fbx', mimeType: 'application/octet-stream', buffer: Buffer.from( createMixamoFBX() ) } );
+	await expect( result ).toContainText( '«saludo_mixamo.fbx»: 1 animación' );
+	await expect( result ).toContainText( 'esqueleto Mixamo' );
+	await page.locator( '#btn-anim-import-add' ).click();
+	await expect( page.locator( '#anim-select option:checked' ) ).toContainText( 'Saludo' );
+
+	// Se exporta en el GLB (válido) moviendo los huesos del R15.
+	const { bytes } = await exportAndValidate( page, testInfo, 'muneco_saludo_fbx.glb' );
+	const json = readGLBJson( bytes );
+	const wave = json.animations.find( ( animation ) => animation.name === 'Saludo' );
+	expect( wave ).toBeDefined();
+	const moved = new Set( wave.channels.map( ( channel ) => json.nodes[ channel.target.node ].name ) );
+	expect( moved ).toContain( 'LeftUpperArm' );
+	expect( [ ...moved ].some( ( name ) => name.startsWith( 'mixamorig' ) ) ).toBe( false );
+
+	// Un FBX dañado: mensaje claro y el personaje queda igual.
+	await page.locator( '#anim-import-input' ).setInputFiles( { name: 'roto.fbx', mimeType: 'application/octet-stream', buffer: Buffer.from( 'esto no es un FBX' ) } );
+	await expect( page.locator( '.toast' ).last() ).toContainText( 'No pude leer "roto.fbx"' );
+	await expect( page.locator( '#anim-select option' ) ).toHaveCount( 4 );
 
 } );

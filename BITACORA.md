@@ -4,6 +4,48 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 18 — Animaciones FBX de Mixamo (2026-11-03)
+
+**Auditoría:** punto de partida, el commit del ciclo 17 (`51adcc8`), recién comprobado (123/123 Vitest,
+44/44 Playwright). Actions: sin ejecuciones.
+
+**Tarea:** F1-05 (Alta).
+
+**Investigación:** el `FBXLoader` de three.js (MIT, ya incluido: no es una dependencia nueva) crea huesos
+con los `LimbNode` aunque no haya malla, limpia los nombres (`mixamorig:Hips` → `mixamorigHips`), gira las
+escenas Z-arriba y solo usa `window` para cámaras FBX, así que también funciona en Node para las pruebas.
+No convierte unidades (Mixamo usa centímetros), pero el retarget compara giros y escala la cadera por el
+largo de las piernas, así que las unidades no importan.
+
+**Qué hice**
+
+- `loader.js` → `loadAnimationFiles()`: `.glb/.gltf` como siempre; `.fbx` con `FBXLoader`, que se descarga
+  solo la primera vez (archivo aparte de 50 KB). Las texturas externas que nombre el FBX se reemplazan por
+  una imagen vacía: no se pide nada a internet. FBX dañado o muy viejo → mensaje claro.
+- “Agregar animaciones de otro archivo” acepta `.fbx` y lo dice (“Elige un GLB o FBX…”).
+- `tests/helpers/fbx.js`: genera un FBX 7.4 en texto con un esqueleto tipo Mixamo (25 huesos, pose T, en
+  centímetros) y una animación (con avance opcional de la cadera).
+
+**Problema encontrado en el camino:** el primer FBX generado daba “Unknown format”. `FBXLoader` mira las
+letras de las posiciones 0, 1, 3, 6, 10, 15… para descartar archivos binarios, y en la 120 había una “a”
+por casualidad. Con la cabecera de guiones de los FBX reales pasa siempre (la parte comprobada es fija).
+
+**Tamaño:** el JS principal pasó de 817 a 836 KB (+5 KB comprimido): son clases de three.js que usa el
+lector FBX y que quedan en el archivo principal porque three.js es un solo módulo. El lector en sí va aparte.
+
+**Cómo lo verifiqué**
+
+- Vitest: 2 pruebas nuevas (FBX de Mixamo → R15: a la mitad, el brazo del R15 sube 45° como en el FBX; el
+  avance de 300 cm se escala a 1,64 m; FBX dañado → `UserError` claro).
+- Playwright (escritorio y móvil): importar el FBX → “esqueleto Mixamo” → agregar → exportar (validador 0
+  errores; la animación mueve `LeftUpperArm`, ningún hueso `mixamorig…`) → un FBX dañado avisa y no cambia
+  nada.
+- `npm run check` → código 0: **125/125** Vitest y **46/46** Playwright.
+
+**Qué sigue:** F1-10 (línea de tiempo de keyframes), la última Alta de la Fase 1.
+
+---
+
 ## Ciclo 17 — Elegir qué animaciones exportar (2026-11-03)
 
 **Auditoría:** punto de partida, el commit del ciclo 16 (`b27328a`), recién comprobado (122/122 Vitest,

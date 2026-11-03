@@ -28,7 +28,7 @@ Cómo leer esta lista:
 ## Orden sugerido para los próximos ciclos (auditoría profunda del ciclo 15)
 
 1. ~~**F1-14**~~ y ~~**F1-16**~~ (hechas en los ciclos 16 y 17).
-2. **F1-05** (Alta) FBX de Mixamo (la fuente de animaciones gratis más usada) con el retarget del ciclo 13.
+2. ~~**F1-05**~~ (hecha en el ciclo 18).
 3. **F1-10** (Alta) línea de tiempo de keyframes; después las Media de la Fase 1 (F1-08, F1-15, F1-11…).
 4. **F5-14** y **F5-13** (Media): el panel ya es muy largo, sobre todo en el celular.
 5. Fase 2 (conexión con IA): el guion de animación usa el mapa y los giros “en el espacio del personaje”
@@ -142,8 +142,13 @@ Cómo leer esta lista:
     nombres repetidos; errores) + e2e (escritorio y móvil): personaje sin animaciones → elegir un GLB de
     Mixamo sin cuerpo → ▶ Ver → Agregar → reproducir → deshacer/rehacer → exportar: GLB válido y la
     animación mueve los huesos del personaje. En *Animaciones*: “Agregar animaciones de otro archivo…”.
-- [ ] **F1-05** · Alta · **Importar animaciones FBX** (Mixamo) y pasarlas a mi personaje.
-  - Comprobación: prueba con un FBX generado por código + e2e.
+- [x] **F1-05** · Alta · **Importar animaciones FBX** (Mixamo) y pasarlas a mi personaje. *(ciclo 18)*
+  - Comprobación: prueba con un FBX generado por código + e2e. ✔ “Agregar animaciones de otro archivo”
+    acepta `.fbx` (con el `FBXLoader` de three.js, que se descarga solo al usarlo: 50 KB; las texturas
+    externas que nombre el FBX no se piden a internet). `tests/helpers/fbx.js` genera un FBX 7.4 en texto
+    con un esqueleto tipo Mixamo (en centímetros). 2 pruebas de Vitest (el brazo del R15 sube 45° como en
+    el FBX; el avance se escala bien aunque el FBX esté en centímetros; FBX dañado → mensaje claro) + e2e
+    (escritorio y móvil): importar el FBX, agregar, exportar GLB válido moviendo los huesos del R15.
 - [x] **F1-06** · Alta · **Generadores de animación con deslizadores**: caminar, correr y respirar en
   reposo (velocidad, largo del paso, balanceo de brazos). *(ciclo 14)*
   - Comprobación: pruebas (clips válidos, en el lugar, loop sin saltos) + e2e + GLB válido. ✔ En
@@ -309,9 +314,9 @@ Cómo leer esta lista:
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
 | 0 — Base sólida | 16 | 12 |
-| 1 — Animación | 20 | 8 |
+| 1 — Animación | 20 | 9 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 15 | 0 |
-| **Total** | **76** | **20** |
+| **Total** | **76** | **21** |
