@@ -33,6 +33,26 @@ export class KeyframeAnimation {
 
 	}
 
+	/**
+	 * Pone keyframes a varias partes en el mismo momento (la pose que se ve).
+	 * @param {number} time segundos
+	 * @param {Iterable<[string, import('three').Quaternion]>} pose nombre del hueso y su giro
+	 * @returns {number} cuántos keyframes se pusieron
+	 */
+	setPose( time, pose ) {
+
+		let count = 0;
+		for ( const [ bone, quaternion ] of pose ) {
+
+			this.setKey( bone, time, quaternion );
+			count ++;
+
+		}
+
+		return count;
+
+	}
+
 	/** Quita el keyframe de un hueso en un momento. Devuelve true si había uno. */
 	removeKey( boneName, time ) {
 

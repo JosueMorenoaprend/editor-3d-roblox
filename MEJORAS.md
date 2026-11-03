@@ -29,8 +29,8 @@ Cómo leer esta lista:
 
 1. ~~**F1-14**~~ y ~~**F1-16**~~ (hechas en los ciclos 16 y 17).
 2. ~~**F1-05**~~ (hecha en el ciclo 18).
-3. ~~**F1-10**~~ (hecha en el ciclo 19) y el error ~~**F1-21**~~ (ciclo 20). Sigue **F1-22** y después
-   las Media de la Fase 1 (F1-23, F1-24, F1-25, F1-08, F1-15, F1-11…).
+3. ~~**F1-10**~~ (hecha en el ciclo 19), el error ~~**F1-21**~~ (ciclo 20) y ~~**F1-22**~~ (ciclo 21).
+   Siguen las Media de la Fase 1 (F1-23, F1-24, F1-25, F1-08, F1-15, F1-11…).
 4. **F5-14** y **F5-13** (Media): el panel ya es muy largo, sobre todo en el celular.
 5. Fase 2 (conexión con IA): el guion de animación usa el mapa y los giros “en el espacio del personaje”
    que ya existen (F2-01, F2-02).
@@ -248,11 +248,18 @@ Cómo leer esta lista:
     con el brazo en reposo) y después el keyframe guarda los 70°; reproducir “Saludar” → aviso y controles
     apagados → Volver a editar → 70° otra vez y el keyframe los guarda. Las 2 pruebas fallaban antes del
     arreglo (el keyframe guardaba 0°).
-- [ ] **F1-22** · Media · “Poner keyframe” guarda **solo la parte elegida**: si se mueven varias partes y
+- [x] **F1-22** · Media · “Poner keyframe” guarda **solo la parte elegida**: si se mueven varias partes y
   se pulsa una vez, las demás no quedan guardadas, y al mover el tiempo se pierden sin aviso. Que guarde
   la pose que se ve (todas las partes que se movieron) y avise antes de descartar cambios sin keyframe.
-  *(auditoría del ciclo 19)*
-  - Comprobación: prueba + e2e: mover 2 partes, un solo “Poner keyframe” → las 2 tienen keyframe.
+  *(auditoría del ciclo 19; hecho en el ciclo 21)*
+  - Comprobación: prueba + e2e: mover 2 partes, un solo “Poner keyframe” → las 2 tienen keyframe. ✔ El
+    editor anota qué partes se giraron sin keyframe; “Poner keyframe” se lo pone a todas y a la elegida
+    (`KeyframeAnimation.setPose()`), con el aviso «Keyframe en 1,00 s para 2 partes: Brazo izquierdo,
+    Cabeza.». Antes de perderlos, el estado dice «Giros sin keyframe: … (si cambias de momento, se
+    pierden)»; si se cambia de momento igual, un aviso dice cuáles se descartaron. Prueba de Vitest
+    (`setPose`: 2 partes en el mismo momento, reemplaza sin duplicar) + e2e (escritorio y móvil): brazo
+    60° y cabeza 30° → un clic → 2 keyframes → un giro sin keyframe se descarta con aviso → el GLB
+    exportado (válido) trae el brazo y la cabeza, con el brazo a 60°.
 - [ ] **F1-23** · Media · Si se exporta con keyframes **sin guardar**, avisar que esa animación todavía no
   va en el archivo (hay que pulsar “Guardar animación”). *(auditoría del ciclo 19)*
   - Comprobación: e2e exporta con el editor abierto y ve el aviso.
@@ -366,9 +373,9 @@ Cómo leer esta lista:
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
 | 0 — Base sólida | 17 | 13 |
-| 1 — Animación | 25 | 11 |
+| 1 — Animación | 25 | 12 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 15 | 0 |
-| **Total** | **82** | **24** |
+| **Total** | **82** | **25** |

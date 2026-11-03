@@ -4,6 +4,39 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 21 — Un keyframe guarda toda la pose (2026-11-03)
+
+**Auditoría:** punto de partida, el commit del ciclo 20 (`9e22d75`). Actions: sin ejecuciones. El usuario
+avisó que quedan pocos créditos: ciclo corto, con pocas llamadas.
+
+**Tarea:** F1-22 (Media), la siguiente del orden sugerido.
+
+**Qué hice**
+
+- El editor anota qué partes se giraron sin keyframe (deslizadores o anillos). “Poner keyframe” se lo pone
+  a todas ellas y a la parte elegida, en el orden en que se movieron (`KeyframeAnimation.setPose()`), y
+  avisa «Keyframe en 1,00 s para 2 partes: …» cuando son varias.
+- Aviso **antes** de perderlos: el estado agrega «Giros sin keyframe: «Brazo izquierdo», «Cabeza». Pulsa
+  «Poner keyframe» para guardarlos (si cambias de momento, se pierden)». Si se cambia de momento igual,
+  un aviso dice cuáles se descartaron.
+
+**Problema en el camino:** la primera versión listaba primero la parte elegida («Cabeza, Brazo
+izquierdo»), al revés que el aviso del estado; la prueba lo detectó y ahora sigue el orden en que se
+movieron.
+
+**Cómo lo verifiqué**
+
+- Vitest: 1 prueba nueva (`setPose`: 2 partes en el mismo momento; ponerla otra vez reemplaza sin
+  duplicar; el clip es válido).
+- Playwright (escritorio y móvil): brazo 60° y cabeza 30° sin keyframe → el estado lo avisa → un solo clic
+  → «2 keyframes en total» → un giro sin keyframe se descarta con aviso → el GLB exportado pasa el validador
+  y trae el brazo (a 60°) y la cabeza. Captura del aviso en el celular revisada: se lee entero.
+- `npm run check` → código 0: **131/131** Vitest y **56/56** Playwright.
+
+**Qué sigue:** F1-23 (avisar al exportar con keyframes sin guardar), F1-24 y F1-25.
+
+---
+
 ## Ciclo 20 — El editor de keyframes ya no pierde tu pose (2026-11-03)
 
 **Auditoría:** punto de partida, el commit del ciclo 19 (`c465899`). Actions: sin ejecuciones.

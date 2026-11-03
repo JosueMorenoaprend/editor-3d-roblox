@@ -57,7 +57,7 @@ export function initKeyframePanel( app ) {
 		gizmo.addEventListener( 'objectChange', () => {
 
 			if ( ! editor ) return;
-			remember( bone() );
+			moved();
 			syncSliders();
 
 		} );
@@ -67,13 +67,16 @@ export function initKeyframePanel( app ) {
 
 	/**
 	 * Lo que se está editando (o null): { model, animation, rest, bones, key (parte elegida), time,
-	 * pose (Map hueso → giro: la pose de trabajo), clip (el de ▶ Reproducir), playing (suena ese clip),
+	 * pose (Map hueso → giro: la pose de trabajo), changed (partes giradas sin keyframe todavía),
+	 * clip (el de ▶ Reproducir), playing (suena ese clip),
 	 * other (el clip de otra animación que se está viendo, o null) }.
 	 */
 	let editor = null;
 	let cancelTimer = 0;
 
-	const bone = () => ( editor ? editor.bones.get( editor.model.boneMap[ editor.key ] ) : null );
+	/** El hueso de una parte del cuerpo (según el mapa de huesos). */
+	const partBone = ( key ) => editor.bones.get( editor.model.boneMap[ key ] );
+	const bone = () => ( editor ? partBone( editor.key ) : null );
 
 	openButton.addEventListener( 'click', open );
 
@@ -92,6 +95,7 @@ export function initKeyframePanel( app ) {
 			key: null,
 			time: 0,
 			pose: new Map(),
+			changed: new Set(),
 			clip: null,
 			playing: false,
 			other: null,
@@ -146,7 +150,7 @@ export function initKeyframePanel( app ) {
 			const angles = [ 0, 0, 0 ];
 			for ( const item of sliders ) angles[ Number( item.dataset.axis ) ] = Number( item.value );
 			target.quaternion.copy( localFromAngles( editor.rest, target, angles ) );
-			remember( target );
+			moved();
 			showAngles( angles );
 
 		} );
@@ -188,11 +192,19 @@ export function initKeyframePanel( app ) {
 
 	} );
 
+	// Guarda la pose que se ve: la parte elegida y todas las que se giraron sin keyframe.
 	$( '#btn-keys-set' ).addEventListener( 'click', () => {
 
-		const target = bone();
-		if ( ! target ) return;
-		editor.animation.setKey( target.name, editor.time, target.quaternion );
+		const keys = [ ...new Set( [ ...editor.changed, editor.key ] ) ].filter( ( key ) => key && partBone( key ) );
+		if ( keys.length === 0 ) return;
+		editor.animation.setPose( editor.time, keys.map( ( key ) => [ partBone( key ).name, partBone( key ).quaternion ] ) );
+		editor.changed.clear();
+		if ( keys.length > 1 ) {
+
+			toast( `Keyframe en ${ seconds( editor.time ) } s para ${ plural( keys.length, 'parte' ) }: ${ keys.map( ( key ) => boneLabel( key ) ).join( ', ' ) }.`, 'ok' );
+
+		}
+
 		render();
 
 	} );
@@ -318,10 +330,12 @@ export function initKeyframePanel( app ) {
 
 	/**
 	 * Muestra la pose de la animación en el momento elegido (o la de reposo si no hay keyframes) y la toma
-	 * como pose de trabajo. Los giros sin keyframe de antes se descartan.
+	 * como pose de trabajo. Los giros sin keyframe de antes se descartan (y se avisa).
 	 */
 	function showPose() {
 
+		const lost = [ ...editor.changed ].map( ( key ) => `«${ boneLabel( key ) }»` );
+		editor.changed.clear();
 		const model = editor.model;
 		model.restoreRestPose();
 		new ClipSampler( model.container, editor.animation.toClip() ).apply( editor.time );
@@ -329,6 +343,11 @@ export function initKeyframePanel( app ) {
 		editor.pose.clear();
 		for ( const item of editor.bones.values() ) remember( item );
 		syncSliders();
+		if ( lost.length > 0 ) {
+
+			toast( `Se descartaron los giros sin keyframe de ${ lost.join( ', ' ) }. Para guardarlos, pulsa «Poner keyframe» antes de cambiar de momento.` );
+
+		}
 
 	}
 
@@ -336,6 +355,17 @@ export function initKeyframePanel( app ) {
 	function remember( target ) {
 
 		if ( target ) editor.pose.set( target, target.quaternion.clone() );
+
+	}
+
+	/** La parte elegida se giró (deslizadores o anillos): se anota y se avisa que le falta el keyframe. */
+	function moved() {
+
+		const target = bone();
+		if ( ! target ) return;
+		remember( target );
+		editor.changed.add( editor.key );
+		render();
 
 	}
 
@@ -388,7 +418,9 @@ export function initKeyframePanel( app ) {
 		marks.innerHTML = times.map( ( at ) => `<span class="keys-mark${ Math.abs( at - time ) < 1e-3 ? ' current' : '' }" style="left: ${ ( at / animation.duration ) * 100 }%"></span>` ).join( '' );
 		const label = editor.key ? boneLabel( editor.key ) : '';
 		const own = times.length ? `«${ label }»: en ${ times.map( ( at ) => `${ seconds( at ) } s` ).join( ', ' ) }.` : `«${ label }» todavía no tiene keyframes.`;
-		status.textContent = `${ plural( animation.keyCount, 'keyframe' ) } en total. ${ own }`;
+		const pending = [ ...editor.changed ].map( ( key ) => `«${ boneLabel( key ) }»` );
+		const warning = pending.length ? ` Giros sin keyframe: ${ pending.join( ', ' ) }. Pulsa «Poner keyframe» para guardarlos (si cambias de momento, se pierden).` : '';
+		status.textContent = `${ plural( animation.keyCount, 'keyframe' ) } en total. ${ own }${ warning }`;
 
 	}
 

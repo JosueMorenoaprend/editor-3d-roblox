@@ -116,3 +116,24 @@ describe( 'animación con keyframes', () => {
 	} );
 
 } );
+
+describe( 'keyframe de toda la pose', () => {
+
+	it( 'pone un keyframe a cada parte en el mismo momento y reemplaza sin duplicar', () => {
+
+		const animation = new KeyframeAnimation( { duration: 2 } );
+		const up = new Quaternion().setFromAxisAngle( new Vector3( 0, 0, 1 ), 1 );
+		const turn = new Quaternion().setFromAxisAngle( new Vector3( 0, 1, 0 ), 0.5 );
+		expect( animation.setPose( 1, [ [ 'LeftUpperArm', up ], [ 'Head', turn ] ] ) ).toBe( 2 );
+		expect( animation.keyCount ).toBe( 2 );
+		expect( animation.keyTimes( 'LeftUpperArm' ) ).toEqual( [ 1 ] );
+		expect( animation.keyTimes( 'Head' ) ).toEqual( [ 1 ] );
+		expect( animation.setPose( 1, [ [ 'Head', up ] ] ) ).toBe( 1 );
+		expect( animation.keyCount ).toBe( 2 );
+		const clip = animation.toClip();
+		expect( clip.tracks.map( ( track ) => track.name ).sort() ).toEqual( [ 'Head.quaternion', 'LeftUpperArm.quaternion' ] );
+		expect( clip.validate() ).toBe( true );
+
+	} );
+
+} );

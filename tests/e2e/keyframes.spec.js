@@ -176,3 +176,43 @@ test( 'ver otra animación mientras editas: el editor espera y después vuelve a
 	expectSideways( secondArmKey( bytes ), 70 );
 
 } );
+
+test( 'un keyframe guarda toda la pose que se ve y avisa antes de perder giros sin keyframe', async ( { page }, testInfo ) => {
+
+	const status = page.locator( '#keys-status' );
+	const lastToast = page.locator( '.toast' ).last();
+	await page.goto( './' );
+	await openSample( page, 'Muñeco R15' );
+	await page.locator( '#btn-keys-open' ).click();
+
+	// A 1 s: girar el brazo y la cabeza, sin poner keyframe todavía.
+	await page.locator( '#keys-time' ).fill( '1' );
+	await page.locator( '#keys-z' ).fill( '60' );
+	await page.locator( '#keys-part' ).selectOption( 'head' );
+	await page.locator( '#keys-y' ).fill( '30' );
+	await expect( status ).toContainText( 'Giros sin keyframe: «Brazo izquierdo», «Cabeza».' );
+	await captureScrolledTo( page, testInfo, 'keyframes-sin-guardar', '#keys-status' );
+
+	// Un solo "Poner keyframe" guarda las 2 partes.
+	await page.locator( '#btn-keys-set' ).click();
+	await expect( lastToast ).toContainText( 'Keyframe en 1,00 s para 2 partes: Brazo izquierdo, Cabeza.' );
+	await expect( status ).toContainText( '2 keyframes en total. «Cabeza»: en 1,00 s.' );
+	await expect( status ).not.toContainText( 'Giros sin keyframe' );
+
+	// Un giro sin keyframe se pierde al cambiar de momento, pero el editor lo dice.
+	await page.locator( '#keys-x' ).fill( '20' );
+	await page.locator( '#keys-time' ).fill( '0.5' );
+	await expect( lastToast ).toContainText( 'Se descartaron los giros sin keyframe de «Cabeza».' );
+	await expect( page.locator( '#keys-x-value' ) ).toHaveText( '0°' );
+
+	// Guardar y exportar: el brazo y la cabeza tienen su keyframe.
+	await page.locator( '#btn-keys-save' ).click();
+	const { bytes } = await exportAndValidate( page, testInfo, 'muneco_pose.glb' );
+	const json = readGLBJson( bytes );
+	const animation = json.animations.find( ( item ) => item.name === 'Mi animación' );
+	const partName = ( channel ) => json.nodes[ channel.target.node ].name;
+	expect( animation.channels.map( partName ).sort() ).toEqual( [ 'Head', 'LeftUpperArm' ] );
+	const arm = animation.channels.find( ( channel ) => partName( channel ) === 'LeftUpperArm' );
+	expectSideways( readGLBAccessor( bytes, json, animation.samplers[ arm.sampler ].output )[ 0 ], 60 );
+
+} );
