@@ -4,6 +4,33 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 10 — Fase 1: mapa de huesos humanoide estándar (2026-11-03)
+
+**Tarea:** F1-01 (empieza la Fase 1, la más importante para el usuario).
+
+**Qué hice**
+
+- `src/core/boneMap.js`: los 21 huesos del mapa estándar (cadera, columna, pecho, cuello, cabeza y,
+  a cada lado, hombro, brazo, antebrazo, mano, muslo, pierna, pie y dedos), con:
+  - claves en inglés como en VRM (`hips`, `leftUpperArm`…), que las IA ya conocen (servirá para el
+    guion de animación de la Fase 2), y nombres en español para la interfaz (“Brazo izquierdo”);
+  - 15 obligatorios; columna, cuello, hombros y dedos son opcionales porque el R15 de Roblox no los
+    tiene separados;
+  - `mirrorKey()` (izquierda ↔ derecha), `mappedParentKey()` (salta opcionales que faltan) y
+    `validateBoneMap()`, que dice en español qué falta, qué hueso no existe, cuál se eligió dos veces
+    y cuál está fuera de su lugar (“«Antebrazo izquierdo» debería estar dentro de «Brazo izquierdo»”).
+
+**Cómo lo verifiqué**
+
+- 6 pruebas nuevas de Vitest (con el muñeco R15 de ejemplo).
+- `npm run check` → código 0.
+
+**Actions:** después de otro push, GitHub sigue sin registrar ejecuciones (ver ⏳ en `MEJORAS.md`).
+
+**Qué sigue:** F1-02 — detectar el mapa solo, para esqueletos de Tripo, Mixamo y R15.
+
+---
+
 ## Ciclo 9 — Actions activado y mensajes de error claros en todo el editor (2026-11-03)
 
 **GitHub Actions:** el usuario avisó que lo activó. Para poder comprobar F0-08 sin tocar `main`, el

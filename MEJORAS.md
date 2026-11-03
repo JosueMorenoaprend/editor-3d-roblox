@@ -95,9 +95,10 @@ Cómo leer esta lista:
 
 ## Fase 1 — Animación (lo más importante para el usuario)
 
-- [ ] **F1-01** · Alta · **Mapa de huesos humanoide estándar**: cadera, columna, pecho, cuello, cabeza,
-  brazos, antebrazos, manos, muslos, piernas y pies (izquierda y derecha).
-  - Comprobación: pruebas unitarias del mapa.
+- [x] **F1-01** · Alta · **Mapa de huesos humanoide estándar**: cadera, columna, pecho, cuello, cabeza,
+  brazos, antebrazos, manos, muslos, piernas y pies (izquierda y derecha). *(ciclo 10)*
+  - Comprobación: pruebas unitarias del mapa. ✔ 6 pruebas (`tests/unit/boneMap.test.js`): huesos,
+    nombres en español, opcionales, reflejo izquierda↔derecha y validación con mensajes claros.
 - [ ] **F1-02** · Alta · **Detección automática** del mapa para esqueletos de Tripo, Mixamo y R15.
   - Comprobación: pruebas con esqueletos generados con los nombres de cada uno.
 - [ ] **F1-03** · Alta · **Editor visual** para ver y corregir el mapa de huesos.
@@ -223,9 +224,9 @@ Cómo leer esta lista:
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
 | 0 — Base sólida | 15 | 12 |
-| 1 — Animación | 16 | 0 |
+| 1 — Animación | 16 | 1 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 12 | 0 |
-| **Total** | **68** | **12** |
+| **Total** | **68** | **13** |

@@ -149,6 +149,7 @@ src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
   errors.js             UserError: errores con mensaje claro para el usuario
   history.js            deshacer/rehacer (app.history): comandos { label, undo, redo }
   autosave.js           autoguardado en IndexedDB (un registro con el último proyecto)
+  boneMap.js            mapa de huesos humanoide estándar (hips, leftUpperArm…) y su validación
 src/samples/            modelos de prueba generados por código (sin licencias de terceros)
   r15Dummy.js           muñeco R15: 16 huesos, 3 animaciones (Saludar, Caminar, Saltar)
   heavyMesh.js          malla pesada: 120.000 triángulos con textura
