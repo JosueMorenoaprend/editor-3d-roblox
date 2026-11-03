@@ -4,6 +4,49 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 5 — Deshacer y rehacer + auditoría profunda (2026-11-03)
+
+**Auditoría profunda (cada 5 ciclos)**
+
+- **Seguridad y privacidad:** sin claves ni secretos; el decodificador Draco va incluido (no se pide
+  nada a internet; en `dist/` no hay direcciones externas que se usen); todo texto que viene del modelo
+  (nombres de mallas, animaciones, archivo) pasa por `escapeHtml` antes de `innerHTML`.
+- **Tamaño:** el JS principal pesa 828 KB (222 KB comprimido), casi todo three.js. La carga diferida
+  (F5-07) puede bajar el arranque; prioridad baja por ahora.
+- **Rendimiento:** el visor dibuja 60 cuadros por segundo aunque nada cambie → gasta batería en
+  laptop y tablet. Nueva tarea **F5-10** (Media).
+- **Código repetido:** recorrer materiales y texturas está hecho 4 veces. Nueva tarea **F5-11** (Baja).
+- **Interfaz con ojos nuevos:** con un modelo abierto ya no se puede abrir un ejemplo (anotado en
+  F5-09); la etiqueta “v1” quedó vieja (**F5-12**, Baja). El orden de `MEJORAS.md` sigue siendo el
+  correcto: terminar la Fase 0 y pasar a la Fase 1 (animación).
+
+**Tarea:** F0-09 (deshacer y rehacer).
+
+**Qué hice**
+
+- `src/core/history.js`: historial con `push / undo / redo / clear`, límite de 50 pasos, nombres de
+  cada acción y evento `change`. Al abrir otro modelo se vacía.
+- `transform.js`: `getTransformState / setTransformState` (escala, giro y posición).
+  `simplify.js`: `captureGeometryState / applyGeometryState` (qué geometría usa cada malla y su
+  original). Las geometrías no se copian: deshacer es instantáneo, también con 120.000 triángulos.
+- Paneles: cada ajuste (escala, ×½, ×2, altura, giros, apoyar, quitar ajustes), “Reducir” y
+  “Volver al original” quedan en el historial con un nombre claro (“Girar 90° (eje Y)”).
+- Barra superior: botones ↶ **Deshacer** y ↷ **Rehacer** (con el nombre de la acción al pasar el
+  mouse) y atajos **Ctrl+Z**, **Ctrl+Y** y **Ctrl+Shift+Z** (Cmd en Mac). Dentro de una caja de texto,
+  Ctrl+Z deshace el texto, como en cualquier programa. Aviso “Deshecho: …” al usarlo.
+- En el celular la barra muestra solo los íconos y “Abrir” / “Exportar” para que todo quepa.
+
+**Cómo lo verifiqué**
+
+- 7 pruebas nuevas de Vitest (historial y estados) y 2 flujos e2e (teclado y botones; ajustes,
+  reducir, “Volver al original”) en escritorio y móvil.
+- `npm run check` → código 0: **39/39** Vitest y **14/14** Playwright.
+- Capturas de la barra superior en escritorio y móvil revisadas.
+
+**Qué sigue:** ciclo 6 — reducir polígonos en un Web Worker con barra de progreso (F0-12).
+
+---
+
 ## Ciclo 4 — Fondo del panel cortado en móvil (2026-11-03)
 
 **Tarea:** F0-13 (error: primero los errores).

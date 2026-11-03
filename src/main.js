@@ -17,6 +17,7 @@ import { initAdjustPanel } from './ui/adjustPanel.js';
 import { initAnimationPanel } from './ui/animationPanel.js';
 import { $ } from './ui/dom.js';
 import { initExportPanel } from './ui/exportPanel.js';
+import { initHistoryControls } from './ui/historyControls.js';
 import { initInfoPanel } from './ui/infoPanel.js';
 import { initSamples } from './ui/samples.js';
 import { initSimplifyPanel } from './ui/simplifyPanel.js';
@@ -43,6 +44,7 @@ function start() {
 	initViewportTools( app );
 	initFileOpening( app );
 	initSamples( app );
+	initHistoryControls( app );
 	initInfoPanel( app );
 	initAdjustPanel( app );
 	initSimplifyPanel( app );

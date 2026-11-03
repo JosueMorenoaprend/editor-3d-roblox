@@ -141,6 +141,7 @@ src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
   keyframes.js          pistas de animación con giros en grados
   units.js              METERS_PER_STUD (metros ↔ studs)
   errors.js             UserError: errores con mensaje claro para el usuario
+  history.js            deshacer/rehacer (app.history): comandos { label, undo, redo }
 src/samples/            modelos de prueba generados por código (sin licencias de terceros)
   r15Dummy.js           muñeco R15: 16 huesos, 3 animaciones (Saludar, Caminar, Saltar)
   heavyMesh.js          malla pesada: 120.000 triángulos con textura
@@ -161,6 +162,9 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
   mallas), `transform` (cambió escala/giro/posición), `settings` (cambió una preferencia).
 - `app.run( mensaje, tarea, prefijoDeError )` muestra “Trabajando…” y convierte los errores en avisos
   en español.
+- **Toda acción que cambie el modelo se guarda en `app.history`** con `push( { label, undo, redo } )`
+  (la acción ya está hecha al guardarla). Ejemplos: `adjust()` en `adjustPanel.js` y
+  `pushGeometryChange()` en `simplifyPanel.js`. El historial se vacía al abrir otro modelo.
 - `src/core/` no toca el DOM: así se prueba en Node. La interfaz vive en `src/ui/`.
 - Exportar: `GLTFExporter` binario, en la pose de reposo; texturas WebP → PNG; vértices cuantizados →
   Float32 (para no depender de extensiones que Roblox podría no leer).

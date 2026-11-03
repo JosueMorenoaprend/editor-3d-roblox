@@ -19,6 +19,9 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
 - GitHub revisará cada cambio con todas las pruebas (cuando actives Actions; los pasos están en el
   README). La publicación en GitHub Pages ya no sale en rojo si no usas Pages.
 - Arreglado: en el celular, al bajar por el panel, el fondo ya no cambia de color a mitad de camino.
+- **Nuevo: Deshacer y Rehacer.** Botones ↶ ↷ arriba, o **Ctrl+Z** y **Ctrl+Y** (Cmd en Mac). Funciona
+  con todos los ajustes, con “Reducir” y con “Volver al original”. Al pasar el mouse por el botón ves
+  qué se va a deshacer.
 
 ## Versión 1
 

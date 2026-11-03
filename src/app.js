@@ -7,6 +7,7 @@
 //   'settings'  -> cambió una preferencia (límite de triángulos, etc.)
 import { AnimationController } from './core/animation.js';
 import { UserError } from './core/errors.js';
+import { History } from './core/history.js';
 import { loadModelFromFiles } from './core/loader.js';
 import { LoadedModel } from './core/model.js';
 import { forgetOriginals } from './core/simplify.js';
@@ -32,6 +33,8 @@ export class App extends EventTarget {
 		/** @type {LoadedModel|null} */
 		this.model = null;
 		this.animation = new AnimationController();
+		/** Deshacer y rehacer (se vacía al abrir otro modelo). */
+		this.history = new History( { limit: 50 } );
 		this.settings = loadSettings();
 		this._busyCount = 0;
 
@@ -105,10 +108,36 @@ export class App extends EventTarget {
 		}
 
 		this.model = model;
+		this.history.clear();
 		this.viewer.setModel( model ? model.container : null );
 		this.animation.setModel( model );
 		if ( model ) this.viewer.frameBox( model.getWorldBox() );
 		this.emit( 'model' );
+
+	}
+
+	/** ¿Hay una tarea en curso (abrir, reducir, exportar…)? */
+	get busy() {
+
+		return this._busyCount > 0;
+
+	}
+
+	/** Deshace la última acción (Ctrl+Z). */
+	undo() {
+
+		if ( this.busy ) return;
+		const label = this.history.undo();
+		if ( label ) toast( `Deshecho: ${ label }` );
+
+	}
+
+	/** Rehace la última acción deshecha (Ctrl+Y). */
+	redo() {
+
+		if ( this.busy ) return;
+		const label = this.history.redo();
+		if ( label ) toast( `Rehecho: ${ label }` );
 
 	}
 

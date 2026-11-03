@@ -1,7 +1,8 @@
 // Panel "Ajustes": escala, altura deseada, giros de 90° y apoyar en el suelo.
 import { METERS_PER_STUD } from '../core/units.js';
 import {
-	centerAndGround, getUniformScale, resetTransform, rotate90, scaleToHeight, setUniformScale,
+	centerAndGround, getTransformState, getUniformScale, resetTransform, rotate90, sameTransformState,
+	scaleToHeight, setTransformState, setUniformScale,
 } from '../core/transform.js';
 import { $, $$, readNumber } from './dom.js';
 import { toast } from './toast.js';
@@ -20,13 +21,40 @@ export function initAdjustPanel( app ) {
 	keepGrounded.checked = app.settings.keepGrounded;
 	heightUnit.value = app.settings.heightUnit;
 
-	/** Aplica un cambio, apoya en el suelo si corresponde y avisa al resto. */
-	function adjust( change, { ground = keepGrounded.checked } = {} ) {
+	/**
+	 * Aplica un cambio, apoya en el suelo si corresponde, avisa al resto y lo guarda en el
+	 * historial (para deshacerlo con Ctrl+Z).
+	 */
+	function adjust( label, change, { ground = keepGrounded.checked } = {} ) {
 
 		const model = app.model;
 		if ( ! model ) return;
+		const before = getTransformState( model );
 		change( model );
 		if ( ground ) centerAndGround( model );
+		const after = getTransformState( model );
+		showChange( model );
+		if ( sameTransformState( before, after ) ) return;
+		app.history.push( {
+			label,
+			undo: () => {
+
+				setTransformState( model, before );
+				showChange( model );
+
+			},
+			redo: () => {
+
+				setTransformState( model, after );
+				showChange( model );
+
+			},
+		} );
+
+	}
+
+	function showChange( model ) {
+
 		app.viewer.frameBox( model.getWorldBox(), { keepDirection: true } );
 		app.emit( 'transform' );
 
@@ -43,7 +71,7 @@ export function initAdjustPanel( app ) {
 
 		}
 
-		adjust( ( model ) => setUniformScale( model, value ) );
+		adjust( 'Cambiar la escala', ( model ) => setUniformScale( model, value ) );
 
 	} );
 
@@ -52,13 +80,13 @@ export function initAdjustPanel( app ) {
 		button.addEventListener( 'click', () => {
 
 			const factor = Number( button.dataset.scaleMul );
-			adjust( ( model ) => setUniformScale( model, getUniformScale( model ) * factor ) );
+			adjust( `Escala ${ button.textContent.trim() }`, ( model ) => setUniformScale( model, getUniformScale( model ) * factor ) );
 
 		} );
 
 	}
 
-	$( '#btn-scale-reset' ).addEventListener( 'click', () => adjust( ( model ) => setUniformScale( model, 1 ) ) );
+	$( '#btn-scale-reset' ).addEventListener( 'click', () => adjust( 'Escala original', ( model ) => setUniformScale( model, 1 ) ) );
 
 	$( '#btn-height' ).addEventListener( 'click', () => {
 
@@ -71,7 +99,8 @@ export function initAdjustPanel( app ) {
 		}
 
 		const meters = heightUnit.value === 'studs' ? value * METERS_PER_STUD : value;
-		adjust( ( model ) => scaleToHeight( model, meters ) );
+		const unit = heightUnit.value === 'studs' ? 'studs' : 'm';
+		adjust( `Altura: ${ String( value ).replace( '.', ',' ) } ${ unit }`, ( model ) => scaleToHeight( model, meters ) );
 
 	} );
 
@@ -90,15 +119,16 @@ export function initAdjustPanel( app ) {
 
 	for ( const button of $$( '[data-rotate]' ) ) {
 
-		button.addEventListener( 'click', () => adjust( ( model ) => rotate90( model, button.dataset.rotate ) ) );
+		const axis = button.dataset.rotate;
+		button.addEventListener( 'click', () => adjust( `Girar 90° (eje ${ axis.toUpperCase() })`, ( model ) => rotate90( model, axis ) ) );
 
 	}
 
 	keepGrounded.addEventListener( 'change', () => app.setSetting( 'keepGrounded', keepGrounded.checked ) );
 
-	$( '#btn-ground' ).addEventListener( 'click', () => adjust( () => {}, { ground: true } ) );
+	$( '#btn-ground' ).addEventListener( 'click', () => adjust( 'Centrar y apoyar en el suelo', () => {}, { ground: true } ) );
 
-	$( '#btn-reset-transform' ).addEventListener( 'click', () => adjust( resetTransform, { ground: false } ) );
+	$( '#btn-reset-transform' ).addEventListener( 'click', () => adjust( 'Quitar ajustes', resetTransform, { ground: false } ) );
 
 	function render() {
 

@@ -56,9 +56,11 @@ Cómo leer esta lista:
   - Avance (ciclo 3): `deploy.yml` revisa primero si Pages está activado con “GitHub Actions”; si no,
     termina en verde con un aviso. Ya no corre en los PR (eso lo hace “Comprobar”).
     ⏳ Se verá funcionando cuando Actions esté activado y llegue un cambio a `main`.
-- [ ] **F0-09** · Alta · **Deshacer y rehacer** (Ctrl+Z / Ctrl+Y, Ctrl+Shift+Z y botones) para todas
-  las acciones.
-  - Comprobación: pruebas del historial + e2e: ajustar, reducir, deshacer y rehacer.
+- [x] **F0-09** · Alta · **Deshacer y rehacer** (Ctrl+Z / Ctrl+Y, Ctrl+Shift+Z y botones) para todas
+  las acciones. *(ciclo 5)*
+  - Comprobación: pruebas del historial + e2e: ajustar, reducir, deshacer y rehacer. ✔ 7 pruebas
+    unitarias + 2 flujos e2e (teclado y botones; ajustes, reducir y “Volver al original”).
+  - Regla para lo que venga: **toda acción nueva que cambie el modelo se guarda en `app.history`**.
 - [ ] **F0-10** · Alta · **Autoguardado** en IndexedDB y “Recuperar tu trabajo” al volver a abrir.
   - Comprobación: e2e cambia el modelo, recarga la página y lo recupera con sus cambios.
 - [ ] **F0-11** · Alta · **Guardar proyecto / Abrir proyecto** (un archivo que conserva el modelo,
@@ -199,7 +201,10 @@ Cómo leer esta lista:
 - [ ] **F5-06** · Media · **Accesibilidad**: contraste, uso con teclado y revisión con axe (⏳ licencia de axe-core). — Comprobación: revisión automática sin errores graves.
 - [ ] **F5-07** · Baja · **Carga diferida** de los módulos pesados. — Comprobación: el paquete inicial pesa menos (medido en la compilación).
 - [ ] **F5-08** · Baja · **Uso sin internet (PWA).** — Comprobación: e2e sin red abre el editor.
-- [ ] **F5-09** · Media · **Galería de ejemplos** (muñeco R15, espada, árbol low-poly). — Comprobación: e2e abre cada ejemplo y lo exporta válido.
+- [ ] **F5-09** · Media · **Galería de ejemplos** (muñeco R15, espada, árbol low-poly), que se pueda abrir también con un modelo ya abierto (hoy los ejemplos solo están en la pantalla inicial). — Comprobación: e2e abre cada ejemplo y lo exporta válido.
+- [ ] **F5-10** · Media · **Dibujar solo cuando algo cambia**: hoy el visor dibuja 60 veces por segundo aunque nada se mueva y gasta batería en laptop y tablet. *(auditoría del ciclo 5)* — Comprobación: prueba que cuenta cuadros dibujados con la escena quieta (≈0) y moviéndose.
+- [ ] **F5-11** · Baja · **Código repetido**: recorrer materiales y texturas está hecho 4 veces (`info.js`, `exporter.js`, `model.js`, `viewportTools.js`); unificar en un ayudante. *(auditoría del ciclo 5)* — Comprobación: pruebas en verde y un solo ayudante.
+- [ ] **F5-12** · Baja · La etiqueta “v1” de la barra superior quedó vieja: mostrar la versión real. *(auditoría del ciclo 5)* — Comprobación: e2e lee la versión de `package.json` en la barra.
 
 ---
 
@@ -207,10 +212,10 @@ Cómo leer esta lista:
 
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
-| 0 — Base sólida | 15 | 7 |
+| 0 — Base sólida | 15 | 8 |
 | 1 — Animación | 16 | 0 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
-| 5 — Experiencia | 9 | 0 |
-| **Total** | **65** | **7** |
+| 5 — Experiencia | 12 | 0 |
+| **Total** | **68** | **8** |

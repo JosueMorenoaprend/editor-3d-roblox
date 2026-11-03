@@ -82,7 +82,18 @@ body {
 
 .topbar-actions {
 	display: flex;
+	align-items: center;
 	gap: 8px;
+}
+
+.btn-icon {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.btn-icon svg {
+	flex: none;
 }
 
 /* ---------- Distribución ---------- */
@@ -746,9 +757,26 @@ select:disabled {
 	}
 }
 
-@media (max-width: 420px) {
-	.brand-sub {
+@media (max-width: 1000px) {
+	/* Deshacer y rehacer: solo el ícono. */
+	.btn-icon .btn-label {
 		display: none;
+	}
+}
+
+@media (max-width: 520px) {
+	.brand-sub,
+	.tag,
+	.hide-narrow {
+		display: none;
+	}
+
+	.topbar {
+		padding: 8px 12px;
+	}
+
+	.topbar-actions {
+		gap: 6px;
 	}
 
 	.topbar-actions .btn {

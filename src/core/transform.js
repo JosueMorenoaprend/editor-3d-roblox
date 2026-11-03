@@ -73,6 +73,36 @@ export function centerAndGround( model ) {
 
 }
 
+/**
+ * Copia de los ajustes del modelo (para deshacer y rehacer).
+ * @returns {{ position: number[], quaternion: number[], scale: number[] }}
+ */
+export function getTransformState( model ) {
+
+	const { position, quaternion, scale } = model.container;
+	return { position: position.toArray(), quaternion: quaternion.toArray(), scale: scale.toArray() };
+
+}
+
+/** Vuelve a poner unos ajustes guardados con getTransformState(). */
+export function setTransformState( model, state ) {
+
+	const container = model.container;
+	container.position.fromArray( state.position );
+	container.quaternion.fromArray( state.quaternion );
+	container.scale.fromArray( state.scale );
+	container.updateMatrixWorld( true );
+
+}
+
+/** ¿Son iguales dos estados de ajustes? */
+export function sameTransformState( a, b ) {
+
+	const same = ( x, y ) => x.every( ( value, i ) => value === y[ i ] );
+	return same( a.position, b.position ) && same( a.quaternion, b.quaternion ) && same( a.scale, b.scale );
+
+}
+
 /** Quita todos los ajustes (vuelve al modelo tal como venía). */
 export function resetTransform( model ) {
 

@@ -11,8 +11,16 @@
 		<header class="topbar">
 			<h1 class="brand">Editor 3D <span class="brand-sub">para Roblox</span> <span class="tag">v1</span></h1>
 			<div class="topbar-actions">
-				<button type="button" class="btn btn-primary" id="btn-open">Abrir modelo</button>
-				<button type="button" class="btn" id="btn-export-top" disabled>Exportar GLB</button>
+				<button type="button" class="btn btn-icon" id="btn-undo" disabled aria-label="Deshacer" title="Deshacer (Ctrl+Z)">
+					<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					<span class="btn-label">Deshacer</span>
+				</button>
+				<button type="button" class="btn btn-icon" id="btn-redo" disabled aria-label="Rehacer" title="Rehacer (Ctrl+Y)">
+					<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m15 14 5-5-5-5M20 9H9.5a5.5 5.5 0 0 0 0 11H13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					<span class="btn-label">Rehacer</span>
+				</button>
+				<button type="button" class="btn btn-primary" id="btn-open" aria-label="Abrir modelo">Abrir<span class="hide-narrow"> modelo</span></button>
+				<button type="button" class="btn" id="btn-export-top" disabled aria-label="Exportar GLB">Exportar<span class="hide-narrow"> GLB</span></button>
 				<input type="file" id="file-input" accept=".glb,.gltf,.bin,.png,.jpg,.jpeg,.webp" multiple hidden />
 			</div>
 		</header>

@@ -137,6 +137,31 @@ export function restoreMesh( mesh ) {
 
 }
 
+/**
+ * Copia de qué geometría usa cada malla y cuál era su original (para deshacer y rehacer).
+ * Las geometrías no se copian: se guardan las mismas (liberar una con dispose() solo borra su copia
+ * en la tarjeta de video; si vuelve a usarse, three.js la sube de nuevo).
+ */
+export function captureGeometryState( meshes ) {
+
+	return meshes.map( ( mesh ) => ( { mesh, geometry: mesh.geometry, original: originals.get( mesh ) } ) );
+
+}
+
+/** Vuelve a poner un estado guardado con captureGeometryState(). */
+export function applyGeometryState( state ) {
+
+	for ( const { mesh, geometry, original } of state ) {
+
+		mesh.geometry = geometry;
+		if ( original ) originals.set( mesh, original );
+		else originals.delete( mesh );
+		resetBounds( mesh );
+
+	}
+
+}
+
 /** Libera las geometrías originales guardadas (al cerrar el modelo). */
 export function forgetOriginals( meshes ) {
 

@@ -1,7 +1,8 @@
 // Panel "Reducir polígonos".
 import { countTriangles } from '../core/info.js';
 import {
-	checkSimplifiable, getOriginalGeometry, isSimplified, restoreMesh, simplifierReady, simplifyMeshes,
+	applyGeometryState, captureGeometryState, checkSimplifiable, getOriginalGeometry, isSimplified, restoreMesh,
+	simplifierReady, simplifyMeshes,
 } from '../core/simplify.js';
 import { $, escapeHtml, formatInt, readNumber } from './dom.js';
 import { toast } from './toast.js';
@@ -79,25 +80,47 @@ export function initSimplifyPanel( app ) {
 		const meshes = model.meshes.filter( ( mesh ) => selected.has( mesh ) );
 		if ( meshes.length === 0 ) return;
 
+		const before = captureGeometryState( model.meshes );
 		const results = await app.run( 'Reduciendo polígonos…', () => simplifyMeshes( meshes, goal, { permissive: permissive.checked } ), 'No se pudo reducir' );
 		if ( ! results ) return;
 
 		model.updateLocalBox();
 		showResults( results, goal );
 		app.emit( 'geometry' );
+		pushGeometryChange( model, 'Reducir polígonos', before );
 
 	} );
+
+	/** Guarda en el historial un cambio de mallas (si hubo cambio). */
+	function pushGeometryChange( model, label, before ) {
+
+		const after = captureGeometryState( model.meshes );
+		if ( after.every( ( item, i ) => item.geometry === before[ i ].geometry ) ) return;
+		const apply = ( state ) => {
+
+			applyGeometryState( state );
+			model.updateLocalBox();
+			result.hidden = true;
+			app.emit( 'geometry' );
+
+		};
+
+		app.history.push( { label, undo: () => apply( before ), redo: () => apply( after ) } );
+
+	}
 
 	undoButton.addEventListener( 'click', () => {
 
 		const model = app.model;
 		if ( ! model ) return;
+		const before = captureGeometryState( model.meshes );
 		let restored = 0;
 		for ( const mesh of model.meshes ) if ( restoreMesh( mesh ) ) restored ++;
 		model.updateLocalBox();
 		result.hidden = true;
 		if ( restored > 0 ) toast( 'Se volvió a la malla original.', 'ok' );
 		app.emit( 'geometry' );
+		pushGeometryChange( model, 'Volver al original', before );
 
 	} );
 
