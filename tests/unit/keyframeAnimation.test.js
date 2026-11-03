@@ -137,3 +137,27 @@ describe( 'keyframe de toda la pose', () => {
 	} );
 
 } );
+
+describe( 'deshacer en el borrador', () => {
+
+	it( 'snapshot() y restore() vuelven exactamente al estado guardado', () => {
+
+		const animation = new KeyframeAnimation( { duration: 2 } );
+		const up = new Quaternion().setFromAxisAngle( new Vector3( 0, 0, 1 ), 1 );
+		animation.setKey( 'LeftUpperArm', 0, new Quaternion() );
+		animation.setKey( 'LeftUpperArm', 1.5, up );
+		const saved = animation.snapshot();
+		animation.setDuration( 1 );
+		animation.setKey( 'Head', 0.5, up );
+		animation.restore( saved );
+		expect( animation.duration ).toBe( 2 );
+		expect( animation.keyTimes( 'LeftUpperArm' ) ).toEqual( [ 0, 1.5 ] );
+		expect( animation.keyTimes( 'Head' ) ).toEqual( [] );
+		// La copia no cambia con lo que se haga después.
+		animation.removeKey( 'LeftUpperArm', 0 );
+		expect( saved.keys.get( 'LeftUpperArm' ) ).toHaveLength( 2 );
+		expect( animation.toClip().validate() ).toBe( true );
+
+	} );
+
+} );

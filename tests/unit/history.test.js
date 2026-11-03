@@ -130,3 +130,30 @@ describe( 'estados para deshacer', () => {
 	} );
 
 } );
+
+describe( 'quitar acciones del historial', () => {
+
+	it( 'quita las de un editor que se cerró y deja las demás en orden', () => {
+
+		const history = new History();
+		const done = [];
+		const draft = {};
+		let disposed = 0;
+		const command = ( label, extra = {} ) => ( { label, undo: () => done.push( `-${ label }` ), redo: () => done.push( `+${ label }` ), ...extra } );
+		history.push( command( 'A' ) );
+		history.push( command( 'K1', { draft, dispose: () => disposed ++ } ) );
+		history.push( command( 'B' ) );
+		history.push( command( 'K2', { draft, dispose: () => disposed ++ } ) );
+		history.undo();
+		history.removeWhere( ( item ) => item.draft === draft );
+		expect( disposed ).toBe( 2 );
+		expect( history.undoLabel ).toBe( 'B' );
+		expect( history.canRedo ).toBe( false );
+		history.undo();
+		history.undo();
+		expect( history.canUndo ).toBe( false );
+		expect( done ).toEqual( [ '-K2', '-B', '-A' ] );
+
+	} );
+
+} );

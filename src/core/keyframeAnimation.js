@@ -101,6 +101,21 @@ export class KeyframeAnimation {
 
 	}
 
+	/** Copia de todos los keyframes y de la duración (para deshacer). */
+	snapshot() {
+
+		return { duration: this.duration, keys: copyKeys( this.keys ) };
+
+	}
+
+	/** Vuelve al estado de una copia hecha con snapshot(). */
+	restore( { duration, keys } ) {
+
+		this.duration = duration;
+		this.keys = copyKeys( keys );
+
+	}
+
 	/** La animación para reproducir o exportar (una pista de giro por hueso con keyframes). */
 	toClip( name = this.name ) {
 
@@ -118,5 +133,12 @@ export class KeyframeAnimation {
 		return Math.min( Math.max( Math.round( time * 1000 ) / 1000, 0 ), this.duration );
 
 	}
+
+}
+
+/** Copia profunda de los keyframes (hueso → [{ time, quaternion: [x, y, z, w] }]). */
+function copyKeys( keys ) {
+
+	return new Map( [ ...keys ].map( ( [ bone, list ] ) => [ bone, list.map( ( key ) => ( { time: key.time, quaternion: [ ...key.quaternion ] } ) ) ] ) );
 
 }

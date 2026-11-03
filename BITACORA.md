@@ -4,6 +4,38 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 24 — Ctrl+Z deshace cada keyframe (2026-11-03)
+
+**Auditoría:** punto de partida, el commit del ciclo 23 (`f6b0be3`). Actions: sin ejecuciones.
+
+**Tarea:** F1-24 (Media), la parte de deshacer. La regla “siempre se puede deshacer” no se cumplía dentro del
+editor de keyframes: Ctrl+Z deshacía otra cosa del modelo. El autoguardado del borrador, que estaba en la
+misma tarea, pasó a **F1-26** (misma prioridad): necesita subir el formato del proyecto y conviene hacerlo
+en su propio ciclo.
+
+**Qué hice**
+
+- Poner y quitar keyframes y cambiar la duración guardan un paso en `app.history` con una copia del borrador
+  antes y después (`KeyframeAnimation.snapshot()` / `restore()`). Deshacer o rehacer muestra el momento del
+  cambio. Si sonaba una animación, se detiene antes.
+- `History.removeWhere()`: al guardar o descartar el borrador, sus pasos salen del historial (marcados con
+  `draft`). Así, después de guardar, Ctrl+Z quita la animación entera y no hay pasos “fantasma”.
+
+**Problema en el camino:** la copia suponía que cada keyframe guardaba un `Quaternion`, pero guarda
+`[x, y, z, w]`; la prueba de Vitest lo mostró al instante.
+
+**Cómo lo verifiqué**
+
+- Vitest: 2 pruebas nuevas (`removeWhere` quita solo las marcadas, llama a `dispose` y deja las demás en
+  orden; `snapshot()` / `restore()` vuelven exactamente al estado guardado y la copia no cambia después).
+- Playwright (escritorio y móvil): 2 keyframes → el botón ↶ dice «Deshacer: Poner keyframe (Brazo
+  izquierdo, 1,00 s)» → Ctrl+Z deja 1 → Ctrl+Y vuelve a 2 (y a 45°) → guardar → Ctrl+Z quita la animación.
+- `npm run check` → código 0: **135/135** Vitest y **60/60** Playwright.
+
+**Qué sigue:** F1-26 (autoguardar el borrador), F1-25, F1-08 y F1-15.
+
+---
+
 ## Ciclo 23 — Copiar, pegar y reflejar poses (2026-11-03)
 
 **Auditoría:** punto de partida, el commit del ciclo 22 (`d7e9e66`). Actions: sin ejecuciones.

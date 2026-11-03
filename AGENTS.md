@@ -245,7 +245,8 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
   `app.history`: lo que no esté en el historial tampoco se autoguarda.
 - **Toda acción que cambie el modelo se guarda en `app.history`** con `push( { label, undo, redo } )`
   (la acción ya está hecha al guardarla). Ejemplos: `adjust()` en `adjustPanel.js` y
-  `pushGeometryChange()` en `simplifyPanel.js`. El historial se vacía al abrir otro modelo.
+  `pushGeometryChange()` en `simplifyPanel.js`. El historial se vacía al abrir otro modelo. Un editor con borrador propio (los keyframes) marca sus pasos
+  (`draft`) y los quita con `history.removeWhere()` al cerrarse.
 - `src/core/` no toca el DOM: así se prueba en Node. La interfaz vive en `src/ui/`.
 - Exportar: `GLTFExporter` binario, en la pose de reposo; texturas WebP → PNG; vértices cuantizados →
   Float32 (para no depender de extensiones que Roblox podría no leer).

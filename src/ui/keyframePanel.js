@@ -186,7 +186,7 @@ export function initKeyframePanel( app ) {
 		}
 
 		const before = editor.animation.keyCount;
-		editor.animation.setDuration( value );
+		changeKeys( `Duración: ${ formatNumber( value, 2 ) } s`, () => editor.animation.setDuration( value ) );
 		const lost = before - editor.animation.keyCount;
 		if ( lost > 0 ) toast( `Se borraron ${ plural( lost, 'keyframe' ) } que quedaban después de los ${ formatNumber( value, 2 ) } s.` );
 		editor.time = Math.min( editor.time, editor.animation.duration );
@@ -194,6 +194,33 @@ export function initKeyframePanel( app ) {
 		render();
 
 	} );
+
+	/**
+	 * Cambia los keyframes y guarda el paso en el historial: Ctrl+Z lo deshace mientras el editor está
+	 * abierto, y muestra el momento en que se hizo.
+	 */
+	function changeKeys( label, change ) {
+
+		const draft = editor.animation;
+		const time = editor.time;
+		const before = draft.snapshot();
+		change();
+		const after = draft.snapshot();
+		const show = ( state ) => {
+
+			if ( ! editor || editor.animation !== draft ) return;
+			if ( editor.playing || editor.other ) app.animation.stop();
+			draft.restore( state );
+			durationInput.value = String( draft.duration );
+			editor.time = Math.min( time, draft.duration );
+			showPose();
+			render();
+
+		};
+
+		app.history.push( { label, draft, undo: () => show( before ), redo: () => show( after ) } );
+
+	}
 
 	/** Pose copiada: grados por parte, en el espacio del personaje (sirve en otro momento o personaje). */
 	let clipboard = null;
@@ -247,7 +274,9 @@ export function initKeyframePanel( app ) {
 
 		const keys = [ ...new Set( [ ...editor.changed, editor.key ] ) ].filter( ( key ) => key && partBone( key ) );
 		if ( keys.length === 0 ) return;
-		editor.animation.setPose( editor.time, keys.map( ( key ) => [ partBone( key ).name, partBone( key ).quaternion ] ) );
+		const label = keys.length > 1 ? plural( keys.length, 'parte' ) : boneLabel( keys[ 0 ] );
+		const pose = keys.map( ( key ) => [ partBone( key ).name, partBone( key ).quaternion.clone() ] );
+		changeKeys( `Poner keyframe (${ label }, ${ seconds( editor.time ) } s)`, () => editor.animation.setPose( editor.time, pose ) );
 		editor.changed.clear();
 		if ( keys.length > 1 ) {
 
@@ -262,13 +291,14 @@ export function initKeyframePanel( app ) {
 	$( '#btn-keys-remove' ).addEventListener( 'click', () => {
 
 		const target = bone();
-		if ( ! target || ! editor.animation.removeKey( target.name, editor.time ) ) {
+		if ( ! target || ! editor.animation.hasKey( target.name, editor.time ) ) {
 
 			toast( `«${ boneLabel( editor.key ) }» no tiene keyframe en este momento.` );
 			return;
 
 		}
 
+		changeKeys( `Quitar keyframe (${ boneLabel( editor.key ) }, ${ seconds( editor.time ) } s)`, () => editor.animation.removeKey( target.name, editor.time ) );
 		showPose();
 		render();
 
@@ -364,8 +394,10 @@ export function initKeyframePanel( app ) {
 	function close() {
 
 		if ( ! editor ) return;
-		const { model, playing, other } = editor;
+		const { model, playing, other, animation } = editor;
 		editor = null;
+		// Los pasos de este borrador ya no se pueden deshacer: se guardó (Ctrl+Z quita la animación entera) o se descartó.
+		app.history.removeWhere( ( command ) => command.draft === animation );
 		app.animation.setIdlePose( null );
 		gizmo?.detach();
 		app.viewer.controls.enabled = true;

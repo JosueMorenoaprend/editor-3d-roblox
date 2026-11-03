@@ -87,6 +87,23 @@ export class History extends EventTarget {
 
 	}
 
+	/** Quita las acciones que cumplen la condición (por ejemplo, las de un editor que ya se cerró). */
+	removeWhere( test ) {
+
+		const keep = ( list ) => list.filter( ( command ) => {
+
+			if ( ! test( command ) ) return true;
+			command.dispose?.();
+			return false;
+
+		} );
+		const count = this._undo.length + this._redo.length;
+		this._undo = keep( this._undo );
+		this._redo = keep( this._redo );
+		if ( this._undo.length + this._redo.length !== count ) this._emit();
+
+	}
+
 	/** Olvida todo (por ejemplo, al abrir otro modelo). */
 	clear() {
 

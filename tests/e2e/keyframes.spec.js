@@ -265,3 +265,32 @@ test( 'reflejar, copiar y pegar poses', async ( { page }, testInfo ) => {
 	expectSideways( last, - 60 );
 
 } );
+
+test( 'Ctrl+Z deshace cada keyframe mientras editas', async ( { page } ) => {
+
+	const status = page.locator( '#keys-status' );
+	await page.goto( './' );
+	await openSample( page, 'Muñeco R15' );
+	await page.locator( '#btn-keys-open' ).click();
+	await page.locator( '#btn-keys-set' ).click();
+	await page.locator( '#keys-time' ).fill( '1' );
+	await page.locator( '#keys-z' ).fill( '45' );
+	await page.locator( '#btn-keys-set' ).click();
+	await expect( status ).toContainText( '2 keyframes en total' );
+	await expect( page.locator( '#btn-undo' ) ).toHaveAttribute( 'title', 'Deshacer: Poner keyframe (Brazo izquierdo, 1,00 s) (Ctrl+Z)' );
+
+	// Deshacer quita el último keyframe; rehacer lo vuelve a poner.
+	await page.keyboard.press( 'Control+z' );
+	await expect( status ).toContainText( '1 keyframe en total. «Brazo izquierdo»: en 0,00 s.' );
+	await expect( page.locator( '#keys-z-value' ) ).toHaveText( '0°' );
+	await page.keyboard.press( 'Control+y' );
+	await expect( status ).toContainText( '2 keyframes en total' );
+	await expect( page.locator( '#keys-z-value' ) ).toHaveText( '45°' );
+
+	// Al guardar, los keyframes sueltos salen del historial: Ctrl+Z quita la animación entera.
+	await page.locator( '#btn-keys-save' ).click();
+	await page.keyboard.press( 'Control+z' );
+	await expect( page.locator( '.toast' ).last() ).toContainText( 'Deshecho: Agregar animación: Mi animación' );
+	await expect( page.locator( '#anim-select option' ) ).toHaveCount( 3 );
+
+} );

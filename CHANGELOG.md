@@ -82,6 +82,8 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
   del cuerpo al otro, en espejo (el brazo izquierdo levantado pasa al derecho): ideal para caminar o para
   golpes con los dos brazos. Una pose copiada se pega en otro momento (por ejemplo, para terminar como
   empezaste y que la animación se repita sin saltos).
+- **Ctrl+Z deshace cada keyframe** mientras editas (también los botones ↶ ↷). Cuando guardas la animación,
+  Ctrl+Z la quita entera.
 
 ## Versión 1
 
