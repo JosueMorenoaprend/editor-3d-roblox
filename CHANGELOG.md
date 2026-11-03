@@ -76,6 +76,8 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
 - **Poner keyframe guarda toda la pose que ves:** si giraste varias partes (por ejemplo, el brazo y la
   cabeza), un solo clic les pone keyframe a todas. Si tienes giros sin keyframe, el editor te avisa antes de
   que se pierdan al cambiar de momento (y, si cambias igual, te dice cuáles se descartaron).
+- Si exportas o guardas el proyecto con una animación de keyframes **sin guardar**, el editor te avisa que
+  esa animación todavía no va en el archivo.
 
 ## Versión 1
 

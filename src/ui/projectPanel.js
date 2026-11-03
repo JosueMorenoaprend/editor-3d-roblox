@@ -15,6 +15,9 @@ export function initProjectPanel( app ) {
 		const model = app.model;
 		if ( ! model ) return;
 
+		// Avisa a quien tenga trabajo sin guardar que no va en el archivo (el editor de keyframes).
+		app.emit( 'exporting' );
+
 		// Se guarda en la pose de reposo, no en el cuadro actual de una animación ni en la pose del editor de
 		// keyframes (esa vuelve al terminar).
 		app.animation.stop();

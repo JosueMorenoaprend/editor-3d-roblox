@@ -29,6 +29,9 @@ export function initExportPanel( app ) {
 		const clips = animsCheck.checked ? model.clips.filter( ( clip ) => ! excluded.has( clip ) ) : [];
 		const withAnimations = clips.length > 0;
 
+		// Avisa a quien tenga trabajo sin guardar que no va en el archivo (el editor de keyframes).
+		app.emit( 'exporting' );
+
 		// Se exporta en la pose de reposo, no en el cuadro actual de una animación ni en la pose que se está
 		// armando en el editor de keyframes (esa vuelve al terminar).
 		const wasPlaying = app.animation.isPlaying;

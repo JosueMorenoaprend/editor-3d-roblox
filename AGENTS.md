@@ -202,7 +202,8 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
 - `App` es un `EventTarget`. Eventos: `model` (se abrió o cerró un modelo), `geometry` (cambiaron las
   mallas), `transform` (cambió escala/giro/posición), `settings` (cambió una preferencia), `bonemap`
   (cambió `model.boneMap`), `clips` (se agregaron o quitaron animaciones de `model.clips`; usa
-  `app.animation.addClips/removeClips`, que no dejan el reproductor apuntando a una animación borrada).
+  `app.animation.addClips/removeClips`, que no dejan el reproductor apuntando a una animación borrada) y `exporting` (justo antes de exportar o
+  guardar el proyecto: quien tenga trabajo sin guardar avisa que no va en el archivo).
 - **Mapa de huesos** (`model.boneMap`, clave estándar → nombre del hueso): al abrir, el del proyecto o,
   si no hay, el detectado. Todo lo que anime (generadores, retarget, guion de IA) debe usarlo, y girar
   los huesos **en el espacio del personaje** (mira a +Z, izquierda +X) con `P⁻¹·D·P·L` como en

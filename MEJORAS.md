@@ -29,8 +29,8 @@ Cómo leer esta lista:
 
 1. ~~**F1-14**~~ y ~~**F1-16**~~ (hechas en los ciclos 16 y 17).
 2. ~~**F1-05**~~ (hecha en el ciclo 18).
-3. ~~**F1-10**~~ (hecha en el ciclo 19), el error ~~**F1-21**~~ (ciclo 20) y ~~**F1-22**~~ (ciclo 21).
-   Siguen las Media de la Fase 1 (F1-23, F1-24, F1-25, F1-08, F1-15, F1-11…).
+3. ~~**F1-10**~~ (ciclo 19), ~~**F1-21**~~ (ciclo 20), ~~**F1-22**~~ (ciclo 21) y ~~**F1-23**~~ (ciclo 22).
+   Siguen las Media de la Fase 1 (F1-24, F1-25, F1-08, F1-15, F1-11…).
 4. **F5-14** y **F5-13** (Media): el panel ya es muy largo, sobre todo en el celular.
 5. Fase 2 (conexión con IA): el guion de animación usa el mapa y los giros “en el espacio del personaje”
    que ya existen (F2-01, F2-02).
@@ -260,9 +260,12 @@ Cómo leer esta lista:
     (`setPose`: 2 partes en el mismo momento, reemplaza sin duplicar) + e2e (escritorio y móvil): brazo
     60° y cabeza 30° → un clic → 2 keyframes → un giro sin keyframe se descarta con aviso → el GLB
     exportado (válido) trae el brazo y la cabeza, con el brazo a 60°.
-- [ ] **F1-23** · Media · Si se exporta con keyframes **sin guardar**, avisar que esa animación todavía no
-  va en el archivo (hay que pulsar “Guardar animación”). *(auditoría del ciclo 19)*
-  - Comprobación: e2e exporta con el editor abierto y ve el aviso.
+- [x] **F1-23** · Media · Si se exporta con keyframes **sin guardar**, avisar que esa animación todavía no
+  va en el archivo (hay que pulsar “Guardar animación”). *(auditoría del ciclo 19; hecho en el ciclo 22)*
+  - Comprobación: e2e exporta con el editor abierto y ve el aviso. ✔ Exportar y Guardar proyecto emiten el
+    evento `exporting`; si el editor de keyframes tiene keyframes, avisa (9 s): «“Mi animación” todavía no
+    está guardada, así que no va en el archivo. Pulsa «Guardar animación» y vuelve a exportar (o a guardar
+    el proyecto).». e2e (escritorio y móvil): exportar con el editor abierto muestra el aviso.
 - [ ] **F1-24** · Media · **Deshacer cada keyframe** (Ctrl+Z dentro del editor; hoy deshace la última
   acción del modelo) y **autoguardar el borrador** de keyframes (hoy, si se cierra la página antes de
   guardar, se pierde). *(auditoría del ciclo 19)*
@@ -373,9 +376,9 @@ Cómo leer esta lista:
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
 | 0 — Base sólida | 17 | 13 |
-| 1 — Animación | 25 | 12 |
+| 1 — Animación | 25 | 13 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 15 | 0 |
-| **Total** | **82** | **25** |
+| **Total** | **82** | **26** |

@@ -4,6 +4,27 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 22 — Aviso al exportar con keyframes sin guardar (2026-11-03)
+
+**Auditoría:** punto de partida, el commit del ciclo 21 (`55ac1bc`). Actions: sin ejecuciones.
+
+**Tarea:** F1-23 (Media).
+
+**Qué hice:** Exportar y Guardar proyecto emiten el evento `exporting` justo antes de empezar. El editor de
+keyframes lo escucha: si tiene keyframes sin guardar, avisa durante 9 s que «“Mi animación” todavía no está
+guardada, así que no va en el archivo» y qué pulsar. Con un evento, el panel de exportar no necesita saber
+nada del editor de keyframes (y otras herramientas con trabajo a medias pueden usar el mismo aviso).
+
+**Cómo lo verifiqué**
+
+- Playwright (escritorio y móvil): la prueba “exportar y guardar el proyecto con el editor abierto” ahora
+  también exige el aviso después de exportar.
+- `npm run check` → código 0: **131/131** Vitest y **56/56** Playwright.
+
+**Qué sigue:** F1-24 (deshacer cada keyframe y autoguardar el borrador) y F1-25.
+
+---
+
 ## Ciclo 21 — Un keyframe guarda toda la pose (2026-11-03)
 
 **Auditoría:** punto de partida, el commit del ciclo 20 (`9e22d75`). Actions: sin ejecuciones. El usuario

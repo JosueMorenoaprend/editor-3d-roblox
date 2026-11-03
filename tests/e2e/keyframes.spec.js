@@ -120,6 +120,8 @@ test( 'exportar y guardar el proyecto con el editor abierto: el archivo sale en 
 
 	// El GLB sale en la pose de reposo: el brazo no queda levantado como si fuera su forma normal.
 	const { bytes: model } = await exportAndValidate( page, testInfo, 'muneco_editando.glb' );
+	// Avisa que la animación a medio hacer todavía no va en el archivo.
+	await expect( page.locator( '.toast', { hasText: '«Mi animación» todavía no está guardada' } ) ).toBeVisible();
 	const arm = readGLBJson( model ).nodes.find( ( node ) => node.name === 'LeftUpperArm' );
 	( arm.rotation || [ 0, 0, 0, 1 ] ).forEach( ( value, i ) => expect( value ).toBeCloseTo( [ 0, 0, 0, 1 ][ i ], 6 ) );
 

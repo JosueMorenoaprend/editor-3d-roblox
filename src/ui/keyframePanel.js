@@ -424,6 +424,15 @@ export function initKeyframePanel( app ) {
 
 	}
 
+	// Al exportar o guardar el proyecto: la animación a medio hacer todavía no está en el personaje.
+	app.on( 'exporting', () => {
+
+		if ( ! editor || editor.animation.keyCount === 0 ) return;
+		toast( `«${ editor.animation.name }» todavía no está guardada, así que no va en el archivo. ` +
+			'Pulsa «Guardar animación» y vuelve a exportar (o a guardar el proyecto).', 'info', 9000 );
+
+	} );
+
 	app.on( 'model', () => {
 
 		close();
