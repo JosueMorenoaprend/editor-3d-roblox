@@ -4,6 +4,35 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 23 — Copiar, pegar y reflejar poses (2026-11-03)
+
+**Auditoría:** punto de partida, el commit del ciclo 22 (`d7e9e66`). Actions: sin ejecuciones.
+
+**Tarea:** F1-11 (Media). Elegida antes que F1-24 porque es más útil al animar (ciclos de caminata,
+golpes con los dos brazos) y más barata (quedan pocos créditos).
+
+**Qué hice**
+
+- `core/poseTools.js`: `readPose()` (grados por parte, en el espacio del personaje), `mirrorAngles()` (cada
+  parte toma los grados de la del otro lado: adelante/atrás igual, girar y hacia los lados con el signo
+  cambiado, porque reflejar en el plano X = 0 cambia el signo de los giros en Y y en Z) y `poseRotations()`
+  (de grados a giros locales de cada hueso).
+- En el editor de keyframes: **Copiar pose**, **Pegar pose** (apagado hasta copiar) y **Reflejar ⇄**. Lo
+  pegado o reflejado queda como “giros sin keyframe” (F1-22): un clic en Poner keyframe lo guarda.
+
+**Cómo lo verifiqué**
+
+- Vitest: 2 pruebas nuevas (en el R15 y en un esqueleto tipo Mixamo con ejes girados, después de reflejar,
+  el brazo derecho apunta como apuntaba el izquierdo en espejo y la cabeza gira al otro lado; copiar y pegar
+  devuelve la misma pose).
+- Playwright (escritorio y móvil): reflejar, copiar y pegar, y el GLB exportado (válido) trae el brazo
+  derecho en −60°, 20° y −60°. Captura del celular revisada: los 3 botones caben en una fila.
+- `npm run check` → código 0: **133/133** Vitest y **58/58** Playwright.
+
+**Qué sigue:** F1-24, F1-25, F1-08 y F1-15.
+
+---
+
 ## Ciclo 22 — Aviso al exportar con keyframes sin guardar (2026-11-03)
 
 **Auditoría:** punto de partida, el commit del ciclo 21 (`55ac1bc`). Actions: sin ejecuciones.

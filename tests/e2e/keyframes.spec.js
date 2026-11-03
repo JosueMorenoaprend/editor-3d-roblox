@@ -218,3 +218,50 @@ test( 'un keyframe guarda toda la pose que se ve y avisa antes de perder giros s
 	expectSideways( readGLBAccessor( bytes, json, animation.samplers[ arm.sampler ].output )[ 0 ], 60 );
 
 } );
+
+test( 'reflejar, copiar y pegar poses', async ( { page }, testInfo ) => {
+
+	const status = page.locator( '#keys-status' );
+	const lastToast = page.locator( '.toast' ).last();
+	const paste = page.locator( '#btn-keys-paste' );
+	await page.goto( './' );
+	await openSample( page, 'Muñeco R15' );
+	await page.locator( '#btn-keys-open' ).click();
+	await expect( paste ).toBeDisabled();
+
+	// Brazo izquierdo 60° hacia los lados → Reflejar → ahora el levantado es el derecho.
+	await page.locator( '#keys-z' ).fill( '60' );
+	await page.locator( '#btn-keys-mirror' ).click();
+	await expect( lastToast ).toContainText( 'Reflejé la pose (izquierda ⇄ derecha): 2 partes cambiaron.' );
+	await expect( page.locator( '#keys-z-value' ) ).toHaveText( '0°' );
+	await expect( status ).toContainText( 'Giros sin keyframe: «Brazo izquierdo», «Brazo derecho».' );
+	await page.locator( '#keys-part' ).selectOption( 'rightUpperArm' );
+	await expect( page.locator( '#keys-z-value' ) ).toHaveText( '-60°' );
+	await captureScrolledTo( page, testInfo, 'keyframes-reflejar', '#keys-angles' );
+	await page.locator( '#btn-keys-set' ).click();
+	await expect( status ).toContainText( '2 keyframes en total' );
+
+	// Copiar a los 0 s; a 1 s, el brazo derecho a 20°; pegar a los 2 s (vuelve como empezó: un bucle).
+	await page.locator( '#btn-keys-copy' ).click();
+	await expect( paste ).toBeEnabled();
+	await page.locator( '#keys-time' ).fill( '1' );
+	await page.locator( '#keys-z' ).fill( '20' );
+	await page.locator( '#btn-keys-set' ).click();
+	await page.locator( '#keys-time' ).fill( '2' );
+	await paste.click();
+	await expect( lastToast ).toContainText( 'Pegué la pose: 1 parte cambió.' );
+	await expect( page.locator( '#keys-z-value' ) ).toHaveText( '-60°' );
+	await page.locator( '#btn-keys-set' ).click();
+	await expect( status ).toContainText( '4 keyframes en total. «Brazo derecho»: en 0,00 s, 1,00 s, 2,00 s.' );
+
+	await page.locator( '#btn-keys-save' ).click();
+	const { bytes } = await exportAndValidate( page, testInfo, 'muneco_reflejo.glb' );
+	const json = readGLBJson( bytes );
+	const animation = json.animations.find( ( item ) => item.name === 'Mi animación' );
+	const channel = animation.channels.find( ( item ) => json.nodes[ item.target.node ].name === 'RightUpperArm' );
+	const [ first, middle, last ] = readGLBAccessor( bytes, json, animation.samplers[ channel.sampler ].output );
+	expectSideways( first, - 60 );
+	expectSideways( middle, 20 );
+	expectSideways( last, - 60 );
+
+} );

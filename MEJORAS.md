@@ -29,8 +29,8 @@ Cómo leer esta lista:
 
 1. ~~**F1-14**~~ y ~~**F1-16**~~ (hechas en los ciclos 16 y 17).
 2. ~~**F1-05**~~ (hecha en el ciclo 18).
-3. ~~**F1-10**~~ (ciclo 19), ~~**F1-21**~~ (ciclo 20), ~~**F1-22**~~ (ciclo 21) y ~~**F1-23**~~ (ciclo 22).
-   Siguen las Media de la Fase 1 (F1-24, F1-25, F1-08, F1-15, F1-11…).
+3. ~~**F1-10**~~ (ciclo 19), ~~**F1-21**~~ (ciclo 20), ~~**F1-22**~~ (ciclo 21), ~~**F1-23**~~ (ciclo 22) y
+   ~~**F1-11**~~ (ciclo 23). Siguen las Media de la Fase 1 (F1-24, F1-25, F1-08, F1-15…).
 4. **F5-14** y **F5-13** (Media): el panel ya es muy largo, sobre todo en el celular.
 5. Fase 2 (conexión con IA): el guion de animación usa el mapa y los giros “en el espacio del personaje”
    que ya existen (F2-01, F2-02).
@@ -193,8 +193,15 @@ Cómo leer esta lista:
     keyframes; a la mitad entre 2 keyframes el brazo va por 45°; GLB válido) + e2e (escritorio y móvil):
     2 keyframes del brazo (0 y 80° a 1 s) → a 0,5 s marca 40° → reproducir y detener → guardar → exportar:
     GLB válido con 2 cuadros en `LeftUpperArm` y el segundo girado 80°.
-- [ ] **F1-11** · Media · **Copiar y pegar poses** y **reflejar** izquierda↔derecha.
-  - Comprobación: pruebas unitarias del reflejo + e2e.
+- [x] **F1-11** · Media · **Copiar y pegar poses** y **reflejar** izquierda↔derecha. *(ciclo 23)*
+  - Comprobación: pruebas unitarias del reflejo + e2e. ✔ En el editor de keyframes: **Copiar pose**,
+    **Pegar pose** y **Reflejar ⇄** (`core/poseTools.js`). Las poses se guardan como grados por parte en el
+    espacio del personaje; reflejar pasa cada parte a la del otro lado con adelante/atrás igual y girar y
+    hacia los lados con el signo cambiado. Lo pegado o reflejado queda como “giros sin keyframe” (un clic en
+    Poner keyframe lo guarda). 2 pruebas de Vitest (en el R15 y en un Mixamo con ejes girados, el brazo
+    derecho apunta como el izquierdo en espejo, < 0,0001°, y la cabeza gira al otro lado; copiar y pegar
+    devuelve la misma pose) + e2e (escritorio y móvil): brazo izquierdo 60° → Reflejar → el derecho a −60°
+    → keyframe → copiar → a 2 s pegar → GLB válido con el brazo derecho en −60°, 20° y −60°.
 - [ ] **F1-12** · Media · **Suavizado de curvas** y **fantasmas** de los fotogramas vecinos.
   - Comprobación: pruebas + captura con fantasmas visibles.
 - [ ] **F1-13** · Media · **IK de pies y manos** (`CCDIKSolver`): los pies no atraviesan el piso.
@@ -376,9 +383,9 @@ Cómo leer esta lista:
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
 | 0 — Base sólida | 17 | 13 |
-| 1 — Animación | 25 | 13 |
+| 1 — Animación | 25 | 14 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 15 | 0 |
-| **Total** | **82** | **26** |
+| **Total** | **82** | **27** |

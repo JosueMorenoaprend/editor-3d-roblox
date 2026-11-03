@@ -9,6 +9,7 @@
 import { uniqueClipName } from '../core/animation.js';
 import { HUMANOID_BONES, boneLabel } from '../core/boneMap.js';
 import { KeyframeAnimation } from '../core/keyframeAnimation.js';
+import { mirrorAngles, poseRotations, readPose } from '../core/poseTools.js';
 import { ClipSampler, RestPose, anglesFromLocal, findBones, localFromAngles } from '../core/skeletonPose.js';
 import { addClipsWithUndo } from './clipHistory.js';
 import { $, $$, escapeHtml, formatNumber, plural, readNumber } from './dom.js';
@@ -34,7 +35,9 @@ export function initKeyframePanel( app ) {
 	const cancelButton = $( '#btn-keys-cancel' );
 	const busyBox = $( '#keys-busy' );
 	const busyText = $( '#keys-busy-text' );
-	const editing = [ nameInput, durationInput, partSelect, ...sliders, timeInput, $( '#btn-keys-set' ), $( '#btn-keys-remove' ), $( '#btn-keys-save' ) ];
+	const editing = [ nameInput, durationInput, partSelect, ...sliders, timeInput, $( '#btn-keys-set' ), $( '#btn-keys-remove' ), $( '#btn-keys-save' ),
+		$( '#btn-keys-copy' ), $( '#btn-keys-mirror' ) ];
+	const pasteButton = $( '#btn-keys-paste' );
 
 	/** Anillos para girar el hueso elegido con el mouse o el dedo (se cargan la primera vez que se abre). */
 	let gizmo = null;
@@ -191,6 +194,53 @@ export function initKeyframePanel( app ) {
 		render();
 
 	} );
+
+	/** Pose copiada: grados por parte, en el espacio del personaje (sirve en otro momento o personaje). */
+	let clipboard = null;
+
+	$( '#btn-keys-copy' ).addEventListener( 'click', () => {
+
+		clipboard = readPose( editor.rest, editor.model.boneMap, editor.bones );
+		toast( `Copié la pose (${ plural( clipboard.size, 'parte' ) }). Ve a otro momento y pulsa «Pegar pose».`, 'ok' );
+		render();
+
+	} );
+
+	pasteButton.addEventListener( 'click', () => {
+
+		if ( clipboard ) usePose( poseRotations( editor.rest, editor.model.boneMap, editor.bones, clipboard ), 'Pegué la pose' );
+
+	} );
+
+	$( '#btn-keys-mirror' ).addEventListener( 'click', () => {
+
+		const mirrored = mirrorAngles( readPose( editor.rest, editor.model.boneMap, editor.bones ) );
+		usePose( poseRotations( editor.rest, editor.model.boneMap, editor.bones, mirrored ), 'Reflejé la pose (izquierda ⇄ derecha)' );
+
+	} );
+
+	/** Pone giros nuevos (pegados o reflejados) como cambios sin keyframe y dice qué falta. */
+	function usePose( rotations, done ) {
+
+		let count = 0;
+		for ( const [ key, quaternion ] of rotations ) {
+
+			const target = partBone( key );
+			if ( ! target || target.quaternion.angleTo( quaternion ) < 1e-4 ) continue;
+			target.quaternion.copy( quaternion );
+			remember( target );
+			editor.changed.add( key );
+			count ++;
+
+		}
+
+		editor.model.container.updateMatrixWorld( true );
+		syncSliders();
+		render();
+		if ( count === 0 ) toast( `${ done }: era igual a la que ya tenías.` );
+		else toast( `${ done }: ${ plural( count, 'parte cambió', 'partes cambiaron' ) }. Pulsa «Poner keyframe» para guardarla en este momento.`, 'ok' );
+
+	}
 
 	// Guarda la pose que se ve: la parte elegida y todas las que se giraron sin keyframe.
 	$( '#btn-keys-set' ).addEventListener( 'click', () => {
@@ -403,6 +453,7 @@ export function initKeyframePanel( app ) {
 		timeInput.value = String( time );
 		clock.textContent = `${ seconds( time ) } / ${ seconds( animation.duration ) } s`;
 		for ( const control of editing ) control.disabled = playing || !! other;
+		pasteButton.disabled = playing || !! other || ! clipboard;
 		playButton.textContent = playing ? '■ Detener' : '▶ Reproducir';
 		busyBox.hidden = ! other;
 		if ( other ) {

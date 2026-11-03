@@ -78,6 +78,10 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
   que se pierdan al cambiar de momento (y, si cambias igual, te dice cuáles se descartaron).
 - Si exportas o guardas el proyecto con una animación de keyframes **sin guardar**, el editor te avisa que
   esa animación todavía no va en el archivo.
+- **Nuevo: Copiar pose, Pegar pose y Reflejar ⇄** en el editor de keyframes. Reflejar pasa la pose de un lado
+  del cuerpo al otro, en espejo (el brazo izquierdo levantado pasa al derecho): ideal para caminar o para
+  golpes con los dos brazos. Una pose copiada se pega en otro momento (por ejemplo, para terminar como
+  empezaste y que la animación se repita sin saltos).
 
 ## Versión 1
 
