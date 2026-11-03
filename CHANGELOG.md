@@ -25,6 +25,9 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
 - **Reducir polígonos ya no congela la página.** Se hace en segundo plano: mientras tanto puedes
   mover la cámara, ves una **barra de avance** y puedes pulsar **Cancelar** (el modelo queda igual).
 - El editor arranca un poco más rápido: la herramienta de reducir se carga solo cuando la usas.
+- **Nuevo: Proyectos.** En la sección *Proyecto*, “Guardar proyecto” descarga un archivo
+  `nombre.proyecto.glb` con todo tu trabajo (modelo, ajustes y animaciones). Otro día, ábrelo con
+  “Abrir proyecto” y sigue donde lo dejaste; los ajustes se pueden seguir quitando.
 
 ## Versión 1
 

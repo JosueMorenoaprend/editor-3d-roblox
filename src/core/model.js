@@ -18,8 +18,29 @@ export class LoadedModel {
 
 		const source = gltf.scene;
 		const container = new THREE.Group();
-		container.userData = { ...source.userData };
-		for ( const child of [ ...source.children ] ) container.add( child );
+
+		// ¿Es un proyecto guardado con este editor? Entonces su nodo raíz es el contenedor de
+		// antes: sus hijos son el modelo y su escala/giro/posición son los ajustes del editor.
+		const project = readProject( source );
+		/** Datos del proyecto (si se abrió un proyecto), o null. */
+		this.project = project ? project.info : null;
+		if ( project ) {
+
+			const { editor3dRoblox, ...rest } = project.root.userData;
+			container.userData = rest;
+			for ( const child of [ ...project.root.children ] ) container.add( child );
+			container.position.copy( project.root.position );
+			container.quaternion.copy( project.root.quaternion );
+			container.scale.copy( project.root.scale );
+			if ( project.info.baseName ) this.baseName = String( project.info.baseName );
+
+		} else {
+
+			container.userData = { ...source.userData };
+			for ( const child of [ ...source.children ] ) container.add( child );
+
+		}
+
 		container.name = this._uniqueRootName( container );
 		this.container = container;
 
@@ -171,6 +192,22 @@ export class LoadedModel {
 		return name;
 
 	}
+
+}
+
+/**
+ * Reconoce un proyecto del editor: la escena dice que es un proyecto y tiene un único nodo raíz
+ * marcado como contenedor.
+ * @returns {{ info: object, root: THREE.Object3D }|null}
+ */
+function readProject( scene ) {
+
+	const info = scene.userData && scene.userData.editor3dRoblox;
+	if ( ! info || info.kind !== 'proyecto' || scene.children.length !== 1 ) return null;
+	const root = scene.children[ 0 ];
+	const marker = root.userData && root.userData.editor3dRoblox;
+	if ( ! marker || marker.type !== 'contenedor' ) return null;
+	return { info, root };
 
 }
 

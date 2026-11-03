@@ -69,8 +69,9 @@ export class App extends EventTarget {
 		await this.run( 'Abriendo modelo…', async () => {
 
 			const { gltf, fileName, fileSize, missing } = await loadModelFromFiles( files );
-			this.setModel( new LoadedModel( gltf, fileName, fileSize ) );
-			toast( `Modelo abierto: ${ fileName }`, 'ok' );
+			const model = new LoadedModel( gltf, fileName, fileSize );
+			this.setModel( model );
+			toast( model.project ? `Proyecto abierto: ${ model.baseName } (con tus ajustes y animaciones)` : `Modelo abierto: ${ fileName }`, 'ok' );
 			if ( missing.length > 0 ) {
 
 				toast( `No encontré estos archivos del modelo: ${ missing.join( ', ' ) }. Puede que falten texturas.`, 'error' );

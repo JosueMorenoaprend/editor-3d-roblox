@@ -8,22 +8,79 @@ import { LoadedModel } from './model.js';
 // Formatos de imagen que Roblox Studio acepta dentro de un GLB.
 const SAFE_MIME = new Set( [ 'image/png', 'image/jpeg' ] );
 
+/** Versión del formato de proyecto (un GLB normal con datos extra del editor). */
+export const PROJECT_FORMAT = 1;
+
 /**
+ * Exporta el GLB para Roblox.
  * @param {import('./model.js').LoadedModel} model
  * @param {{ animations?: boolean, maxTextureSize?: number }} options
  * @returns {Promise<{ blob: Blob, arrayBuffer: ArrayBuffer }>}
  */
-export async function exportGLB( model, { animations = true, maxTextureSize = Infinity } = {} ) {
+export function exportGLB( model, { animations = true, maxTextureSize = Infinity } = {} ) {
+
+	// Las texturas WebP/KTX2 se guardan como PNG (Roblox no las lee dentro del GLB).
+	return writeGLB( model, {
+		clips: animations ? model.clips : [],
+		maxTextureSize,
+		textureMime: ( mime ) => ( SAFE_MIME.has( mime ) ? null : 'image/png' ),
+	} );
+
+}
+
+/**
+ * Guarda el proyecto: un GLB que conserva todo el trabajo para seguir otro día.
+ * - Los ajustes del editor (escala, giro, posición) quedan como ajustes, no "pegados" al modelo:
+ *   al abrirlo, "Quitar ajustes" sigue funcionando.
+ * - Todas las animaciones y las texturas a tamaño completo y sin pérdida (PNG).
+ * - Sigue siendo un GLB normal: cualquier visor lo abre.
+ * @param {import('./model.js').LoadedModel} model
+ * @param {{ appVersion?: string }} [options]
+ */
+export async function exportProject( model, { appVersion = '' } = {} ) {
+
+	const container = model.container;
+	const userData = container.userData;
+	container.userData = { ...userData, editor3dRoblox: { type: 'contenedor' } };
+	try {
+
+		return await writeGLB( model, {
+			clips: model.clips,
+			maxTextureSize: Infinity,
+			textureMime: () => 'image/png',
+			sceneUserData: {
+				editor3dRoblox: {
+					kind: 'proyecto',
+					format: PROJECT_FORMAT,
+					baseName: model.baseName,
+					fileName: model.fileName,
+					appVersion,
+					savedAt: new Date().toISOString(),
+				},
+			},
+		} );
+
+	} finally {
+
+		container.userData = userData;
+
+	}
+
+}
+
+/** Escribe el GLB. El contenedor del modelo (con sus ajustes) queda como nodo raíz. */
+async function writeGLB( model, { clips, maxTextureSize, textureMime, sceneUserData = {} } ) {
 
 	const container = model.container;
 	const parent = container.parent;
+	const index = parent ? parent.children.indexOf( container ) : - 1;
 
-	// Escena temporal: así el contenedor (con escala, giro y posición) es el nodo raíz.
 	const scene = new Scene();
 	scene.name = model.baseName;
+	scene.userData = sceneUserData;
 	scene.add( container );
 
-	const restoreTextures = useSafeImageFormats( container );
+	const restoreTextures = overrideImageFormats( container, textureMime );
 
 	try {
 
@@ -31,7 +88,7 @@ export async function exportGLB( model, { animations = true, maxTextureSize = In
 			binary: true,
 			trs: true,
 			onlyVisible: true,
-			animations: animations ? model.clips : [],
+			animations: clips,
 			maxTextureSize,
 		} );
 
@@ -40,8 +97,16 @@ export async function exportGLB( model, { animations = true, maxTextureSize = In
 	} finally {
 
 		restoreTextures();
-		if ( parent ) parent.add( container );
-		else scene.remove( container );
+		scene.remove( container );
+		if ( parent ) {
+
+			parent.add( container );
+			// Vuelve a su lugar entre los hijos (el orden importa para la interfaz).
+			parent.children.splice( parent.children.indexOf( container ), 1 );
+			parent.children.splice( index, 0, container );
+
+		}
+
 		container.updateMatrixWorld( true );
 
 	}
@@ -85,10 +150,11 @@ export function downloadBlob( blob, fileName ) {
 }
 
 /**
- * Las texturas WebP/KTX2 se guardan como PNG (Roblox no las lee dentro del GLB).
+ * Cambia (solo mientras se exporta) el formato con que se guarda cada textura.
+ * `choose( mimeActual )` devuelve el formato nuevo, o null para dejarlo igual.
  * Devuelve una función que deja todo como estaba.
  */
-function useSafeImageFormats( root ) {
+function overrideImageFormats( root, choose ) {
 
 	const changed = [];
 	root.traverse( ( object ) => {
@@ -99,12 +165,13 @@ function useSafeImageFormats( root ) {
 			if ( ! material ) continue;
 			for ( const value of Object.values( material ) ) {
 
-				if ( ! value || ! value.isTexture ) continue;
+				if ( ! value || ! value.isTexture || changed.some( ( c ) => c.texture === value ) ) continue;
 				const mime = value.userData.mimeType;
-				if ( ! SAFE_MIME.has( mime ) && ! changed.some( ( c ) => c.texture === value ) ) {
+				const next = choose( mime );
+				if ( next && next !== mime ) {
 
 					changed.push( { texture: value, mime } );
-					value.userData.mimeType = 'image/png';
+					value.userData.mimeType = next;
 
 				}
 

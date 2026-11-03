@@ -19,6 +19,7 @@ import { $ } from './ui/dom.js';
 import { initExportPanel } from './ui/exportPanel.js';
 import { initHistoryControls } from './ui/historyControls.js';
 import { initInfoPanel } from './ui/infoPanel.js';
+import { initProjectPanel } from './ui/projectPanel.js';
 import { initSamples } from './ui/samples.js';
 import { initSimplifyPanel } from './ui/simplifyPanel.js';
 import { toast } from './ui/toast.js';
@@ -50,6 +51,7 @@ function start() {
 	initSimplifyPanel( app );
 	initAnimationPanel( app );
 	initExportPanel( app );
+	initProjectPanel( app );
 
 	window.addEventListener( 'unhandledrejection', ( event ) => {
 

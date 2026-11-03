@@ -4,6 +4,37 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 7 — Guardar y abrir proyectos (2026-11-03)
+
+**Tarea:** F0-11 (lo hice antes que el autoguardado F0-10 porque el autoguardado usará este mismo
+formato).
+
+**Qué hice**
+
+- **Formato de proyecto:** un GLB normal (cualquier visor lo abre) con datos extra del editor:
+  - la escena dice `extras.editor3dRoblox = { kind: 'proyecto', format: 1, baseName, … }`;
+  - el nodo raíz es el contenedor del editor, marcado `{ type: 'contenedor' }`: su escala, giro y
+    posición son **los ajustes**, que al abrir vuelven a ser ajustes (se pueden quitar);
+  - todas las animaciones y las texturas a tamaño completo en PNG (sin pérdida: guardar y abrir
+    muchas veces no las va gastando, como pasaría con JPEG).
+- `exporter.js`: `exportProject()`; `exportGLB()` y `exportProject()` comparten `writeGLB()`.
+  Después de exportar, el modelo vuelve exactamente a su lugar en la escena.
+- `model.js`: `LoadedModel` reconoce un proyecto, desenvuelve el contenedor y recupera ajustes y
+  nombre. La marca no se copia al contenedor nuevo (así no se cuela en el GLB para Roblox).
+- Panel nuevo **Proyecto** con “Guardar proyecto” (descarga `nombre.proyecto.glb`) y “Abrir proyecto”.
+  Al abrir se avisa “Proyecto abierto: … (con tus ajustes y animaciones)”.
+- `vite.config.js`: la versión del editor (`__APP_VERSION__`) se guarda en el proyecto.
+
+**Cómo lo verifiqué**
+
+- 4 pruebas nuevas de Vitest y 1 flujo e2e (escritorio y móvil): ajustar, guardar, validar el GLB,
+  **recargar la página**, abrir el proyecto, comprobar los 10 studs y el nombre, y “Quitar ajustes”.
+- `npm run check` → código 0: **47/47** Vitest y **18/18** Playwright.
+
+**Qué sigue:** ciclo 8 — autoguardado en IndexedDB y “Recuperar tu trabajo” (F0-10).
+
+---
+
 ## Ciclo 6 — Reducir polígonos sin congelar la página (2026-11-03)
 
 **Tarea:** F0-12.

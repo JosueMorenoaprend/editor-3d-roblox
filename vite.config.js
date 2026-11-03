@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs';
 import { defineConfig } from 'vite';
+
+const { version } = JSON.parse( readFileSync( new URL( './package.json', import.meta.url ), 'utf8' ) );
 
 // ¿En qué ruta vive la página?
 // - Vercel: en la raíz, https://<proyecto>.vercel.app/  (Vercel define VERCEL=1 al compilar)
@@ -14,6 +17,10 @@ function basePath( command, isPreview ) {
 
 export default defineConfig( ( { command, isPreview } ) => ( {
 	base: basePath( command, isPreview ),
+	// Versión del editor, disponible en el código como __APP_VERSION__.
+	define: {
+		__APP_VERSION__: JSON.stringify( version ),
+	},
 	// Los Web Workers (por ejemplo, el que reduce polígonos) son módulos ES.
 	worker: {
 		format: 'es',

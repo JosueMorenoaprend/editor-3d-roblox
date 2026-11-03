@@ -175,6 +175,10 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
 - `src/core/` no toca el DOM: así se prueba en Node. La interfaz vive en `src/ui/`.
 - Exportar: `GLTFExporter` binario, en la pose de reposo; texturas WebP → PNG; vértices cuantizados →
   Float32 (para no depender de extensiones que Roblox podría no leer).
+- **Proyecto** (`exportProject` / `LoadedModel.project`): un GLB normal con
+  `scenes[0].extras.editor3dRoblox = { kind: 'proyecto', format, baseName… }` y el nodo raíz marcado
+  `{ type: 'contenedor' }` (su TRS = ajustes del editor). Texturas PNG a tamaño completo. Si agregas
+  estado nuevo que deba sobrevivir (mapa de huesos, guiones…), guárdalo ahí y sube `PROJECT_FORMAT`.
 
 **Estilo de código:** el de three.js (tabulaciones, espacios dentro de los paréntesis:
 `fn( a, b )`, líneas en blanco al abrir y cerrar bloques). Identificadores en inglés, comentarios y

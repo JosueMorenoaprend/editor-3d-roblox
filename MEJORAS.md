@@ -63,9 +63,13 @@ Cómo leer esta lista:
   - Regla para lo que venga: **toda acción nueva que cambie el modelo se guarda en `app.history`**.
 - [ ] **F0-10** · Alta · **Autoguardado** en IndexedDB y “Recuperar tu trabajo” al volver a abrir.
   - Comprobación: e2e cambia el modelo, recarga la página y lo recupera con sus cambios.
-- [ ] **F0-11** · Alta · **Guardar proyecto / Abrir proyecto** (un archivo que conserva el modelo,
-  sus ajustes y sus animaciones).
+- [x] **F0-11** · Alta · **Guardar proyecto / Abrir proyecto** (un archivo que conserva el modelo,
+  sus ajustes y sus animaciones). *(ciclo 7)*
   - Comprobación: e2e guarda, vuelve a abrir y compara triángulos, medidas, huesos y animaciones.
+    ✔ 4 pruebas de Vitest (ajustes que se pueden quitar, 16 huesos y 3 animaciones, GLB válido, un
+    GLB para Roblox no se confunde con un proyecto) + e2e que guarda, recarga la página y sigue.
+  - Límite conocido: al abrir un proyecto, “Volver al original” vuelve a la malla tal como se guardó
+    (las mallas originales antes de reducir no se guardan, para no duplicar el tamaño).
 - [x] **F0-12** · Alta · **Reducir polígonos en un Web Worker** con barra de progreso, sin congelar
   la página (hoy la congela de 2 a 10 s con 120.000 triángulos). *(ciclo 6)*
   - Comprobación: e2e mide que la página sigue respondiendo durante la reducción y que el resultado
@@ -77,7 +81,8 @@ Cómo leer esta lista:
     contenido del panel no se sale de su caja (antes: 1002 px fuera).
 - [ ] **F0-14** · Baja · Después de exportar, la comprobación dice “13 mallas” para el carrito de 8
   piezas: las mallas con varios materiales se guardan en una parte por material (así funciona glTF).
-  Contar piezas o explicarlo para no confundir. *(encontrado en el ciclo 2)*
+  Contar piezas o explicarlo para no confundir. También pasa al abrir un proyecto: la cabina vuelve
+  como 6 mallas. *(encontrado en el ciclo 2)*
   - Comprobación: e2e del carrito: el resultado dice 8 piezas (o lo explica).
 - [ ] **F0-15** · Media · Los errores al abrir archivos dañados ya son claros; revisar el resto de
   mensajes de error (exportar, reducir, WebGL) para que todos digan **qué pasó y cómo arreglarlo**.
@@ -213,10 +218,10 @@ Cómo leer esta lista:
 
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
-| 0 — Base sólida | 15 | 9 |
+| 0 — Base sólida | 15 | 10 |
 | 1 — Animación | 16 | 0 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 12 | 0 |
-| **Total** | **68** | **9** |
+| **Total** | **68** | **10** |
