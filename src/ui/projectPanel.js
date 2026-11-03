@@ -15,12 +15,13 @@ export function initProjectPanel( app ) {
 		const model = app.model;
 		if ( ! model ) return;
 
-		// Se guarda en la pose de reposo, no en el cuadro actual de una animación.
+		// Se guarda en la pose de reposo, no en el cuadro actual de una animación ni en la pose del editor de
+		// keyframes (esa vuelve al terminar).
 		app.animation.stop();
 		const fileName = `${ model.baseName }.proyecto.glb`;
 		const saved = await app.run( 'Guardando proyecto…', async () => {
 
-			const { blob } = await exportProject( model, { appVersion: APP_VERSION } );
+			const { blob } = await app.animation.atRestPose( () => exportProject( model, { appVersion: APP_VERSION } ) );
 			downloadBlob( blob, fileName );
 			return true;
 

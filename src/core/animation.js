@@ -5,7 +5,11 @@
 //
 // `playPreview( clip )` reproduce una vez una animación que NO es del modelo (por ejemplo, la prueba
 // del mapa de huesos): no se exporta ni se guarda, y al terminar el modelo vuelve a su pose de reposo.
+//
+// `setIdlePose( fn )`: la pose que se ve cuando no suena nada, si no es la de reposo (la del editor de
+// keyframes). Detener, exportar o guardar no la borran: al terminar, `fn` la vuelve a poner.
 import { AnimationMixer, LoopOnce, LoopRepeat } from 'three';
+import { ClipSampler } from './skeletonPose.js';
 
 export class AnimationController extends EventTarget {
 
@@ -21,6 +25,20 @@ export class AnimationController extends EventTarget {
 		/** Vista previa en curso: { clip, previousIndex } (o null). */
 		this.preview = null;
 		this._previewDone = false;
+		/** Pone la pose que se ve cuando no suena nada (o null: la de reposo). Ver setIdlePose(). */
+		this.idlePose = null;
+
+	}
+
+	/**
+	 * La pose que se ve cuando no suena ninguna animación, en vez de la de reposo: la usa el editor de
+	 * keyframes para que detener una animación, exportar o guardar no le borren la pose que se está
+	 * armando. `fn` la pone sobre el modelo, que ya está en reposo. Con null, se vuelve a la de reposo.
+	 * @param {(() => void)|null} fn
+	 */
+	setIdlePose( fn ) {
+
+		this.idlePose = fn;
 
 	}
 
@@ -62,6 +80,7 @@ export class AnimationController extends EventTarget {
 		this.stop();
 		this.preview = { clip, previousIndex, loop };
 		const action = this.mixer.clipAction( clip );
+		this._leaveIdlePose( action );
 		action.setLoop( loop ? LoopRepeat : LoopOnce, loop ? Infinity : 1 );
 		action.clampWhenFinished = false;
 		// Sigue la velocidad elegida (en cámara lenta se ve mejor qué hueso se mueve).
@@ -194,6 +213,7 @@ export class AnimationController extends EventTarget {
 		const action = this.action;
 		// Si terminó (modo "una vez"), empieza de nuevo.
 		if ( ! this.loop && action.time >= action.getClip().duration ) action.reset();
+		this._leaveIdlePose( action );
 		action.paused = false;
 		action.enabled = true;
 		action.setEffectiveTimeScale( this.speed );
@@ -240,13 +260,14 @@ export class AnimationController extends EventTarget {
 
 		}
 
+		this._showIdlePose();
 		this._emit();
 
 	}
 
 	/**
 	 * Ejecuta `fn` con el modelo en su pose de reposo (para guardar o exportar) y después vuelve
-	 * a la pose en que estaba (por ejemplo, una animación en pausa a mitad de camino).
+	 * a la pose en que estaba: una animación en pausa a mitad de camino o la de un editor (setIdlePose).
 	 * No se usa mientras una animación está sonando.
 	 */
 	async atRestPose( fn ) {
@@ -258,7 +279,8 @@ export class AnimationController extends EventTarget {
 
 		} finally {
 
-			if ( this.mixer && this.action && this.action.isScheduled() ) this.mixer.update( 0 );
+			if ( this.mixer && this.action && this.action.isScheduled() ) this._reapplyAction();
+			else this._showIdlePose();
 
 		}
 
@@ -271,6 +293,7 @@ export class AnimationController extends EventTarget {
 		const action = this.action;
 		if ( ! action.isScheduled() ) {
 
+			this._leaveIdlePose( action );
 			action.play();
 			action.paused = true;
 
@@ -316,6 +339,36 @@ export class AnimationController extends EventTarget {
 		if ( ! this._previewDone ) return;
 		this._previewDone = false;
 		if ( this.preview ) this.stop();
+
+	}
+
+	/**
+	 * Vuelve a poner el cuadro de la animación en curso (en pausa o sonando) después de pasar por el reposo.
+	 * `mixer.update( 0 )` no sirve: three.js solo escribe los valores que cambiaron desde su última cuenta,
+	 * y para él no cambió nada (el reposo lo puso el editor, no el mezclador).
+	 */
+	_reapplyAction() {
+
+		if ( ! this.model ) return;
+		new ClipSampler( this.model.container, this.action.getClip() ).apply( this.action.time );
+		this.model.container.updateMatrixWorld( true );
+
+	}
+
+	/** El modelo acaba de volver al reposo: si un editor tiene su propia pose, la vuelve a poner. */
+	_showIdlePose() {
+
+		if ( this.idlePose && this.model ) this.idlePose();
+
+	}
+
+	/**
+	 * Una animación va a empezar a mover el modelo: si se veía la pose de un editor, parte del reposo (si
+	 * no, las partes que la animación no mueve quedarían como en el editor).
+	 */
+	_leaveIdlePose( action ) {
+
+		if ( this.idlePose && this.model && ! action.isScheduled() ) this.model.restoreRestPose();
 
 	}
 

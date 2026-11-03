@@ -221,6 +221,10 @@
 							<button type="button" class="btn btn-block" id="btn-keys-open">Crear a mano con keyframes…</button>
 							<div class="anim-keys-editor" id="anim-keys-editor" hidden>
 								<p class="muted small">Elige una parte del cuerpo, gírala y pon un <strong>keyframe</strong> (una pose en un momento). Entre dos keyframes, el editor completa el movimiento solo.</p>
+								<div class="alert alert-warn anim-root" id="keys-busy" role="status" hidden>
+									<p id="keys-busy-text"></p>
+									<button type="button" class="btn btn-sm" id="btn-keys-resume">Volver a editar</button>
+								</div>
 								<div class="row">
 									<label class="field grow">
 										<span>Nombre</span>

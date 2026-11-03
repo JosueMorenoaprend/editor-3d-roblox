@@ -75,6 +75,16 @@ Cómo anotar el resultado: cambia `[ ]` por `[x]` si funcionó, o escribe debajo
 4. Si puedes, reemplaza las animaciones del script *Animate* del personaje (walk, run, idle, jump, fall)
    por estas y juega: ¿se ven bien al caminar, saltar y caer?
 
+## R-07 · Animación hecha a mano con keyframes
+
+- [ ] **Pendiente de probar**
+1. Abre tu personaje (de Tripo con rig, o el muñeco R15 de ejemplo).
+2. En *Animaciones* → **Crear a mano con keyframes…**: elige *Brazo izquierdo*, pon un keyframe a los
+   0 s; mueve el *Momento* a 1 s, sube *Hacia los lados* a 80° y pon otro keyframe. Haz lo mismo con
+   *Cabeza* (*Girar* 30° a 1 s). Pulsa **Guardar animación** y exporta con **Incluir animaciones**.
+3. En Roblox Studio, impórtalo con **Importar 3D** y reproduce «Mi animación»: ¿el brazo sube hacia el
+   costado (no hacia adelante) y la cabeza gira? ¿Pasa por la mitad a los 0,5 s, como en el editor?
+
 ---
 
 ## Archivos reales de Tripo (no se pueden descargar desde la nube)

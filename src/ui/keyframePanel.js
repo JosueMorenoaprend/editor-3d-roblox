@@ -2,6 +2,10 @@
 // deslizadores (en el espacio del personaje) o con los anillos de la vista 3D (TransformControls), y poner
 // o quitar keyframes en una línea de tiempo. Entre keyframes, three.js interpola. "Guardar" la agrega al
 // personaje (con deshacer).
+//
+// La pose que se ve (con o sin keyframe) es la "pose de trabajo": el reproductor la vuelve a poner cuando
+// algo devuelve el personaje al reposo (detener, exportar, guardar, el autoguardado). Mientras se ve otra
+// animación (el reproductor de arriba o la vista previa de otro bloque), el editor espera.
 import { uniqueClipName } from '../core/animation.js';
 import { HUMANOID_BONES, boneLabel } from '../core/boneMap.js';
 import { KeyframeAnimation } from '../core/keyframeAnimation.js';
@@ -28,6 +32,8 @@ export function initKeyframePanel( app ) {
 	const status = $( '#keys-status' );
 	const playButton = $( '#btn-keys-play' );
 	const cancelButton = $( '#btn-keys-cancel' );
+	const busyBox = $( '#keys-busy' );
+	const busyText = $( '#keys-busy-text' );
 	const editing = [ nameInput, durationInput, partSelect, ...sliders, timeInput, $( '#btn-keys-set' ), $( '#btn-keys-remove' ), $( '#btn-keys-save' ) ];
 
 	/** Anillos para girar el hueso elegido con el mouse o el dedo (se cargan la primera vez que se abre). */
@@ -48,12 +54,22 @@ export function initKeyframePanel( app ) {
 			app.viewer.controls.enabled = ! event.value;
 
 		} );
-		gizmo.addEventListener( 'objectChange', () => editor && syncSliders() );
+		gizmo.addEventListener( 'objectChange', () => {
+
+			if ( ! editor ) return;
+			remember( bone() );
+			syncSliders();
+
+		} );
 		return gizmo;
 
 	}
 
-	/** Lo que se está editando: { model, animation, rest, bones, key, time, playing, clip } (o null). */
+	/**
+	 * Lo que se está editando (o null): { model, animation, rest, bones, key (parte elegida), time,
+	 * pose (Map hueso → giro: la pose de trabajo), clip (el de ▶ Reproducir), playing (suena ese clip),
+	 * other (el clip de otra animación que se está viendo, o null) }.
+	 */
 	let editor = null;
 	let cancelTimer = 0;
 
@@ -75,8 +91,12 @@ export function initKeyframePanel( app ) {
 			bones: findBones( model.container ),
 			key: null,
 			time: 0,
+			pose: new Map(),
+			clip: null,
 			playing: false,
+			other: null,
 		};
+		app.animation.setIdlePose( applyWorkingPose );
 		nameInput.value = editor.animation.name;
 		durationInput.value = '2';
 		fillParts();
@@ -102,7 +122,7 @@ export function initKeyframePanel( app ) {
 
 		if ( ! gizmo ) return;
 		const target = bone();
-		if ( target && ! editor.playing ) gizmo.attach( target );
+		if ( target && ! editor.playing && ! editor.other ) gizmo.attach( target );
 		else gizmo.detach();
 
 	}
@@ -126,6 +146,7 @@ export function initKeyframePanel( app ) {
 			const angles = [ 0, 0, 0 ];
 			for ( const item of sliders ) angles[ Number( item.dataset.axis ) ] = Number( item.value );
 			target.quaternion.copy( localFromAngles( editor.rest, target, angles ) );
+			remember( target );
 			showAngles( angles );
 
 		} );
@@ -207,24 +228,35 @@ export function initKeyframePanel( app ) {
 
 		}
 
+		// El estado (suena, botones apagados) lo pone el aviso 'change' del reproductor.
 		editor.clip = editor.animation.toClip();
 		app.animation.playPreview( editor.clip, { loop: true } );
-		editor.playing = true;
-		attachGizmo();
-		render();
 
 	} );
 
-	// Al detener la vista previa (con este botón o desde Animaciones), se vuelve a la pose del momento elegido.
+	// "Volver a editar": detiene la otra animación; el reproductor vuelve a poner la pose de trabajo.
+	$( '#btn-keys-resume' ).addEventListener( 'click', () => app.animation.stop() );
+
+	// ¿Qué se ve? Mi vista previa, otra animación o (si no suena nada) la pose de trabajo.
 	app.animation.addEventListener( 'change', () => {
 
-		if ( ! editor || ! editor.playing || app.animation.isPreviewing( editor.clip ) ) return;
-		editor.playing = false;
+		if ( ! editor || editor.model !== app.animation.model ) return;
+		editor.playing = app.animation.isPreviewing( editor.clip );
+		editor.other = editor.playing ? null : otherAnimation();
 		attachGizmo();
-		showPose();
+		if ( ! editor.playing && ! editor.other ) syncSliders();
 		render();
 
 	} );
+
+	/** El clip de otra animación que se está viendo (vista previa ajena, o reproduciendo o en pausa), o null. */
+	function otherAnimation() {
+
+		const anim = app.animation;
+		if ( anim.preview ) return anim.preview.clip;
+		return anim.action && anim.action.isScheduled() ? anim.action.getClip() : null;
+
+	}
 
 	$( '#btn-keys-save' ).addEventListener( 'click', () => {
 
@@ -270,26 +302,50 @@ export function initKeyframePanel( app ) {
 	function close() {
 
 		if ( ! editor ) return;
-		const playing = editor.playing;
+		const { model, playing, other } = editor;
 		editor = null;
+		app.animation.setIdlePose( null );
 		gizmo?.detach();
 		app.viewer.controls.enabled = true;
 		resetCancel();
 		editorBox.hidden = true;
 		openButton.hidden = false;
+		// El personaje vuelve al reposo (salvo que se esté viendo otra animación: esa sigue).
 		if ( playing ) app.animation.stop();
-		else if ( app.model ) app.model.restoreRestPose();
+		else if ( ! other && model === app.model ) model.restoreRestPose();
 
 	}
 
-	/** Muestra la pose de la animación en el momento elegido (o la de reposo si no hay keyframes). */
+	/**
+	 * Muestra la pose de la animación en el momento elegido (o la de reposo si no hay keyframes) y la toma
+	 * como pose de trabajo. Los giros sin keyframe de antes se descartan.
+	 */
 	function showPose() {
 
 		const model = editor.model;
 		model.restoreRestPose();
 		new ClipSampler( model.container, editor.animation.toClip() ).apply( editor.time );
 		model.container.updateMatrixWorld( true );
+		editor.pose.clear();
+		for ( const item of editor.bones.values() ) remember( item );
 		syncSliders();
+
+	}
+
+	/** Anota el giro actual de un hueso en la pose de trabajo. */
+	function remember( target ) {
+
+		if ( target ) editor.pose.set( target, target.quaternion.clone() );
+
+	}
+
+	/** Vuelve a poner la pose de trabajo (el reproductor la llama cuando el personaje volvió al reposo). */
+	function applyWorkingPose() {
+
+		if ( ! editor || editor.model !== app.animation.model ) return;
+		editor.model.restoreRestPose();
+		for ( const [ target, quaternion ] of editor.pose ) target.quaternion.copy( quaternion );
+		editor.model.container.updateMatrixWorld( true );
 
 	}
 
@@ -312,12 +368,19 @@ export function initKeyframePanel( app ) {
 	function render() {
 
 		if ( ! editor ) return;
-		const { animation, time, playing } = editor;
+		const { animation, time, playing, other } = editor;
 		timeInput.max = String( animation.duration );
 		timeInput.value = String( time );
 		clock.textContent = `${ seconds( time ) } / ${ seconds( animation.duration ) } s`;
-		for ( const control of editing ) control.disabled = playing;
+		for ( const control of editing ) control.disabled = playing || !! other;
 		playButton.textContent = playing ? '■ Detener' : '▶ Reproducir';
+		busyBox.hidden = ! other;
+		if ( other ) {
+
+			busyText.textContent = `Ahora se ve «${ other.name || 'otra animación' }», así que tus keyframes esperan. ` +
+				'Tu pose no se pierde: pulsa «Volver a editar».';
+
+		}
 
 		// Marcas de los keyframes de la parte elegida sobre la línea de tiempo.
 		const target = bone();
@@ -339,13 +402,11 @@ export function initKeyframePanel( app ) {
 
 	app.on( 'bonemap', () => {
 
-		if ( editor ) {
-
-			fillParts();
-			syncSliders();
-			render();
-
-		}
+		if ( ! editor ) return;
+		fillParts();
+		// Mientras se ve otra animación, los huesos no están en la pose de trabajo: los deslizadores esperan.
+		if ( ! editor.playing && ! editor.other ) syncSliders();
+		render();
 
 	} );
 

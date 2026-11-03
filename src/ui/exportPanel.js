@@ -29,14 +29,15 @@ export function initExportPanel( app ) {
 		const clips = animsCheck.checked ? model.clips.filter( ( clip ) => ! excluded.has( clip ) ) : [];
 		const withAnimations = clips.length > 0;
 
-		// Se exporta en la pose de reposo, no en el cuadro actual de una animación.
+		// Se exporta en la pose de reposo, no en el cuadro actual de una animación ni en la pose que se está
+		// armando en el editor de keyframes (esa vuelve al terminar).
 		const wasPlaying = app.animation.isPlaying;
 		app.animation.stop();
 		if ( wasPlaying ) toast( 'Detuve la animación para exportar en la pose original.' );
 
 		const output = await app.run( 'Exportando…', async () => {
 
-			const { blob, arrayBuffer } = await exportGLB( model, { clips, maxTextureSize } );
+			const { blob, arrayBuffer } = await app.animation.atRestPose( () => exportGLB( model, { clips, maxTextureSize } ) );
 			downloadBlob( blob, fileName );
 			const check = await verifyGLB( arrayBuffer, app.settings.triangleLimit );
 			return { blob, check };

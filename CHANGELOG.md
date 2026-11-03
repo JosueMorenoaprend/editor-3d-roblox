@@ -68,6 +68,11 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
   una parte del cuerpo, gírala con los deslizadores (*Adelante / atrás*, *Hacia los lados*, *Girar*) o con los
   anillos de colores de la vista 3D, y pulsa **Poner keyframe** (una pose en un momento). Entre dos
   keyframes, el editor completa el movimiento solo. Mírala con **Reproducir** y pulsa **Guardar animación**.
+- Arreglado: con el editor de keyframes abierto, **exportar, guardar el proyecto o ver otra animación ya no
+  borra la pose que estás armando**. Mientras se ve otra animación, el editor espera y te avisa; pulsa
+  **Volver a editar** y sigues donde estabas. El archivo exportado sale siempre en la pose normal.
+- Arreglado: una animación en pausa a mitad de camino ya no vuelve a la pose normal cuando el editor se
+  guarda solo.
 
 ## Versión 1
 

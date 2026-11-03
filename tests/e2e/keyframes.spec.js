@@ -1,5 +1,6 @@
 // Crear una animación a mano con keyframes: elegir una parte, girarla, poner keyframes, reproducir y exportar.
-import { readGLBAccessor, readGLBJson } from '../helpers/gltf.js';
+import { readFileSync } from 'node:fs';
+import { describeIssues, readGLBAccessor, readGLBJson, validateGLB } from '../helpers/gltf.js';
 import { capture, captureScrolledTo, expect, exportAndValidate, openSample, test } from './fixtures.js';
 
 test( 'crear una animación de 2 keyframes, reproducirla, guardarla y exportarla', async ( { page }, testInfo ) => {
@@ -83,5 +84,95 @@ test( 'cancelar con keyframes pide confirmar antes de descartar', async ( { page
 	await expect( editor ).toBeHidden();
 	await expect( page.locator( '#btn-keys-open' ) ).toBeVisible();
 	await expect( page.locator( '#anim-select option' ) ).toHaveCount( 3 );
+
+} );
+
+/** El giro del segundo keyframe de «Mi animación» (brazo izquierdo) en un GLB exportado. */
+function secondArmKey( bytes ) {
+
+	const json = readGLBJson( bytes );
+	const animation = json.animations.find( ( item ) => item.name === 'Mi animación' );
+	const channel = animation.channels.find( ( item ) => json.nodes[ item.target.node ].name === 'LeftUpperArm' );
+	return readGLBAccessor( bytes, json, animation.samplers[ channel.sampler ].output )[ 1 ];
+
+}
+
+/** Comprueba que un giro (cuaternión) es el de tantos grados "hacia los lados" (en Z) en el R15. */
+function expectSideways( quaternion, degrees ) {
+
+	const half = ( degrees * Math.PI ) / 360;
+	expect( quaternion[ 0 ] ).toBeCloseTo( 0, 3 );
+	expect( quaternion[ 1 ] ).toBeCloseTo( 0, 3 );
+	expect( quaternion[ 2 ] ).toBeCloseTo( Math.sin( half ), 3 );
+	expect( quaternion[ 3 ] ).toBeCloseTo( Math.cos( half ), 3 );
+
+}
+
+test( 'exportar y guardar el proyecto con el editor abierto: el archivo sale en reposo y la pose sigue', async ( { page }, testInfo ) => {
+
+	const set = page.locator( '#btn-keys-set' );
+	await page.goto( './' );
+	await openSample( page, 'Muñeco R15' );
+	await page.locator( '#btn-keys-open' ).click();
+	await set.click(); // 0 s: el brazo en reposo
+	await page.locator( '#keys-time' ).fill( '1' );
+	await page.locator( '#keys-z' ).fill( '70' ); // girado, todavía sin keyframe
+
+	// El GLB sale en la pose de reposo: el brazo no queda levantado como si fuera su forma normal.
+	const { bytes: model } = await exportAndValidate( page, testInfo, 'muneco_editando.glb' );
+	const arm = readGLBJson( model ).nodes.find( ( node ) => node.name === 'LeftUpperArm' );
+	( arm.rotation || [ 0, 0, 0, 1 ] ).forEach( ( value, i ) => expect( value ).toBeCloseTo( [ 0, 0, 0, 1 ][ i ], 6 ) );
+
+	// El proyecto también.
+	const save = page.locator( '#btn-project-save' );
+	await save.scrollIntoViewIfNeeded();
+	const [ download ] = await Promise.all( [ page.waitForEvent( 'download' ), save.click() ] );
+	const projectPath = testInfo.outputPath( 'muneco_editando.proyecto.glb' );
+	await download.saveAs( projectPath );
+	const project = readFileSync( projectPath );
+	const { errors } = await validateGLB( project, 'proyecto.glb' );
+	expect( errors, describeIssues( errors ) ).toHaveLength( 0 );
+	expect( readGLBJson( project ).nodes.find( ( node ) => node.name === 'LeftUpperArm' ).rotation || [ 0, 0, 0, 1 ] ).toEqual( [ 0, 0, 0, 1 ] );
+
+	// Y el brazo sigue como lo dejé: el keyframe guarda los 70°.
+	await expect( page.locator( '#keys-z-value' ) ).toHaveText( '70°' );
+	await set.click();
+	await expect( page.locator( '#keys-status' ) ).toContainText( '2 keyframes en total' );
+	await page.locator( '#btn-keys-save' ).click();
+	const { bytes } = await exportAndValidate( page, testInfo, 'muneco_a_mano.glb' );
+	expectSideways( secondArmKey( bytes ), 70 );
+
+} );
+
+test( 'ver otra animación mientras editas: el editor espera y después vuelve a tu pose', async ( { page }, testInfo ) => {
+
+	const set = page.locator( '#btn-keys-set' );
+	const busy = page.locator( '#keys-busy' );
+	await page.goto( './' );
+	await openSample( page, 'Muñeco R15' );
+	await page.locator( '#btn-keys-open' ).click();
+	await set.click();
+	await page.locator( '#keys-time' ).fill( '1' );
+	await page.locator( '#keys-z' ).fill( '70' );
+
+	// Reproducir "Saludar" con el reproductor de arriba: no se puede editar mientras se ve.
+	await page.locator( '#anim-select' ).selectOption( '0' );
+	await page.locator( '#btn-anim-play' ).click();
+	await expect( busy ).toBeVisible();
+	await expect( busy ).toContainText( '«Saludar»' );
+	await expect( set ).toBeDisabled();
+	await expect( page.locator( '#keys-z' ) ).toBeDisabled();
+	await captureScrolledTo( page, testInfo, 'keyframes-otra-animacion', '#anim-keys' );
+
+	// "Volver a editar" la detiene y el brazo vuelve a como lo dejé.
+	await page.locator( '#btn-keys-resume' ).click();
+	await expect( busy ).toBeHidden();
+	await expect( set ).toBeEnabled();
+	await expect( page.locator( '#keys-z-value' ) ).toHaveText( '70°' );
+	await expect( page.locator( '#keys-clock' ) ).toHaveText( '1,00 / 2,00 s' );
+	await set.click();
+	await page.locator( '#btn-keys-save' ).click();
+	const { bytes } = await exportAndValidate( page, testInfo, 'muneco_a_mano.glb' );
+	expectSideways( secondArmKey( bytes ), 70 );
 
 } );

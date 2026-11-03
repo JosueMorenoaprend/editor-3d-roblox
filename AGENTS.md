@@ -217,6 +217,14 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
 - **Vistas previas:** `app.animation.playPreview( clip, { loop, time } )` reproduce un clip que no es del
   modelo (no se exporta): una vez, o en bucle (`loop`) desde el segundo `time` (para seguir en el mismo
   punto al cambiar un deslizador). Exportar y guardar la detienen y el autoguardado espera.
+- **El reposo y la pose de un editor:** todo lo que necesite el personaje en reposo (exportar, guardar,
+  detectar el mapa) va dentro de `app.animation.atRestPose( fn )`; `stop()` solo no alcanza. Una herramienta
+  que muestra su propia pose cuando no suena nada (el editor de keyframes) la registra con
+  `app.animation.setIdlePose( fn )`: `stop()` y `atRestPose()` la vuelven a poner, y una animación que
+  empieza parte del reposo.
+- **three.js no reescribe lo que no cambió:** si mueves huesos por fuera del mezclador, `mixer.update( 0 )`
+  no vuelve a poner el cuadro (cada `PropertyMixer` compara con su última cuenta). Para volver a ponerlo,
+  evalúa el clip con `ClipSampler` (como `_reapplyAction()` en `animation.js`).
 - **Tiempos de las animaciones:** glTF los guarda en float32 y exige que **siempre aumenten**. Si muestreas
   una animación, reparte los cuadros parejos de 0 a la duración (como `sampleTimes()` en `retarget.js`);
   “cada 1/30 s y el último en la duración” puede dejar los dos últimos iguales en float32.

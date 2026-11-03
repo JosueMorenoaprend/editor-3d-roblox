@@ -4,6 +4,54 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 20 — El editor de keyframes ya no pierde tu pose (2026-11-03)
+
+**Auditoría:** punto de partida, el commit del ciclo 19 (`c465899`). Actions: sin ejecuciones.
+
+**Tarea:** F1-21 (error, Alta), encontrado en la auditoría del ciclo 19.
+
+**Primero la prueba:** 2 e2e nuevas que fallaban con el código del ciclo 19. Con el brazo a 70° sin
+keyframe, después de exportar, “Poner keyframe” guardaba 0° (la pose de reposo); y no había aviso al ver
+otra animación.
+
+**Causa:** Exportar, Guardar proyecto y “Agregar animación” llaman a `stop()`, que deja el personaje en
+reposo; el autoguardado y “Detectar otra vez” usan `atRestPose()`, que también pasa por el reposo. El editor
+no se enteraba: los deslizadores seguían marcando el giro, pero el hueso estaba en reposo.
+
+**Cuidado con el arreglo obvio:** volver a poner la pose del editor apenas termina `stop()` habría hecho que
+Exportar guardara el brazo levantado como si fuera la forma normal del personaje (el exportador usa la pose
+que tenga el modelo en ese momento). Por eso:
+
+- `AnimationController.setIdlePose( fn )`: la pose que se ve cuando no suena nada. `stop()` y
+  `atRestPose()` la vuelven a poner al terminar; `play()`, `playPreview()` y `seek()` parten del reposo
+  (si no, las partes que la animación no mueve quedarían como en el editor).
+- Exportar y Guardar proyecto trabajan dentro de `atRestPose()`: el archivo sale en reposo y la pose vuelve
+  después. Las pruebas leen del GLB y del proyecto que el brazo sale sin girar.
+- El editor guarda su **pose de trabajo** (lo que se ve, con o sin keyframe) y la vuelve a poner cuando el
+  reproductor se lo pide. Mientras se ve otra animación (el reproductor de arriba o el ▶ Ver de otro
+  bloque), el editor espera: anillos escondidos, controles apagados y el aviso «Ahora se ve “Saludar”… Tu
+  pose no se pierde» con el botón **Volver a editar** (detiene la otra animación).
+
+**Error viejo encontrado en el camino (F0-17, arreglado):** la prueba unitaria del reproductor mostró que
+`atRestPose()` no devolvía una animación en pausa a su cuadro: llamaba a `mixer.update( 0 )`, y el
+`PropertyMixer` de three.js solo escribe los valores que cambiaron desde su última cuenta (para él no había
+cambiado nada: el reposo lo había puesto el editor). Así, después del autoguardado, una animación en pausa a
+mitad de camino se veía en reposo. Ahora el cuadro se vuelve a calcular con `ClipSampler`.
+
+**Cómo lo verifiqué**
+
+- Vitest: `tests/unit/animation.test.js` (nueva): con la pose de un editor, detener, `atRestPose` (en reposo
+  mientras dura, la pose vuelve después), reproducir “Saludar” (el brazo izquierdo parte del reposo), pausa
+  en 1 s + `atRestPose` (el brazo derecho sigue levantado: fallaba antes del arreglo de F0-17), vista previa
+  que termina sola y, sin editor, detener vuelve al reposo.
+- Playwright (escritorio y móvil): las 2 pruebas nuevas pasan; capturas revisadas: mientras suena
+  “Saludar”, el brazo izquierdo está en reposo, el aviso se lee entero y los controles están apagados.
+- `npm run check` → código 0: **130/130** Vitest y **54/54** Playwright.
+
+**Qué sigue:** F1-22 (“Poner keyframe” guarda solo la parte elegida).
+
+---
+
 ## Ciclo 19 — Crear animaciones a mano con keyframes (2026-11-03)
 
 **Auditoría:** punto de partida, el commit del ciclo 18 (`af664a1`), recién comprobado. Actions: sin

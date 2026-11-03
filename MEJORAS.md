@@ -29,9 +29,8 @@ Cómo leer esta lista:
 
 1. ~~**F1-14**~~ y ~~**F1-16**~~ (hechas en los ciclos 16 y 17).
 2. ~~**F1-05**~~ (hecha en el ciclo 18).
-3. ~~**F1-10**~~ (hecha en el ciclo 19). Antes de seguir: el error **F1-21** (la pose del editor de
-   keyframes se pierde) y **F1-22**; después las Media de la Fase 1 (F1-23, F1-24, F1-25, F1-08, F1-15,
-   F1-11…).
+3. ~~**F1-10**~~ (hecha en el ciclo 19) y el error ~~**F1-21**~~ (ciclo 20). Sigue **F1-22** y después
+   las Media de la Fase 1 (F1-23, F1-24, F1-25, F1-08, F1-15, F1-11…).
 4. **F5-14** y **F5-13** (Media): el panel ya es muy largo, sobre todo en el celular.
 5. Fase 2 (conexión con IA): el guion de animación usa el mapa y los giros “en el espacio del personaje”
    que ya existen (F2-01, F2-02).
@@ -109,6 +108,14 @@ Cómo leer esta lista:
 - [ ] **F0-16** · Baja · En *Reducir polígonos*, las mallas de menos de 50 triángulos salen con un ⛔ rojo
   y “Es muy pequeña”: asusta sin motivo. Decir “No hace falta reducirla”. *(auditoría del ciclo 12)*
   - Comprobación: e2e del carrito sin ⛔ y con el texto nuevo.
+- [x] **F0-17** · Media · **Error:** una animación en pausa a mitad de camino (moviendo el tiempo en
+  *Animaciones*) volvía a la pose de reposo después del autoguardado o de “Detectar otra vez”, aunque el
+  reproductor seguía diciendo que estaba en ese momento: `atRestPose()` llamaba a `mixer.update( 0 )`, y
+  three.js solo escribe los valores que cambiaron desde su última cuenta. *(encontrado y arreglado en el
+  ciclo 20)*
+  - Comprobación: prueba de Vitest que falla sin el arreglo. ✔ `tests/unit/animation.test.js`: con
+    “Saludar” en pausa en 1 s, después de `atRestPose()` el brazo derecho vuelve a estar levantado (el
+    cuadro se vuelve a calcular con `ClipSampler`).
 
 ## Fase 1 — Animación (lo más importante para el usuario)
 
@@ -224,13 +231,23 @@ Cómo leer esta lista:
   `PRUEBAS_ROBLOX.md`): giro de los antebrazos (“twist”), pies que se hunden o flotan, personajes en pose
   A. Corregir lo que se vea mal. *(ciclo 13)*
   - Comprobación: el usuario (o Claude local) anota el resultado de T-02 y las correcciones tienen prueba.
-- [ ] **F1-21** · Alta · **Error:** con el editor de keyframes abierto, lo que devuelve el personaje a la
+- [x] **F1-21** · Alta · **Error:** con el editor de keyframes abierto, lo que devuelve el personaje a la
   pose de reposo (Exportar, Guardar proyecto, el autoguardado, “Detectar otra vez”, agregar una animación,
   el ▶ Ver de otro bloque o el reproductor de arriba) borra la pose que se está armando: el brazo vuelve
   al reposo pero los deslizadores siguen marcando el giro, y “Poner keyframe” guardaría la pose de reposo.
-  *(auditoría del ciclo 19)*
+  *(auditoría del ciclo 19; arreglado en el ciclo 20)*
   - Comprobación: e2e con el editor abierto: girar una parte, exportar y ver otra animación → la parte
-    sigue girada, los deslizadores coinciden y el keyframe guarda ese giro.
+    sigue girada, los deslizadores coinciden y el keyframe guarda ese giro. ✔ El editor guarda su “pose
+    de trabajo” (lo que se ve, con o sin keyframe) y el reproductor la vuelve a poner cuando no suena nada
+    (`setIdlePose()`: después de detener y de `atRestPose()`). Exportar y Guardar proyecto ahora trabajan
+    dentro de `atRestPose()`: el archivo sale en reposo y la pose vuelve al terminar. Mientras se ve otra
+    animación, el editor espera (anillos escondidos, controles apagados) y avisa «Ahora se ve “…”» con
+    **Volver a editar**; esa animación parte del reposo (no se mezcla con la pose del editor). Prueba de
+    Vitest (detener, `atRestPose`, reproducir, pausa y vista previa con la pose de un editor) + 2 e2e
+    (escritorio y móvil): con el brazo a 70° sin keyframe, exportar y guardar el proyecto (los dos archivos
+    con el brazo en reposo) y después el keyframe guarda los 70°; reproducir “Saludar” → aviso y controles
+    apagados → Volver a editar → 70° otra vez y el keyframe los guarda. Las 2 pruebas fallaban antes del
+    arreglo (el keyframe guardaba 0°).
 - [ ] **F1-22** · Media · “Poner keyframe” guarda **solo la parte elegida**: si se mueven varias partes y
   se pulsa una vez, las demás no quedan guardadas, y al mover el tiempo se pierden sin aviso. Que guarde
   la pose que se ve (todas las partes que se movieron) y avise antes de descartar cambios sin keyframe.
@@ -348,10 +365,10 @@ Cómo leer esta lista:
 
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
-| 0 — Base sólida | 16 | 12 |
-| 1 — Animación | 25 | 10 |
+| 0 — Base sólida | 17 | 13 |
+| 1 — Animación | 25 | 11 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 15 | 0 |
-| **Total** | **81** | **22** |
+| **Total** | **82** | **24** |
