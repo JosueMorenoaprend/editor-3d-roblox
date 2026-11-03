@@ -711,8 +711,9 @@ select:disabled {
 	accent-color: var(--accent);
 }
 
-/* Crear una animación y agregar animaciones de otro archivo. */
+/* Crear una animación, crear a mano con keyframes y agregar animaciones de otro archivo. */
 .anim-create,
+.anim-keys,
 .anim-import {
 	display: flex;
 	flex-direction: column;
@@ -769,6 +770,62 @@ select:disabled {
 	border-radius: 8px;
 	border: 1px solid rgba(79, 140, 255, 0.5);
 	background: rgba(79, 140, 255, 0.08);
+}
+
+.anim-keys-editor {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 10px 12px;
+	border-radius: 8px;
+	border: 1px solid rgba(255, 79, 180, 0.5);
+	background: rgba(255, 79, 180, 0.06);
+}
+
+.anim-keys-editor p {
+	margin: 0;
+}
+
+.keys-duration {
+	width: 110px;
+}
+
+/* Línea de tiempo con las marcas (◆) de los keyframes de la parte elegida. */
+.keys-timeline {
+	position: relative;
+}
+
+.keys-timeline input[type='range'] {
+	width: 100%;
+	accent-color: var(--bone);
+}
+
+.keys-marks {
+	position: absolute;
+	left: 8px;
+	right: 8px;
+	top: 50%;
+	height: 0;
+	pointer-events: none;
+}
+
+.keys-mark {
+	position: absolute;
+	width: 9px;
+	height: 9px;
+	transform: translate(-50%, -50%) rotate(45deg);
+	background: var(--bone);
+	border: 1px solid #fff;
+}
+
+.keys-mark.current {
+	width: 12px;
+	height: 12px;
+	box-shadow: 0 0 0 2px rgba(255, 79, 180, 0.4);
+}
+
+.keys-status {
+	color: var(--muted);
 }
 
 .anim-create-params {

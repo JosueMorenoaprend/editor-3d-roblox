@@ -4,6 +4,60 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 19 — Crear animaciones a mano con keyframes (2026-11-03)
+
+**Auditoría:** punto de partida, el commit del ciclo 18 (`af664a1`), recién comprobado. Actions: sin
+ejecuciones.
+
+**Tarea:** F1-10 (Alta), la última Alta de la Fase 1 que no depende del usuario.
+
+**Decisiones**
+
+- **Deslizadores en el espacio del personaje**, no en los ejes de cada hueso: *Adelante / atrás* (X),
+  *Girar* (Y) y *Hacia los lados* (Z), en grados, con orden de Euler ZXY, convertidos con P⁻¹·D·P·L como el
+  resto del editor (`localFromAngles` / `anglesFromLocal` en `skeletonPose.js`). Así “hacia los lados” sube
+  el brazo del R15 y también el de un esqueleto tipo Mixamo, cuyos huesos tienen los ejes girados.
+- **Anillos de colores** con `TransformControls` de three.js (MIT, ya incluido: no es una dependencia nueva),
+  en modo girar y espacio local. Se descargan al abrir el editor (22 KB aparte): dentro del archivo
+  principal lo habrían agrandado 33 KB.
+- El **borrador** (`KeyframeAnimation`) no entra en el historial ni en el autoguardado hasta pulsar
+  “Guardar animación” (eso sí tiene deshacer). “Cancelar” con keyframes pide un segundo toque.
+- Cada keyframe guarda el giro (cuaternión) de una parte en un momento; three.js completa el movimiento
+  entre ellos. Un keyframe a menos de 1 ms de otro lo reemplaza y los tiempos se redondean al milisegundo
+  (en float32 nunca quedan dos iguales).
+
+**Qué hice**
+
+- `core/keyframeAnimation.js`: poner, reemplazar, quitar, cambiar la duración (borra los que quedan
+  después) y convertir en `AnimationClip` (una pista por hueso).
+- `ui/keyframePanel.js` + bloque “Crear a mano con keyframes” en *Animaciones*: nombre, duración, parte del
+  cuerpo (según el mapa de huesos), deslizadores, anillos 3D, línea de tiempo con las marcas de la parte
+  elegida, ◆ Poner keyframe, Quitar keyframe, ▶ Reproducir (en bucle), Guardar animación y Cancelar.
+
+**Cómo lo verifiqué**
+
+- Vitest: 4 pruebas nuevas (ida y vuelta ángulos → giro → ángulos en todos los huesos del R15 y de un
+  Mixamo con ejes girados; “hacia los lados” y “adelante/atrás” apuntan igual en los dos; poner, reemplazar,
+  ordenar y quitar keyframes; a la mitad entre 2 keyframes el brazo va por 45°; el GLB exportado es válido).
+- Playwright (escritorio y móvil): 2 keyframes del brazo izquierdo (0° a los 0 s, 80° hacia los lados a
+  1 s) → a 0,5 s marca 40° → reproducir y detener → guardar → exportar: validador 0 errores, la animación
+  tiene 2 cuadros en `LeftUpperArm` y el segundo está girado 80°. Otra prueba: Cancelar con keyframes pide
+  confirmar.
+- Capturas revisadas (1280×800 y 390×844): el brazo levantado con los anillos alrededor del hombro, las 2
+  marcas en la línea de tiempo y el texto “2 keyframes en total”.
+- `npm run check` → código 0: **129/129** Vitest y **50/50** Playwright. Archivo principal: 848 KB (era
+  836 KB).
+
+**Auditoría del editor nuevo** (anotado en `MEJORAS.md`): **F1-21** (error, Alta): exportar, guardar el
+proyecto, el autoguardado o la vista previa de otro bloque devuelven el personaje al reposo mientras el
+editor está abierto, y los deslizadores quedan desfasados. F1-22: “Poner keyframe” guarda solo la parte
+elegida. F1-23: avisar al exportar con keyframes sin guardar. F1-24: deshacer cada keyframe y autoguardar el
+borrador. F1-25: editar con keyframes una animación que ya existe.
+
+**Qué sigue:** F1-21 (error) y F1-22.
+
+---
+
 ## Ciclo 18 — Animaciones FBX de Mixamo (2026-11-03)
 
 **Auditoría:** punto de partida, el commit del ciclo 17 (`51adcc8`), recién comprobado (123/123 Vitest,

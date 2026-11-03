@@ -1,7 +1,7 @@
 // Ayudantes para trabajar con el esqueleto en el espacio del personaje (el del modelo: mira a +Z, su
 // izquierda es +X y arriba es +Y, como en glTF). Los usan la prueba del mapa (boneTest.js) y el paso
 // de animaciones de un personaje a otro (retarget.js).
-import { Matrix4, PropertyBinding, Quaternion, Vector3 } from 'three';
+import { Euler, MathUtils, Matrix4, PropertyBinding, Quaternion, Vector3 } from 'three';
 
 const UP = new Vector3( 0, 1, 0 );
 const FORWARD = new Vector3( 0, 0, 1 );
@@ -191,6 +191,43 @@ export function localRotation( rest, bone, delta ) {
 
 	const parent = rest.rotation( bone.parent );
 	return parent.clone().invert().multiply( delta ).multiply( parent ).multiply( rest.quaternion( bone ) );
+
+}
+
+/**
+ * Orden de los ángulos "del personaje" de los deslizadores: primero girar (Y), después adelante/atrás (X)
+ * y al final hacia los lados (Z). Con un brazo que cuelga, "girar" lo gira sobre sí mismo.
+ */
+const ANGLE_ORDER = 'ZXY';
+
+/**
+ * Giro local de un hueso a partir de ángulos en grados pensados en el espacio del personaje, relativos a
+ * su padre en reposo: [adelante/atrás (X), girar (Y), hacia los lados (Z)]. [0, 0, 0] = pose de reposo.
+ * @param {RestPose} rest
+ * @param {import('three').Object3D} bone
+ * @param {number[]} degrees [x, y, z]
+ */
+export function localFromAngles( rest, bone, [ x = 0, y = 0, z = 0 ] ) {
+
+	const euler = new Euler( MathUtils.degToRad( x ), MathUtils.degToRad( y ), MathUtils.degToRad( z ), ANGLE_ORDER );
+	return localRotation( rest, bone, new Quaternion().setFromEuler( euler ) );
+
+}
+
+/**
+ * Lo contrario de localFromAngles: los ángulos (grados) que corresponden a un giro local del hueso.
+ * @param {RestPose} rest
+ * @param {import('three').Object3D} bone
+ * @param {Quaternion} local giro local del hueso
+ * @returns {number[]} [x, y, z]
+ */
+export function anglesFromLocal( rest, bone, local ) {
+
+	// D = P · giro · L⁻¹ · P⁻¹ (P: giro de reposo del padre; L: giro de reposo del hueso).
+	const parent = rest.rotation( bone.parent );
+	const delta = parent.clone().multiply( local ).multiply( rest.quaternion( bone ).invert() ).multiply( parent.clone().invert() );
+	const euler = new Euler().setFromQuaternion( delta.normalize(), ANGLE_ORDER );
+	return [ euler.x, euler.y, euler.z ].map( ( radians ) => MathUtils.radToDeg( radians ) );
 
 }
 

@@ -167,10 +167,12 @@ src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
   boneMap.js            mapa de huesos humanoide estándar (hips, leftUpperArm…), validación y limpieza
   boneDetect.js         detecta el mapa solo (palabras en los nombres + forma del esqueleto)
   boneTest.js           animación de prueba del mapa: giros en el espacio del personaje → cada hueso
-  skeletonPose.js       pose de reposo en el espacio del modelo y hacia dónde apunta cada hueso
+  skeletonPose.js       pose de reposo en el espacio del modelo, hacia dónde apunta cada hueso y
+                        ángulos de los deslizadores ↔ giro del hueso (localFromAngles / anglesFromLocal)
   retarget.js           pasar una animación de un personaje a otro con sus mapas de huesos
   animationImport.js    leer las animaciones de otro GLB (con o sin cuerpo) y pasarlas a mi personaje
   inPlace.js            medir cuánto avanza una animación y dejarla en el lugar (X/Z fijas)
+  keyframeAnimation.js  borrador de una animación hecha a mano: keyframes (giros) por hueso → AnimationClip
   generators.js         generadores Caminar, Correr, Respirar, Saltar, Caer y Agacharse (pose por fase →
                         clip en el lugar, en bucle; piernas con los pies apoyados por ley de cosenos)
 src/samples/            modelos de prueba generados por código (sin licencias de terceros)
@@ -183,7 +185,9 @@ src/ui/                 un archivo por panel de la interfaz (samples.js: botones
   boneHighlight.js      marca rosa del hueso elegido en la vista 3D
   animationImport.js    "Agregar animaciones de otro archivo" (en Animaciones), con ▶ Ver y deshacer
   animationCreate.js    "Crear una animación" (en Animaciones): generadores con deslizadores
-  clipHistory.js        agregar animaciones al personaje con deshacer (lo usan los dos anteriores)
+  keyframePanel.js      "Crear a mano con keyframes" (en Animaciones): parte del cuerpo, deslizadores, anillos
+                        3D (TransformControls, se cargan al abrir) y línea de tiempo
+  clipHistory.js        agregar animaciones al personaje con deshacer (lo usan los tres anteriores)
 tests/unit/             pruebas Vitest del núcleo (Node)
 tests/e2e/              pruebas Playwright (flujos reales en el navegador; playwright.config.js)
 tests/helpers/          ayudantes compartidos (validar GLB, FileReader para Node, personaje con huesos raros,
@@ -204,6 +208,12 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
   los huesos **en el espacio del personaje** (mira a +Z, izquierda +X) con `P⁻¹·D·P·L` como en
   `boneTest.js`, para que funcione igual con ejes de hueso girados (Mixamo). Para pasar animaciones entre
   personajes usa `retargetClip()` (`retarget.js`), no `SkeletonUtils.retargetClip` de three.js.
+- **Ángulos para personas:** `localFromAngles( rest, hueso, [ x, y, z ] )` (`skeletonPose.js`) convierte
+  grados en el espacio del personaje (X adelante/atrás, Y girar, Z hacia los lados; orden ZXY) en el giro
+  local del hueso, y `anglesFromLocal` hace lo contrario. Úsalos en todo deslizador o comando (también los
+  de la IA) que gire una parte: así “hacia los lados” significa lo mismo en el R15 y en Mixamo.
+- **Lo que no se usa al abrir se descarga al usarlo** con `import()` (FBXLoader, TransformControls, el
+  worker de reducir): el archivo principal ya pesa ~850 KB.
 - **Vistas previas:** `app.animation.playPreview( clip, { loop, time } )` reproduce un clip que no es del
   modelo (no se exporta): una vez, o en bucle (`loop`) desde el segundo `time` (para seguir en el mismo
   punto al cambiar un deslizador). Exportar y guardar la detienen y el autoguardado espera.

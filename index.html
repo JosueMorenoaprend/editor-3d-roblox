@@ -217,6 +217,59 @@
 								</div>
 							</div>
 						</div>
+						<div class="anim-keys" id="anim-keys" hidden>
+							<button type="button" class="btn btn-block" id="btn-keys-open">Crear a mano con keyframes…</button>
+							<div class="anim-keys-editor" id="anim-keys-editor" hidden>
+								<p class="muted small">Elige una parte del cuerpo, gírala y pon un <strong>keyframe</strong> (una pose en un momento). Entre dos keyframes, el editor completa el movimiento solo.</p>
+								<div class="row">
+									<label class="field grow">
+										<span>Nombre</span>
+										<input type="text" id="keys-name" maxlength="60" />
+									</label>
+									<label class="field keys-duration">
+										<span>Duración (s)</span>
+										<input type="number" id="keys-duration" min="0.2" max="30" step="0.1" value="2" inputmode="decimal" />
+									</label>
+								</div>
+								<label class="field">
+									<span>Parte del cuerpo</span>
+									<select id="keys-part"></select>
+								</label>
+								<div class="anim-create-params" id="keys-angles">
+									<label class="field slider">
+										<span class="slider-label">Adelante / atrás <output id="keys-x-value" for="keys-x">0°</output></span>
+										<input type="range" id="keys-x" data-axis="0" min="-180" max="180" step="1" value="0" />
+									</label>
+									<label class="field slider">
+										<span class="slider-label">Hacia los lados <output id="keys-z-value" for="keys-z">0°</output></span>
+										<input type="range" id="keys-z" data-axis="2" min="-180" max="180" step="1" value="0" />
+									</label>
+									<label class="field slider">
+										<span class="slider-label">Girar <output id="keys-y-value" for="keys-y">0°</output></span>
+										<input type="range" id="keys-y" data-axis="1" min="-180" max="180" step="1" value="0" />
+									</label>
+								</div>
+								<p class="muted small">También puedes girarla arrastrando los anillos de colores en la vista 3D.</p>
+								<div class="field">
+									<span>Momento</span>
+									<div class="keys-timeline">
+										<input type="range" id="keys-time" min="0" max="2" step="0.05" value="0" aria-label="Momento de la animación" />
+										<div class="keys-marks" id="keys-marks" aria-hidden="true"></div>
+									</div>
+									<span class="mono small" id="keys-clock">0,00 / 2,00 s</span>
+								</div>
+								<div class="btn-group wide">
+									<button type="button" class="btn btn-primary" id="btn-keys-set">◆ Poner keyframe</button>
+									<button type="button" class="btn" id="btn-keys-remove">Quitar keyframe</button>
+								</div>
+								<p class="small keys-status" id="keys-status" role="status"></p>
+								<div class="btn-group wide">
+									<button type="button" class="btn" id="btn-keys-play">▶ Reproducir</button>
+									<button type="button" class="btn btn-primary" id="btn-keys-save">Guardar animación</button>
+								</div>
+								<button type="button" class="btn btn-ghost btn-block" id="btn-keys-cancel">Cancelar</button>
+							</div>
+						</div>
 						<div class="anim-import" id="anim-import" hidden>
 							<button type="button" class="btn btn-block" id="btn-anim-import">Agregar animaciones de otro archivo…</button>
 							<input type="file" id="anim-import-input" accept=".glb,.gltf,.bin,.fbx" multiple hidden />

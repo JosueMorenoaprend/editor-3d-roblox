@@ -29,7 +29,9 @@ Cómo leer esta lista:
 
 1. ~~**F1-14**~~ y ~~**F1-16**~~ (hechas en los ciclos 16 y 17).
 2. ~~**F1-05**~~ (hecha en el ciclo 18).
-3. **F1-10** (Alta) línea de tiempo de keyframes; después las Media de la Fase 1 (F1-08, F1-15, F1-11…).
+3. ~~**F1-10**~~ (hecha en el ciclo 19). Antes de seguir: el error **F1-21** (la pose del editor de
+   keyframes se pierde) y **F1-22**; después las Media de la Fase 1 (F1-23, F1-24, F1-25, F1-08, F1-15,
+   F1-11…).
 4. **F5-14** y **F5-13** (Media): el panel ya es muy largo, sobre todo en el celular.
 5. Fase 2 (conexión con IA): el guion de animación usa el mapa y los giros “en el espacio del personaje”
    que ya existen (F2-01, F2-02).
@@ -170,9 +172,20 @@ Cómo leer esta lista:
   - Comprobación: igual que F1-06.
 - [ ] **F1-09** · Media · **Estilos** para los generadores (enérgico, cansado, …).
   - Comprobación: pruebas que comparan amplitud/velocidad entre estilos.
-- [ ] **F1-10** · Alta · **Línea de tiempo de keyframes**: elegir un hueso, girarlo con
-  `TransformControls`, poner y quitar keyframes.
-  - Comprobación: e2e crea una animación de 2 keyframes, la reproduce y la exporta válida.
+- [x] **F1-10** · Alta · **Línea de tiempo de keyframes**: elegir un hueso, girarlo con
+  `TransformControls`, poner y quitar keyframes. *(ciclo 19)*
+  - Comprobación: e2e crea una animación de 2 keyframes, la reproduce y la exporta válida. ✔ En
+    *Animaciones* → “Crear a mano con keyframes”: nombre, duración, parte del cuerpo (con el mapa de
+    huesos), 3 deslizadores en el espacio del personaje (*Adelante / atrás*, *Hacia los lados*, *Girar*:
+    significan lo mismo en el R15 y en un esqueleto tipo Mixamo con los ejes girados), anillos de colores
+    en la vista 3D (`TransformControls`, se descargan solo al abrir: 22 KB), línea de tiempo con las
+    marcas de la parte elegida, ◆ Poner keyframe, Quitar keyframe, ▶ Reproducir en bucle, Guardar
+    animación (con deshacer) y Cancelar (pide confirmar si hay keyframes). `core/keyframeAnimation.js` +
+    ángulos ↔ giro en `skeletonPose.js`. 4 pruebas de Vitest (ida y vuelta de los ángulos en todos los
+    huesos del R15 y de Mixamo; “hacia los lados” sube el brazo en los dos; poner, reemplazar y quitar
+    keyframes; a la mitad entre 2 keyframes el brazo va por 45°; GLB válido) + e2e (escritorio y móvil):
+    2 keyframes del brazo (0 y 80° a 1 s) → a 0,5 s marca 40° → reproducir y detener → guardar → exportar:
+    GLB válido con 2 cuadros en `LeftUpperArm` y el segundo girado 80°.
 - [ ] **F1-11** · Media · **Copiar y pegar poses** y **reflejar** izquierda↔derecha.
   - Comprobación: pruebas unitarias del reflejo + e2e.
 - [ ] **F1-12** · Media · **Suavizado de curvas** y **fantasmas** de los fotogramas vecinos.
@@ -211,6 +224,28 @@ Cómo leer esta lista:
   `PRUEBAS_ROBLOX.md`): giro de los antebrazos (“twist”), pies que se hunden o flotan, personajes en pose
   A. Corregir lo que se vea mal. *(ciclo 13)*
   - Comprobación: el usuario (o Claude local) anota el resultado de T-02 y las correcciones tienen prueba.
+- [ ] **F1-21** · Alta · **Error:** con el editor de keyframes abierto, lo que devuelve el personaje a la
+  pose de reposo (Exportar, Guardar proyecto, el autoguardado, “Detectar otra vez”, agregar una animación,
+  el ▶ Ver de otro bloque o el reproductor de arriba) borra la pose que se está armando: el brazo vuelve
+  al reposo pero los deslizadores siguen marcando el giro, y “Poner keyframe” guardaría la pose de reposo.
+  *(auditoría del ciclo 19)*
+  - Comprobación: e2e con el editor abierto: girar una parte, exportar y ver otra animación → la parte
+    sigue girada, los deslizadores coinciden y el keyframe guarda ese giro.
+- [ ] **F1-22** · Media · “Poner keyframe” guarda **solo la parte elegida**: si se mueven varias partes y
+  se pulsa una vez, las demás no quedan guardadas, y al mover el tiempo se pierden sin aviso. Que guarde
+  la pose que se ve (todas las partes que se movieron) y avise antes de descartar cambios sin keyframe.
+  *(auditoría del ciclo 19)*
+  - Comprobación: prueba + e2e: mover 2 partes, un solo “Poner keyframe” → las 2 tienen keyframe.
+- [ ] **F1-23** · Media · Si se exporta con keyframes **sin guardar**, avisar que esa animación todavía no
+  va en el archivo (hay que pulsar “Guardar animación”). *(auditoría del ciclo 19)*
+  - Comprobación: e2e exporta con el editor abierto y ve el aviso.
+- [ ] **F1-24** · Media · **Deshacer cada keyframe** (Ctrl+Z dentro del editor; hoy deshace la última
+  acción del modelo) y **autoguardar el borrador** de keyframes (hoy, si se cierra la página antes de
+  guardar, se pierde). *(auditoría del ciclo 19)*
+  - Comprobación: e2e: 2 keyframes → Ctrl+Z quita el último; recargar la página → el borrador vuelve.
+- [ ] **F1-25** · Media · **Editar con keyframes una animación que ya existe** (generada, importada o hecha
+  a mano): hoy, una vez guardada, no se puede volver a abrir para ajustarla. *(auditoría del ciclo 19)*
+  - Comprobación: e2e abre “Saludar” del R15 en el editor, cambia un keyframe y la exportación lo trae.
 
 ## Fase 2 — Conexión con IA
 
@@ -314,9 +349,9 @@ Cómo leer esta lista:
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
 | 0 — Base sólida | 16 | 12 |
-| 1 — Animación | 20 | 9 |
+| 1 — Animación | 25 | 10 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 15 | 0 |
-| **Total** | **76** | **21** |
+| **Total** | **81** | **22** |

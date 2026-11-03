@@ -64,6 +64,10 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
   las que quieres llevar a Roblox; tu proyecto las sigue guardando todas.
 - **Nuevo: animaciones FBX de Mixamo.** “Agregar animaciones de otro archivo” ahora acepta archivos `.fbx`
   (como los que descargas de Mixamo), sin tener que convertirlos antes.
+- **Nuevo: crear animaciones a mano con keyframes.** En *Animaciones* → “Crear a mano con keyframes”: elige
+  una parte del cuerpo, gírala con los deslizadores (*Adelante / atrás*, *Hacia los lados*, *Girar*) o con los
+  anillos de colores de la vista 3D, y pulsa **Poner keyframe** (una pose en un momento). Entre dos
+  keyframes, el editor completa el movimiento solo. Mírala con **Reproducir** y pulsa **Guardar animación**.
 
 ## Versión 1
 

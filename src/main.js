@@ -25,6 +25,7 @@ import { $ } from './ui/dom.js';
 import { initExportPanel } from './ui/exportPanel.js';
 import { initHistoryControls } from './ui/historyControls.js';
 import { initInfoPanel } from './ui/infoPanel.js';
+import { initKeyframePanel } from './ui/keyframePanel.js';
 import { initProjectPanel } from './ui/projectPanel.js';
 import { initSamples } from './ui/samples.js';
 import { initSimplifyPanel } from './ui/simplifyPanel.js';
@@ -61,6 +62,7 @@ function start() {
 	initBoneMapPanel( app );
 	initAnimationPanel( app );
 	initAnimationCreate( app );
+	initKeyframePanel( app );
 	initAnimationImport( app );
 	initExportPanel( app );
 	initProjectPanel( app );
