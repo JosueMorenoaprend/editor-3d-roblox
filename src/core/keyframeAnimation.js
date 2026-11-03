@@ -1,6 +1,6 @@
 // Animación hecha a mano con keyframes: en ciertos momentos se guarda el giro de un hueso y, entre un
 // keyframe y el siguiente, three.js lo interpola (suave). La usa la línea de tiempo del panel Animaciones.
-import { AnimationClip, QuaternionKeyframeTrack } from 'three';
+import { AnimationClip, PropertyBinding, QuaternionKeyframeTrack } from 'three';
 
 /** Dos keyframes a menos de esto (segundos) son el mismo momento. */
 const SAME_TIME = 1e-3;
@@ -16,6 +16,10 @@ export class KeyframeAnimation {
 		this.duration = duration;
 		/** hueso → keyframes ordenados por tiempo: [{ time, quaternion: [x, y, z, w] }] */
 		this.keys = new Map();
+		/** Nombre de la animación del personaje que se está editando (se reemplaza al guardar), o null. */
+		this.source = null;
+		/** Pistas que no son giros de huesos (posición de la cadera, escalas…): se guardan tal cual. */
+		this.extraTracks = [];
 
 	}
 
@@ -121,7 +125,10 @@ export class KeyframeAnimation {
 
 		const keys = {};
 		for ( const [ bone, list ] of this.keys ) keys[ bone ] = list.map( ( key ) => [ key.time, ...key.quaternion ] );
-		return { name: this.name, duration: this.duration, keys };
+		const data = { name: this.name, duration: this.duration, keys };
+		if ( this.source ) data.source = this.source;
+		if ( this.extraTracks.length > 0 ) data.extra = AnimationClip.toJSON( new AnimationClip( 'extra', this.duration, this.extraTracks ) ).tracks;
+		return data;
 
 	}
 
@@ -142,6 +149,50 @@ export class KeyframeAnimation {
 
 		}
 
+		if ( typeof data?.source === 'string' ) animation.source = data.source;
+		if ( Array.isArray( data?.extra ) ) {
+
+			try {
+
+				animation.extraTracks = AnimationClip.parse( { name: 'extra', duration: animation.duration, tracks: data.extra } ).tracks;
+
+			} catch {
+
+				animation.extraTracks = [];
+
+			}
+
+		}
+
+		return animation;
+
+	}
+
+	/**
+	 * Un borrador con una animación que ya existe: los giros de los huesos pasan a keyframes (uno por cuadro);
+	 * lo demás (posición de la cadera, escalas, otras piezas) queda tal cual en `extraTracks`.
+	 * @param {AnimationClip} clip
+	 * @param {Map<string, any>} bones huesos del personaje, por nombre
+	 */
+	static fromClip( clip, bones ) {
+
+		const animation = new KeyframeAnimation( { name: clip.name, duration: clip.duration } );
+		animation.source = clip.name;
+		for ( const track of clip.tracks ) {
+
+			const { nodeName, propertyName } = PropertyBinding.parseTrackName( track.name );
+			if ( propertyName !== 'quaternion' || ! bones.has( nodeName ) ) {
+
+				animation.extraTracks.push( track.clone() );
+				continue;
+
+			}
+
+			const interpolant = track.createInterpolant();
+			for ( const time of track.times ) animation.setKey( nodeName, time, Array.from( interpolant.evaluate( time ) ) );
+
+		}
+
 		return animation;
 
 	}
@@ -154,6 +205,14 @@ export class KeyframeAnimation {
 			list.map( ( key ) => key.time ),
 			list.flatMap( ( key ) => key.quaternion ),
 		) );
+		// Las pistas extra (de una animación que ya existía) se recortan a la duración.
+		for ( const track of this.extraTracks ) {
+
+			const copy = track.clone().trim( 0, this.duration );
+			if ( copy.times.length > 0 ) tracks.push( copy );
+
+		}
+
 		return new AnimationClip( name, this.duration, tracks );
 
 	}
@@ -170,5 +229,12 @@ export class KeyframeAnimation {
 function copyKeys( keys ) {
 
 	return new Map( [ ...keys ].map( ( [ bone, list ] ) => [ bone, list.map( ( key ) => ( { time: key.time, quaternion: [ ...key.quaternion ] } ) ) ] ) );
+
+}
+
+/** Cuántos keyframes trae un borrador guardado con toJSON() (sin armarlo). */
+export function countDraftKeys( data ) {
+
+	return Object.values( data?.keys || {} ).reduce( ( sum, list ) => sum + ( Array.isArray( list ) ? list.length : 0 ), 0 );
 
 }

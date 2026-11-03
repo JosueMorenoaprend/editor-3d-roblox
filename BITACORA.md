@@ -4,6 +4,42 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 26 — Editar con keyframes una animación que ya existe (2026-11-03)
+
+**Auditoría:** punto de partida, el commit del ciclo 25 (`b26a8ee`). Actions: sin ejecuciones.
+
+**Tarea:** F1-25 (Media).
+
+**Qué hice**
+
+- `KeyframeAnimation.fromClip( clip, huesos )`: cada pista de giro de un hueso pasa a keyframes, uno por
+  cuadro (se evalúa la pista en sus tiempos, así sirve también con “cubic spline”); lo demás (posición de la
+  cadera, escalas, piezas que no son huesos) queda en `extraTracks` y vuelve tal cual en `toClip()`,
+  recortado a la duración. `source` recuerda qué animación se edita. Las dos cosas van también en el borrador
+  autoguardado (`AnimationClip.toJSON` / `parse` para las pistas extra).
+- Botón **✎ Editar con keyframes** debajo del reproductor (visible con una animación elegida, sin el editor
+  abierto ni otra a medio hacer). Al guardar, la versión nueva **reemplaza** a la original en el mismo lugar
+  de la lista (`replaceClip`, con deshacer).
+
+**Problema en el camino:** la comprobación completa falló una vez en el celular: la prueba del borrador
+(ciclo 25) esperaba «Guardado automático», pero ese texto podía ser de un guardado anterior (sin keyframes) y
+recargaba antes del último. Arreglo en el editor: el aviso ahora dice «Incluye «Saludo a mano» (2 keyframes),
+a medio hacer.», útil para el usuario, y la prueba espera ese texto exacto. `countDraftKeys()` (núcleo) cuenta
+los keyframes del borrador para el aviso y para el botón «Seguir con…».
+
+**Cómo lo verifiqué**
+
+- Vitest: 1 prueba nueva (“Caminar” → borrador → clip: mismos tiempos y valores en sus 7 pistas, también la
+  posición de la cadera; y lo mismo después de pasar por JSON).
+- Playwright (escritorio y móvil): ✎ Saludar → «16 keyframes» → cabeza a 1 s (marca 8°) → girar 40° → guardar
+  → el GLB pasa el validador y trae la cabeza con 5 keyframes y el giro nuevo → Ctrl+Z vuelve a la de antes.
+  Captura del celular revisada: el botón queda debajo del reproductor y se lee bien.
+- `npm run check` → código 0: **137/137** Vitest y **64/64** Playwright.
+
+**Qué sigue:** F1-08 (generadores saludar, atacar y baile), F1-15 y F1-09.
+
+---
+
 ## Ciclo 25 — La animación a medio hacer se guarda sola (2026-11-03)
 
 **Auditoría:** punto de partida, el commit del ciclo 24 (`9b64f98`). Actions: sin ejecuciones.

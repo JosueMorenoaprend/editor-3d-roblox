@@ -87,6 +87,10 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
 - **Tu animación con keyframes a medio hacer ya no se pierde:** se guarda sola (y también con «Guardar
   proyecto»). Si cierras la página, al recuperar tu trabajo el botón dice «Seguir con «…»» y sigues donde
   estabas.
+- **Nuevo: ✎ Editar con keyframes.** Debajo del reproductor de *Animaciones*: abre la animación elegida (de
+  los generadores, de otro archivo o hecha a mano) en el editor de keyframes. Al guardar, reemplaza a la de
+  antes (Ctrl+Z la devuelve).
+- El aviso del guardado automático dice si incluye tu animación a medio hacer (y cuántos keyframes tiene).
 
 ## Versión 1
 

@@ -8,7 +8,7 @@
 // animación (el reproductor de arriba o la vista previa de otro bloque), el editor espera.
 import { uniqueClipName } from '../core/animation.js';
 import { HUMANOID_BONES, boneLabel } from '../core/boneMap.js';
-import { KeyframeAnimation } from '../core/keyframeAnimation.js';
+import { KeyframeAnimation, countDraftKeys } from '../core/keyframeAnimation.js';
 import { mirrorAngles, poseRotations, readPose } from '../core/poseTools.js';
 import { ClipSampler, RestPose, anglesFromLocal, findBones, localFromAngles } from '../core/skeletonPose.js';
 import { addClipsWithUndo } from './clipHistory.js';
@@ -81,9 +81,18 @@ export function initKeyframePanel( app ) {
 	const partBone = ( key ) => editor.bones.get( editor.model.boneMap[ key ] );
 	const bone = () => ( editor ? partBone( editor.key ) : null );
 
-	openButton.addEventListener( 'click', open );
+	openButton.addEventListener( 'click', () => open() );
 
-	async function open() {
+	// "✎ Editar con keyframes" (junto al reproductor): abre en el editor la animación elegida.
+	const editButton = $( '#btn-keys-edit' );
+	editButton.addEventListener( 'click', () => {
+
+		const clip = app.animation.clips[ app.animation.selectedIndex ];
+		if ( clip ) open( clip );
+
+	} );
+
+	async function open( source = null ) {
 
 		const model = app.model;
 		if ( ! model ) return;
@@ -92,9 +101,10 @@ export function initKeyframePanel( app ) {
 		app.animation.stop();
 		editor = {
 			model,
-			// Si quedó una a medio hacer (autoguardado o proyecto), se sigue con esa.
-			animation: model.keyframeDraft ? KeyframeAnimation.fromJSON( model.keyframeDraft )
-				: new KeyframeAnimation( { name: uniqueClipName( 'Mi animación', model.clips.map( ( clip ) => clip.name ) ), duration: 2 } ),
+			// Una animación del personaje (✎ Editar), la que quedó a medio hacer (autoguardado) o una nueva.
+			animation: source ? KeyframeAnimation.fromClip( source, findBones( model.container ) )
+				: model.keyframeDraft ? KeyframeAnimation.fromJSON( model.keyframeDraft )
+					: new KeyframeAnimation( { name: uniqueClipName( 'Mi animación', model.clips.map( ( clip ) => clip.name ) ), duration: 2 } ),
 			rest: new RestPose( model.container, model.restPose ),
 			bones: findBones( model.container ),
 			key: null,
@@ -110,6 +120,7 @@ export function initKeyframePanel( app ) {
 		durationInput.value = String( editor.animation.duration );
 		fillParts();
 		openButton.hidden = true;
+		renderEditButton();
 		editorBox.hidden = false;
 		showPose();
 		render();
@@ -337,6 +348,7 @@ export function initKeyframePanel( app ) {
 	// ¿Qué se ve? Mi vista previa, otra animación o (si no suena nada) la pose de trabajo.
 	app.animation.addEventListener( 'change', () => {
 
+		renderEditButton();
 		if ( ! editor || editor.model !== app.animation.model ) return;
 		editor.playing = app.animation.isPreviewing( editor.clip );
 		editor.other = editor.playing ? null : otherAnimation();
@@ -364,9 +376,20 @@ export function initKeyframePanel( app ) {
 
 		}
 
-		const name = uniqueClipName( editor.animation.name, app.model.clips.map( ( clip ) => clip.name ) );
-		const clip = editor.animation.toClip( name );
+		// Si se editaba una animación del personaje, la versión nueva la reemplaza (con deshacer).
+		const draft = editor.animation;
+		const original = draft.source ? app.model.clips.find( ( item ) => item.name === draft.source ) || null : null;
+		const name = uniqueClipName( draft.name, app.model.clips.filter( ( item ) => item !== original ).map( ( item ) => item.name ) );
+		const clip = draft.toClip( name );
 		close();
+		if ( original ) {
+
+			replaceClipWithUndo( original, clip );
+			toast( `Listo: guardé los cambios en «${ name }». Si no te gustan, deshazlo con Ctrl+Z.`, 'ok' );
+			return;
+
+		}
+
 		addClipsWithUndo( app, [ clip ] );
 		toast( `Listo: agregué «${ name }» a tu personaje. Si no te gusta, deshazlo con Ctrl+Z.`, 'ok' );
 
@@ -442,6 +465,29 @@ export function initKeyframePanel( app ) {
 
 	}
 
+	/** Cambia una animación del personaje por su versión editada (Ctrl+Z vuelve a la de antes). */
+	function replaceClipWithUndo( original, clip ) {
+
+		const swap = ( from, to ) => {
+
+			app.animation.replaceClip( from, to );
+			app.emit( 'clips' );
+
+		};
+
+		swap( original, clip );
+		app.history.push( { label: `Editar con keyframes: ${ clip.name }`, undo: () => swap( clip, original ), redo: () => swap( original, clip ) } );
+
+	}
+
+	/** "✎ Editar con keyframes": con una animación elegida, sin el editor abierto ni otra a medio hacer. */
+	function renderEditButton() {
+
+		const anim = app.animation;
+		editButton.hidden = !! editor || box.hidden || ! app.model || !! app.model.keyframeDraft || anim.selectedIndex < 0 || !! anim.preview;
+
+	}
+
 	/** El borrador va en el modelo: el autoguardado y "Guardar proyecto" lo guardan aunque no esté terminado. */
 	function syncDraft() {
 
@@ -455,8 +501,9 @@ export function initKeyframePanel( app ) {
 	function renderOpenButton() {
 
 		const draft = app.model ? app.model.keyframeDraft : null;
-		const count = draft ? Object.values( draft.keys || {} ).reduce( ( sum, list ) => sum + ( Array.isArray( list ) ? list.length : 0 ), 0 ) : 0;
+		const count = draft ? countDraftKeys( draft ) : 0;
 		openButton.textContent = draft ? `Seguir con «${ draft.name || 'Mi animación' }» (${ plural( count, 'keyframe' ) })…` : 'Crear a mano con keyframes…';
+		renderEditButton();
 
 	}
 
@@ -542,6 +589,8 @@ export function initKeyframePanel( app ) {
 			'Pulsa «Guardar animación» y vuelve a exportar.', 'info', 9000 );
 
 	} );
+
+	app.on( 'clips', renderEditButton );
 
 	app.on( 'model', () => {
 

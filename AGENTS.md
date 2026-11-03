@@ -172,7 +172,7 @@ src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
   retarget.js           pasar una animación de un personaje a otro con sus mapas de huesos
   animationImport.js    leer las animaciones de otro GLB (con o sin cuerpo) y pasarlas a mi personaje
   inPlace.js            medir cuánto avanza una animación y dejarla en el lugar (X/Z fijas)
-  keyframeAnimation.js  borrador de una animación hecha a mano: keyframes (giros) por hueso → AnimationClip
+  keyframeAnimation.js  borrador con keyframes (giros por hueso; fromClip edita una que ya existe) → clip
   poseTools.js          copiar, pegar y reflejar poses (grados por parte, en el espacio del personaje)
   generators.js         generadores Caminar, Correr, Respirar, Saltar, Caer y Agacharse (pose por fase →
                         clip en el lugar, en bucle; piernas con los pies apoyados por ley de cosenos)

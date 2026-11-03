@@ -30,8 +30,8 @@ Cómo leer esta lista:
 1. ~~**F1-14**~~ y ~~**F1-16**~~ (hechas en los ciclos 16 y 17).
 2. ~~**F1-05**~~ (hecha en el ciclo 18).
 3. ~~**F1-10**~~ (ciclo 19), ~~**F1-21**~~ (ciclo 20), ~~**F1-22**~~ (ciclo 21), ~~**F1-23**~~ (ciclo 22),
-   ~~**F1-11**~~ (ciclo 23), ~~**F1-24**~~ (ciclo 24) y ~~**F1-26**~~ (ciclo 25). Siguen las Media de la
-   Fase 1 (F1-25, F1-08, F1-15…).
+   ~~**F1-11**~~ (ciclo 23), ~~**F1-24**~~ (ciclo 24), ~~**F1-26**~~ (ciclo 25) y ~~**F1-25**~~ (ciclo 26).
+   Siguen las Media de la Fase 1 (F1-08, F1-15, F1-09…).
 4. **F5-14** y **F5-13** (Media): el panel ya es muy largo, sobre todo en el celular.
 5. Fase 2 (conexión con IA): el guion de animación usa el mapa y los giros “en el espacio del personaje”
    que ya existen (F2-01, F2-02).
@@ -295,9 +295,18 @@ Cómo leer esta lista:
     borrador, el botón dice «Seguir con «Saludo a mano» (2 keyframes)…». Prueba de Vitest (ida y vuelta, y
     datos dañados) + e2e (escritorio y móvil): 2 keyframes → autoguardado → recargar → Recuperar mi trabajo →
     Seguir con… → 2 keyframes, el nombre y los 70° → Cancelar → el botón vuelve a «Crear a mano…».
-- [ ] **F1-25** · Media · **Editar con keyframes una animación que ya existe** (generada, importada o hecha
-  a mano): hoy, una vez guardada, no se puede volver a abrir para ajustarla. *(auditoría del ciclo 19)*
-  - Comprobación: e2e abre “Saludar” del R15 en el editor, cambia un keyframe y la exportación lo trae.
+- [x] **F1-25** · Media · **Editar con keyframes una animación que ya existe** (generada, importada o hecha
+  a mano): hoy, una vez guardada, no se puede volver a abrir para ajustarla. *(auditoría del ciclo 19; hecho
+  en el ciclo 26)*
+  - Comprobación: e2e abre “Saludar” del R15 en el editor, cambia un keyframe y la exportación lo trae. ✔
+    Botón **✎ Editar con keyframes** debajo del reproductor: `KeyframeAnimation.fromClip()` pasa los giros
+    de los huesos a keyframes (uno por cuadro, también si la pista es “cubic spline”) y guarda lo demás
+    (posición de la cadera, escalas) en `extraTracks`, que vuelve tal cual al guardar (recortado a la
+    duración) y también va en el borrador autoguardado. Al guardar, la versión nueva **reemplaza** a la de
+    antes (con deshacer). Prueba de Vitest (“Caminar” → borrador → clip: mismos tiempos y valores en las 7
+    pistas, también la posición de la cadera; y por JSON) + e2e (escritorio y móvil): ✎ Saludar → 16
+    keyframes → cabeza a 1 s: girar 40° → guardar → el GLB (válido) trae la cabeza con 5 keyframes y el
+    nuevo giro → Ctrl+Z vuelve a la de antes.
 
 ## Fase 2 — Conexión con IA
 
@@ -401,9 +410,9 @@ Cómo leer esta lista:
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
 | 0 — Base sólida | 17 | 13 |
-| 1 — Animación | 26 | 16 |
+| 1 — Animación | 26 | 17 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 15 | 0 |
-| **Total** | **83** | **29** |
+| **Total** | **83** | **30** |

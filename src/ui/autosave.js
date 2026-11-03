@@ -2,7 +2,8 @@
 // navegador. Al volver a abrir el editor ofrece "¿Seguimos donde lo dejaste?".
 import { clearAutosave, loadAutosave, saveAutosave } from '../core/autosave.js';
 import { exportProject } from '../core/exporter.js';
-import { $, formatBytes } from './dom.js';
+import { countDraftKeys } from '../core/keyframeAnimation.js';
+import { $, formatBytes, plural } from './dom.js';
 import { toast } from './toast.js';
 
 /** Espera después del último cambio antes de guardar (ms). */
@@ -71,7 +72,10 @@ export function initAutosave( app ) {
 			const { arrayBuffer } = await app.animation.atRestPose( () => exportProject( model, { appVersion: APP_VERSION } ) );
 			if ( app.model !== model ) return; // se abrió otro modelo mientras tanto
 			const record = await saveAutosave( { fileName: `${ model.baseName }.proyecto.glb`, baseName: model.baseName, bytes: arrayBuffer } );
-			status.textContent = `✓ Guardado automático ${ describeWhen( record.savedAt ) } (${ formatBytes( record.size ) }).`;
+			// Si hay una animación con keyframes a medio hacer, el aviso dice que también quedó guardada.
+			const draft = model.keyframeDraft;
+			const extra = draft ? ` Incluye «${ draft.name || 'Mi animación' }» (${ plural( countDraftKeys( draft ), 'keyframe' ) }), a medio hacer.` : '';
+			status.textContent = `✓ Guardado automático ${ describeWhen( record.savedAt ) } (${ formatBytes( record.size ) }).${ extra }`;
 			status.dataset.state = 'ok';
 
 		} catch ( error ) {

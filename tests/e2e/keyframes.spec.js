@@ -1,5 +1,6 @@
 // Crear una animación a mano con keyframes: elegir una parte, girarla, poner keyframes, reproducir y exportar.
 import { readFileSync } from 'node:fs';
+import { Euler, MathUtils, Quaternion } from 'three';
 import { describeIssues, readGLBAccessor, readGLBJson, validateGLB } from '../helpers/gltf.js';
 import { capture, captureScrolledTo, expect, exportAndValidate, openSample, test } from './fixtures.js';
 
@@ -306,7 +307,8 @@ test( 'la animación a medio hacer se guarda sola y vuelve al recargar la págin
 	await page.locator( '#keys-time' ).fill( '1' );
 	await page.locator( '#keys-z' ).fill( '70' );
 	await page.locator( '#btn-keys-set' ).click();
-	await expect( page.locator( '#autosave-status' ) ).toContainText( 'Guardado automático', { timeout: 20_000 } );
+	// Espera el guardado que ya trae los 2 keyframes (uno anterior, sin keyframes, también dice «Guardado automático»).
+	await expect( page.locator( '#autosave-status' ) ).toContainText( 'Incluye «Saludo a mano» (2 keyframes), a medio hacer.', { timeout: 20_000 } );
 
 	// Se cierra la página sin pulsar "Guardar animación"; al volver, se recupera el trabajo.
 	await page.reload();
@@ -322,5 +324,44 @@ test( 'la animación a medio hacer se guarda sola y vuelve al recargar la págin
 	await page.locator( '#btn-keys-cancel' ).click();
 	await page.locator( '#btn-keys-cancel' ).click();
 	await expect( open ).toHaveText( 'Crear a mano con keyframes…' );
+
+} );
+
+test( 'editar con keyframes una animación que ya existe (Saludar del R15)', async ( { page }, testInfo ) => {
+
+	const status = page.locator( '#keys-status' );
+	await page.goto( './' );
+	await openSample( page, 'Muñeco R15' );
+	await captureScrolledTo( page, testInfo, 'keyframes-editar-boton', '#anim-controls' );
+	await page.locator( '#btn-keys-edit' ).click();
+	await expect( page.locator( '#keys-name' ) ).toHaveValue( 'Saludar' );
+	await expect( status ).toContainText( '16 keyframes en total' );
+	await page.locator( '#keys-part' ).selectOption( 'head' );
+	await expect( status ).toContainText( '«Cabeza»: en 0,00 s, 0,30 s, 1,70 s, 2,00 s.' );
+
+	// A 1 s la cabeza está inclinada 8°: además, que gire 40°.
+	await page.locator( '#keys-time' ).fill( '1' );
+	await expect( page.locator( '#keys-z-value' ) ).toHaveText( '8°' );
+	await page.locator( '#keys-y' ).fill( '40' );
+	await page.locator( '#btn-keys-set' ).click();
+	await page.locator( '#btn-keys-save' ).click();
+	await expect( page.locator( '.toast' ).last() ).toContainText( 'guardé los cambios en «Saludar»' );
+	await expect( page.locator( '#anim-select option' ) ).toHaveCount( 3 );
+
+	// El GLB (válido) trae «Saludar» con el keyframe nuevo de la cabeza.
+	const { bytes } = await exportAndValidate( page, testInfo, 'muneco_saludar_editado.glb' );
+	const json = readGLBJson( bytes );
+	const wave = json.animations.find( ( item ) => item.name === 'Saludar' );
+	expect( wave.channels ).toHaveLength( 3 );
+	const head = wave.channels.find( ( item ) => json.nodes[ item.target.node ].name === 'Head' );
+	const sampler = wave.samplers[ head.sampler ];
+	const times = readGLBAccessor( bytes, json, sampler.input ).map( ( [ time ] ) => time );
+	[ 0, 0.3, 1, 1.7, 2 ].forEach( ( time, i ) => expect( times[ i ] ).toBeCloseTo( time, 5 ) );
+	const expected = new Quaternion().setFromEuler( new Euler( 0, MathUtils.degToRad( 40 ), MathUtils.degToRad( 8 ), 'ZXY' ) ).toArray();
+	readGLBAccessor( bytes, json, sampler.output )[ 2 ].forEach( ( value, i ) => expect( value ).toBeCloseTo( expected[ i ], 3 ) );
+
+	// Ctrl+Z vuelve a la animación de antes.
+	await page.keyboard.press( 'Control+z' );
+	await expect( page.locator( '.toast' ).last() ).toContainText( 'Deshecho: Editar con keyframes: Saludar' );
 
 } );

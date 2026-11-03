@@ -187,3 +187,33 @@ describe( 'guardar el borrador en el proyecto', () => {
 	} );
 
 } );
+
+describe( 'editar una animación que ya existe', () => {
+
+	it( 'se vuelve borrador sin perder nada (ni la posición de la cadera) y pasa por JSON', () => {
+
+		const { model } = openSample( 'r15' );
+		const walk = model.clips.find( ( clip ) => clip.name === 'Caminar' );
+		const bones = new Map();
+		model.container.traverse( ( object ) => object.isBone && bones.set( object.name, object ) );
+		const draft = KeyframeAnimation.fromClip( walk, bones );
+		expect( draft.source ).toBe( 'Caminar' );
+		expect( draft.keyTimes( 'LeftUpperLeg' ) ).toEqual( [ 0, 0.25, 0.5, 0.75, 1 ] );
+		expect( draft.extraTracks.map( ( track ) => track.name ) ).toEqual( [ 'HumanoidRootPart.position' ] );
+		const clip = draft.toClip();
+		expect( clip.validate() ).toBe( true );
+		for ( const track of walk.tracks ) {
+
+			const copy = clip.tracks.find( ( item ) => item.name === track.name );
+			expect( Array.from( copy.times ), track.name ).toEqual( Array.from( track.times ) );
+			expect( Array.from( copy.values ), track.name ).toEqual( Array.from( track.values ) );
+
+		}
+
+		const back = KeyframeAnimation.fromJSON( JSON.parse( JSON.stringify( draft.toJSON() ) ) );
+		expect( back.source ).toBe( 'Caminar' );
+		expect( back.toClip().tracks.map( ( track ) => track.name ).sort() ).toEqual( walk.tracks.map( ( track ) => track.name ).sort() );
+
+	} );
+
+} );
