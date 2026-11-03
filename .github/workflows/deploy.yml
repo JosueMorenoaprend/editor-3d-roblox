@@ -4,12 +4,14 @@
 # no publica nada y termina en verde con un aviso: así nunca sale en rojo por eso.
 # Para activarlo: Settings → Pages → Build and deployment → Source: "GitHub Actions".
 #
+# En los pull requests solo revisa si Pages está activado (nunca publica desde un PR).
 # Las pruebas de cada cambio están en ci.yml ("Comprobar").
 name: Publicar en GitHub Pages
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -17,10 +19,10 @@ permissions:
   pages: write
   id-token: write
 
-# Una publicación nunca se cancela a la mitad.
+# Una publicación nunca se cancela a la mitad; la revisión de un PR sí (si llega otro commit).
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('pages-pr-{0}', github.ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   pages-status:
@@ -46,7 +48,7 @@ jobs:
   build:
     name: Compilar
     needs: pages-status
-    if: needs.pages-status.outputs.enabled == 'true'
+    if: needs.pages-status.outputs.enabled == 'true' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
