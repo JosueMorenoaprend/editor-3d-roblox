@@ -1,6 +1,6 @@
 // Agregar a mi personaje las animaciones de otro archivo (de Tripo o Mixamo), verlas antes y exportarlas.
-import { readGLBJson } from '../helpers/gltf.js';
-import { createMixamoDanceGLB } from '../helpers/animationFiles.js';
+import { readGLBAccessor, readGLBJson } from '../helpers/gltf.js';
+import { createMixamoDanceGLB, createMixamoRunForwardGLB } from '../helpers/animationFiles.js';
 import { createOddRigGLB } from '../helpers/oddRig.js';
 import { capture, captureScrolledTo, expect, exportAndValidate, openSample, test } from './fixtures.js';
 
@@ -83,5 +83,61 @@ test( 'agregar animaciones explica qué hacer cuando algo no sirve', async ( { p
 	await page.reload();
 	await openSample( page, 'Carrito de piezas' );
 	await expect( page.locator( '#anim-import' ) ).toBeHidden();
+
+} );
+
+test( 'una animación que avanza (Mixamo sin "In Place") queda en el lugar', async ( { page }, testInfo ) => {
+
+	const result = page.locator( '#anim-import-result' );
+	const note = page.locator( '#anim-root' );
+	const select = page.locator( '#anim-select' );
+	const run = await createMixamoRunForwardGLB();
+	await page.goto( './' );
+	await openSample( page, 'Muñeco R15' );
+	// Las animaciones del muñeco no avanzan: no hay aviso.
+	await expect( note ).toBeHidden();
+
+	// Al importarla, se avisa que avanza y la casilla "Dejar en el lugar" viene marcada.
+	await page.locator( '#anim-import-input' ).setInputFiles( { name: 'correr_mixamo.glb', mimeType: GLB, buffer: run } );
+	await expect( result ).toContainText( 'avanza 1,6 m' );
+	await expect( page.locator( '#anim-import-in-place' ) ).toBeChecked();
+	await captureScrolledTo( page, testInfo, 'animacion-que-avanza', '#anim-import' );
+	await page.locator( '#btn-anim-import-add' ).click();
+	await expect( select.locator( 'option:checked' ) ).toContainText( 'Correr' );
+	await expect( note ).toBeHidden();
+
+	// Otra vez, pero desmarcando la casilla: queda avanzando y el panel lo avisa.
+	await page.locator( '#anim-import-input' ).setInputFiles( { name: 'correr_mixamo.glb', mimeType: GLB, buffer: run } );
+	await page.locator( '#anim-import-in-place' ).uncheck();
+	await page.locator( '#btn-anim-import-add' ).click();
+	await expect( select.locator( 'option:checked' ) ).toContainText( 'Correr (2)' );
+	await expect( note ).toBeVisible();
+	await expect( note ).toContainText( 'hace avanzar al personaje 1,6 m' );
+
+	// "Dejar en el lugar" en el panel (con deshacer).
+	await page.locator( '#btn-anim-in-place' ).click();
+	await expect( page.locator( '.toast' ).last() ).toContainText( '«Correr (2)» ya no avanza' );
+	await expect( note ).toBeHidden();
+	await page.keyboard.press( 'Control+z' );
+	await expect( note ).toBeVisible();
+	await page.keyboard.press( 'Control+y' );
+	await expect( note ).toBeHidden();
+
+	// En el GLB, las dos animaciones dejan la cadera en su lugar (X y Z fijas).
+	const { bytes } = await exportAndValidate( page, testInfo, 'muneco_corriendo.glb' );
+	const json = readGLBJson( bytes );
+	for ( const name of [ 'Correr', 'Correr (2)' ] ) {
+
+		const animation = json.animations.find( ( item ) => item.name === name );
+		const channel = animation.channels.find( ( item ) => json.nodes[ item.target.node ].name === 'LowerTorso' && item.target.path === 'translation' );
+		const positions = readGLBAccessor( bytes, json, animation.samplers[ channel.sampler ].output );
+		for ( const [ x, , z ] of positions ) {
+
+			expect( Math.abs( x - positions[ 0 ][ 0 ] ), name ).toBeLessThan( 1e-5 );
+			expect( Math.abs( z - positions[ 0 ][ 2 ] ), name ).toBeLessThan( 1e-5 );
+
+		}
+
+	}
 
 } );

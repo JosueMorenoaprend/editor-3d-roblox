@@ -97,6 +97,32 @@ export class AnimationController extends EventTarget {
 
 	}
 
+	/**
+	 * Cambia una animación del modelo por otra en el mismo lugar de la lista (por ejemplo, la misma pero
+	 * "en el lugar"). Si estaba elegida, queda elegida la nueva (y sigue sonando si sonaba).
+	 */
+	replaceClip( old, next ) {
+
+		if ( ! this.model ) return;
+		const index = this.model.clips.indexOf( old );
+		if ( index < 0 ) return;
+		const selected = !! this.action && this.action.getClip() === old;
+		const playing = selected && this.isPlaying;
+		if ( selected || this.isPreviewing( old ) ) this.stop();
+		this.model.clips[ index ] = next;
+		if ( this.mixer ) this.mixer.uncacheClip( old );
+		if ( selected ) {
+
+			this.action = null;
+			this.select( index );
+			if ( playing ) this.play();
+
+		}
+
+		this._emit();
+
+	}
+
 	/** Quita animaciones del modelo (por ejemplo, al deshacer "Agregar animaciones"). */
 	removeClips( clips ) {
 

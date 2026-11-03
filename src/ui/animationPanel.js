@@ -1,6 +1,9 @@
-// Panel "Animaciones": elegir, reproducir, pausar, detener y moverse en el tiempo.
+// Panel "Animaciones": elegir, reproducir, pausar, detener y moverse en el tiempo. Si la animación elegida
+// avanza (el personaje se va de su lugar), ofrece dejarla en el lugar, como la usa Roblox.
 import { listBones } from '../core/boneMap.js';
+import { makeInPlace, noticeableMotion, rootMotion } from '../core/inPlace.js';
 import { $, escapeHtml, formatNumber } from './dom.js';
+import { toast } from './toast.js';
 
 export function initAnimationPanel( app ) {
 
@@ -14,6 +17,10 @@ export function initAnimationPanel( app ) {
 	const time = $( '#anim-time' );
 	const clock = $( '#anim-clock' );
 	const loop = $( '#anim-loop' );
+	const rootBox = $( '#anim-root' );
+	const rootText = $( '#anim-root-text' );
+	/** Cuánto avanza cada animación (se mide una sola vez). */
+	const advances = new WeakMap();
 
 	select.addEventListener( 'change', () => {
 
@@ -30,6 +37,34 @@ export function initAnimationPanel( app ) {
 	loop.addEventListener( 'change', () => anim.setLoop( loop.checked ) );
 	time.addEventListener( 'input', () => anim.seek( Number( time.value ) * anim.duration ) );
 
+	$( '#btn-anim-in-place' ).addEventListener( 'click', () => {
+
+		const model = app.model;
+		const clip = anim.clips[ anim.selectedIndex ];
+		if ( ! model || ! clip ) return;
+		const still = makeInPlace( model, clip );
+		advances.set( still, 0 );
+		const swap = ( from, to ) => {
+
+			anim.replaceClip( from, to );
+			app.emit( 'clips' );
+
+		};
+
+		swap( clip, still );
+		app.history.push( { label: `Dejar en el lugar: ${ clip.name }`, undo: () => swap( still, clip ), redo: () => swap( clip, still ) } );
+		toast( `Listo: «${ clip.name }» ya no avanza (queda en el lugar). Si no te gusta, deshazlo con Ctrl+Z.`, 'ok' );
+
+	} );
+
+	/** ¿Cuánto avanza la animación? (metros) */
+	function advance( clip ) {
+
+		if ( ! advances.has( clip ) ) advances.set( clip, rootMotion( app.model, clip ).distance );
+		return advances.get( clip );
+
+	}
+
 	function renderList() {
 
 		const model = app.model;
@@ -39,7 +74,7 @@ export function initAnimationPanel( app ) {
 			controls.hidden = true;
 			empty.hidden = false;
 			empty.textContent = ! model ? 'Abre un modelo para ver sus animaciones.'
-				: hasBones( model ) ? 'Este personaje todavía no tiene animaciones: agrégalas desde otro archivo.'
+				: hasBones( model ) ? 'Este personaje todavía no tiene animaciones: créalas aquí abajo o agrégalas desde otro archivo.'
 					: 'Este modelo no trae animaciones.';
 			return;
 
@@ -79,6 +114,17 @@ export function initAnimationPanel( app ) {
 		if ( index >= 0 ) select.value = String( index );
 		playButton.textContent = anim.isPlaying ? 'Pausa' : 'Reproducir';
 		renderTime();
+
+		// ¿La animación elegida avanza? (no se mide durante una vista previa)
+		const clip = ! anim.preview && index >= 0 ? anim.clips[ index ] : null;
+		const distance = clip ? advance( clip ) : 0;
+		rootBox.hidden = ! ( distance > noticeableMotion( app.model ) );
+		if ( ! rootBox.hidden ) {
+
+			rootText.textContent = `«${ clip.name }» hace avanzar al personaje ${ formatNumber( distance, 1 ) } m. ` +
+				'En Roblox conviene dejarla en el lugar: el que camina es el personaje del juego.';
+
+		}
 
 	}
 

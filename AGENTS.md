@@ -166,6 +166,7 @@ src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
   skeletonPose.js       pose de reposo en el espacio del modelo y hacia dónde apunta cada hueso
   retarget.js           pasar una animación de un personaje a otro con sus mapas de huesos
   animationImport.js    leer las animaciones de otro GLB (con o sin cuerpo) y pasarlas a mi personaje
+  inPlace.js            medir cuánto avanza una animación y dejarla en el lugar (X/Z fijas)
   generators.js         generadores Caminar, Correr, Respirar, Saltar, Caer y Agacharse (pose por fase →
                         clip en el lugar, en bucle; piernas con los pies apoyados por ley de cosenos)
 src/samples/            modelos de prueba generados por código (sin licencias de terceros)
@@ -202,6 +203,9 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
 - **Vistas previas:** `app.animation.playPreview( clip, { loop, time } )` reproduce un clip que no es del
   modelo (no se exporta): una vez, o en bucle (`loop`) desde el segundo `time` (para seguir en el mismo
   punto al cambiar un deslizador). Exportar y guardar la detienen y el autoguardado espera.
+- **Tiempos de las animaciones:** glTF los guarda en float32 y exige que **siempre aumenten**. Si muestreas
+  una animación, reparte los cuadros parejos de 0 a la duración (como `sampleTimes()` en `retarget.js`);
+  “cada 1/30 s y el último en la duración” puede dejar los dos últimos iguales en float32.
 - **Generadores nuevos** (`generators.js`): describe la pose por fase con giros relativos al padre en
   reposo (`turn( eje, grados )`), usa `rig.armsDown` si mueve los brazos y deja la cadera solo en Y para
   que quede en el lugar; `Rig.bake()` repite el primer cuadro al final (bucle sin saltos). Para fases

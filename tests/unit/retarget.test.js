@@ -154,6 +154,24 @@ describe( 'pasar animaciones de un personaje a otro (retarget)', () => {
 
 	} );
 
+	it( 'los tiempos siempre aumentan, también guardados en float32 (como en el GLB)', () => {
+
+		const source = buildTPoseHumanoid( { twisted: true } );
+		const { model: target } = openSample( 'r15' );
+		const sourceClip = createBoneTestClip( source, source.boneMap, [ 'leftUpperArm', 'rightUpperArm' ] ).clip;
+		// Al leer un GLB, la duración sale de un float32: 1,6 → 1,6000000238…
+		sourceClip.duration = Math.fround( 1.6 );
+		const { clip } = retargetClip( source, target, sourceClip );
+		for ( const track of clip.tracks ) {
+
+			const times = Float32Array.from( track.times );
+			for ( let i = 1; i < times.length; i ++ ) expect( times[ i ], `${ track.name } [${ i }]` ).toBeGreaterThan( times[ i - 1 ] );
+			expect( times[ times.length - 1 ] ).toBe( Math.fround( clip.duration ) );
+
+		}
+
+	} );
+
 	it( 'una animación de un solo cuadro (una pose) también se pasa', () => {
 
 		const source = buildTPoseHumanoid( { twisted: true } );

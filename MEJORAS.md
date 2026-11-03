@@ -27,8 +27,8 @@ Cómo leer esta lista:
 
 ## Orden sugerido para los próximos ciclos (auditoría profunda del ciclo 15)
 
-1. **F1-14** (Alta) en el lugar para animaciones importadas (las de Mixamo suelen avanzar) y **F1-16**
-   (Alta) elegir qué animaciones exportar: cortas y necesarias para usar todo en Roblox.
+1. ~~**F1-14**~~ (hecha en el ciclo 16) y **F1-16** (Alta) elegir qué animaciones exportar: corta y
+   necesaria para usar todo en Roblox.
 2. **F1-05** (Alta) FBX de Mixamo (la fuente de animaciones gratis más usada) con el retarget del ciclo 13.
 3. **F1-10** (Alta) línea de tiempo de keyframes; después las Media de la Fase 1 (F1-08, F1-15, F1-11…).
 4. **F5-14** y **F5-13** (Media): el panel ya es muy largo, sobre todo en el celular.
@@ -175,8 +175,14 @@ Cómo leer esta lista:
   - Comprobación: pruebas + captura con fantasmas visibles.
 - [ ] **F1-13** · Media · **IK de pies y manos** (`CCDIKSolver`): los pies no atraviesan el piso.
   - Comprobación: prueba que mide la altura de los pies en cada fotograma.
-- [ ] **F1-14** · Alta · Animación **“en el lugar”** (sin avance de la raíz, como la usa Roblox).
-  - Comprobación: prueba que la raíz no avanza en X/Z.
+- [x] **F1-14** · Alta · Animación **“en el lugar”** (sin avance de la raíz, como la usa Roblox). *(ciclo 16)*
+  - Comprobación: prueba que la raíz no avanza en X/Z. ✔ `core/inPlace.js`: mide cuánto avanza la cadera
+    (en el espacio del personaje) y fija X/Z de la cadera y de sus huesos padres en el primer cuadro; la
+    altura (rebote, salto) no cambia; sirve con esqueletos girados y en centímetros, y con pistas “cubic
+    spline”. Al importar, las que avanzan llevan la etiqueta “avanza 1,6 m” y la casilla “Dejar en el
+    lugar” marcada; en *Animaciones*, aviso y botón **Dejar en el lugar** (con deshacer). 6 pruebas de
+    Vitest + e2e (escritorio y móvil) que lee del GLB que la cadera de las dos animaciones no avanza.
+    Los generadores ya salen en el lugar.
 - [ ] **F1-15** · Media · **Loop sin saltos, recortar, cambiar velocidad y combinar** animaciones.
   - Comprobación: pruebas unitarias de cada operación.
 - [ ] **F1-16** · Alta · **Exportar una o varias animaciones** (elegir cuáles) dentro del GLB.
@@ -300,9 +306,9 @@ Cómo leer esta lista:
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
 | 0 — Base sólida | 16 | 12 |
-| 1 — Animación | 20 | 6 |
+| 1 — Animación | 20 | 7 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 15 | 0 |
-| **Total** | **76** | **18** |
+| **Total** | **76** | **19** |

@@ -4,6 +4,49 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 16 — Dejar en el lugar las animaciones que avanzan (2026-11-03)
+
+**Auditoría:** el punto de partida es el commit del ciclo 15 (`8b2c375`), recién comprobado
+(116/116 Vitest, 40/40 Playwright) con la auditoría profunda hecha. Actions: sin ejecuciones.
+
+**Tarea:** F1-14 (Alta), primera del orden sugerido.
+
+**Qué hice**
+
+- `core/inPlace.js`: `rootMotion()` mide cuánto se aleja la cadera en horizontal (evaluando la animación
+  con `ClipSampler`, que pasó a `skeletonPose.js`), `noticeableMotion()` (avisar desde el 3 % de la altura
+  del modelo) y `makeInPlace()`, que en las pistas de posición de la cadera y de sus huesos padres fija X/Z
+  (en el espacio del personaje) en el primer cuadro, sin tocar la altura. Funciona con esqueletos girados y
+  en centímetros (como al convertir de FBX) y con pistas “cubic spline” de glTF (también quita el avance de
+  sus tangentes).
+- `AnimationController.replaceClip()`: cambia una animación por otra en el mismo lugar de la lista.
+- *Animaciones*: si la elegida avanza, aviso (“hace avanzar al personaje 1,6 m…”) y botón **Dejar en el
+  lugar** (con deshacer).
+- *Agregar animaciones de otro archivo*: etiqueta “avanza 1,6 m” y casilla **Dejar en el lugar las que
+  avanzan** marcada; ▶ Ver y Agregar usan la versión en el lugar.
+
+**Error encontrado y arreglado** (lo encontró el validador oficial en la prueba e2e nueva)
+
+- Al pasar una animación de un archivo GLB, la duración llega en float32 (1,6 → 1,6000000238). Los cuadros
+  se tomaban “cada 1/30 s y el último en la duración”, así que los dos últimos quedaban a 0,00000002 s y,
+  guardados en float32, **iguales**: `ACCESSOR_ANIMATION_INPUT_NON_INCREASING`. Ahora los cuadros se reparten
+  parejos de 0 a la duración. Primero una prueba que lo reproducía (índice 49, igual que el validador).
+
+**Cómo lo verifiqué**
+
+- Vitest: 6 pruebas nuevas (avance de cadera y raíz del R15; esqueleto acostado en centímetros; cubic
+  spline; los generadores ya están en el lugar; `replaceClip`; tiempos crecientes en float32). Comprobé que
+  fallan si no se fija la X.
+- Playwright: flujo nuevo (escritorio y móvil): importar una carrera de Mixamo que avanza 3 m (1,6 m en el
+  R15) → casilla marcada → agregar → sin aviso; importar otra vez desmarcando → aviso → **Dejar en el
+  lugar** → deshacer/rehacer → exportar y leer del GLB que en las dos la cadera no avanza.
+- Captura revisada: la etiqueta “avanza 1,6 m” y la casilla.
+- `npm run check` → código 0: **122/122** Vitest y **42/42** Playwright.
+
+**Qué sigue:** F1-16 — elegir qué animaciones exportar.
+
+---
+
 ## Ciclo 15 — Auditoría profunda + Saltar, Caer y Agacharse (2026-11-03)
 
 **Auditoría profunda (cada 5 ciclos; la del ciclo 10 no se había hecho)**

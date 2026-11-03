@@ -1,7 +1,7 @@
 // Ayudantes para trabajar con el esqueleto en el espacio del personaje (el del modelo: mira a +Z, su
 // izquierda es +X y arriba es +Y, como en glTF). Los usan la prueba del mapa (boneTest.js) y el paso
 // de animaciones de un personaje a otro (retarget.js).
-import { Matrix4, Quaternion, Vector3 } from 'three';
+import { Matrix4, PropertyBinding, Quaternion, Vector3 } from 'three';
 
 const UP = new Vector3( 0, 1, 0 );
 const FORWARD = new Vector3( 0, 0, 1 );
@@ -213,5 +213,63 @@ export function legLength( boneMap, rest, bones ) {
 
 	const length = lengths.reduce( ( sum, value ) => sum + value, 0 ) / ( lengths.length || 1 );
 	return length > 1e-6 ? length : null;
+
+}
+
+/** Propiedades de las pistas que se evalúan (las demás, como gestos de la cara, se ignoran). */
+const TRANSFORMS = new Set( [ 'position', 'quaternion', 'scale' ] );
+
+/**
+ * Pone un modelo en cualquier momento de una animación sin AnimationMixer (evalúa cada pista
+ * directamente) y después lo deja exactamente como estaba (restore). Sirve para medir o copiar una
+ * animación sin tocar el reproductor.
+ */
+export class ClipSampler {
+
+	/**
+	 * @param {import('three').Object3D} root el contenedor del modelo
+	 * @param {import('three').AnimationClip} clip
+	 */
+	constructor( root, clip ) {
+
+		this.root = root;
+		this.bindings = [];
+		this.saved = new Map();
+		for ( const track of clip.tracks ) {
+
+			const { nodeName, propertyName } = PropertyBinding.parseTrackName( track.name );
+			const node = PropertyBinding.findNode( root, nodeName );
+			if ( ! node || ! TRANSFORMS.has( propertyName ) ) continue;
+			if ( ! this.saved.has( node ) ) {
+
+				this.saved.set( node, { position: node.position.clone(), quaternion: node.quaternion.clone(), scale: node.scale.clone() } );
+
+			}
+
+			this.bindings.push( { target: node[ propertyName ], interpolant: track.createInterpolant() } );
+
+		}
+
+	}
+
+	apply( time ) {
+
+		for ( const { target, interpolant } of this.bindings ) target.fromArray( interpolant.evaluate( time ) );
+
+	}
+
+	restore() {
+
+		for ( const [ node, pose ] of this.saved ) {
+
+			node.position.copy( pose.position );
+			node.quaternion.copy( pose.quaternion );
+			node.scale.copy( pose.scale );
+
+		}
+
+		this.root.updateMatrixWorld( true );
+
+	}
 
 }

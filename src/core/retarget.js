@@ -12,17 +12,12 @@
 //
 // No usa SkeletonUtils.retargetClip de three.js: ese copia las matrices globales, y solo funciona si los
 // dos esqueletos tienen la misma pose de reposo y los mismos ejes en cada hueso.
-import {
-	AnimationClip, Matrix4, PropertyBinding, Quaternion, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack,
-} from 'three';
+import { AnimationClip, Matrix4, Quaternion, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack } from 'three';
 import { HUMANOID_BONES, humanoidBone } from './boneMap.js';
-import { RestPose, boneDirection, findBones, legLength } from './skeletonPose.js';
+import { ClipSampler, RestPose, boneDirection, findBones, legLength } from './skeletonPose.js';
 
 /** Cuadros por segundo con que se copia la animación. */
 export const RETARGET_FPS = 30;
-
-/** Propiedades de las pistas que se leen del origen (las demás, como gestos de la cara, se ignoran). */
-const TRANSFORMS = new Set( [ 'position', 'quaternion', 'scale' ] );
 
 /**
  * @typedef {object} Character un LoadedModel, o algo con la misma forma
@@ -77,7 +72,7 @@ export function retargetClip( source, target, clip, { fps = RETARGET_FPS, name =
 	const times = sampleTimes( clip.duration, fps );
 	const hips = parts.find( ( part ) => part.key === 'hips' );
 	const hipsMotion = hips ? new HipsMotion( hips, source, target, sourceRest, targetRest, sourceBones, targetBones ) : null;
-	const sampler = new ClipSampler( source, clip );
+	const sampler = new ClipSampler( source.container, clip );
 
 	const sourceToModel = new Matrix4();
 	const matrix = new Matrix4();
@@ -151,62 +146,16 @@ function inheritedAlign( parent, aligns ) {
 
 }
 
-/** Momentos en que se copia la animación: cada 1/fps segundos, y siempre el último. */
+/**
+ * Momentos en que se copia la animación: repartidos parejos (unos `fps` por segundo) de 0 a la duración.
+ * Parejos y no "cada 1/fps": si no, el último cuadro podía quedar a millonésimas del anterior y, guardados
+ * en float32 en el GLB, ser iguales (el validador lo rechaza: los tiempos tienen que aumentar siempre).
+ */
 function sampleTimes( duration, fps ) {
 
 	if ( ! ( duration > 0 ) ) return [ 0 ];
-	const count = Math.max( 1, Math.ceil( duration * fps - 1e-9 ) );
-	return Array.from( { length: count + 1 }, ( _, i ) => Math.min( i / fps, duration ) );
-
-}
-
-/**
- * Pone al personaje de origen en cualquier momento de su animación (sin AnimationMixer: se evalúa cada
- * pista directamente) y después lo deja como estaba.
- */
-class ClipSampler {
-
-	constructor( source, clip ) {
-
-		this.source = source;
-		this.bindings = [];
-		this.saved = new Map();
-		for ( const track of clip.tracks ) {
-
-			const { nodeName, propertyName } = PropertyBinding.parseTrackName( track.name );
-			const node = PropertyBinding.findNode( source.container, nodeName );
-			if ( ! node || ! TRANSFORMS.has( propertyName ) ) continue;
-			if ( ! this.saved.has( node ) ) {
-
-				this.saved.set( node, { position: node.position.clone(), quaternion: node.quaternion.clone(), scale: node.scale.clone() } );
-
-			}
-
-			this.bindings.push( { target: node[ propertyName ], interpolant: track.createInterpolant() } );
-
-		}
-
-	}
-
-	apply( time ) {
-
-		for ( const { target, interpolant } of this.bindings ) target.fromArray( interpolant.evaluate( time ) );
-
-	}
-
-	restore() {
-
-		for ( const [ node, pose ] of this.saved ) {
-
-			node.position.copy( pose.position );
-			node.quaternion.copy( pose.quaternion );
-			node.scale.copy( pose.scale );
-
-		}
-
-		this.source.container.updateMatrixWorld( true );
-
-	}
+	const count = Math.max( 1, Math.round( duration * fps ) );
+	return Array.from( { length: count + 1 }, ( _, i ) => ( i === count ? duration : ( i * duration ) / count ) );
 
 }
 

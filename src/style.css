@@ -727,6 +727,17 @@ select:disabled {
 	padding-top: 0;
 }
 
+.anim-root {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 8px;
+}
+
+.anim-root p {
+	margin: 0;
+}
+
 .anim-subtitle {
 	margin: 0;
 	font-size: 13px;

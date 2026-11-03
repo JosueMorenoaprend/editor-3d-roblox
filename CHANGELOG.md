@@ -55,6 +55,11 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
 - **Nuevo: Saltar, Caer y Agacharse** en *Crear una animación*. Al agacharse (o antes de saltar) las
   piernas se doblan sin que los pies se muevan del piso. En **Saltar** puedes poner la altura en 0 % para
   usarla como el salto del jugador en Roblox (el salto de verdad lo hace el juego).
+- **Nuevo: Dejar en el lugar.** Si una animación hace avanzar al personaje (como muchas de Mixamo), el
+  editor lo avisa (“avanza 1,6 m”) y la deja en el lugar con un botón, como la usa Roblox (el que camina
+  es el personaje del juego). Al agregar animaciones de otro archivo, esto viene marcado.
+- Arreglado: algunas animaciones agregadas desde otro archivo podían exportarse con dos cuadros en el mismo
+  instante al final, y el validador oficial rechazaba el GLB.
 
 ## Versión 1
 
