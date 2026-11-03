@@ -1,13 +1,15 @@
-# Compila el editor y lo publica en GitHub Pages.
-# - En cada pull request: solo compila (para comprobar que no hay errores).
-# - Al subir cambios a main (o a mano desde la pestaña Actions): compila y publica.
-# Antes de la primera publicación: Settings → Pages → Source: "GitHub Actions".
+# Publica el editor en GitHub Pages al subir cambios a main (o a mano desde Actions).
+#
+# Si GitHub Pages NO está activado (o no usa "GitHub Actions" como origen), este flujo
+# no publica nada y termina en verde con un aviso: así nunca sale en rojo por eso.
+# Para activarlo: Settings → Pages → Build and deployment → Source: "GitHub Actions".
+#
+# Las pruebas de cada cambio están en ci.yml ("Comprobar").
 name: Publicar en GitHub Pages
 
 on:
   push:
     branches: [main]
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -15,14 +17,36 @@ permissions:
   pages: write
   id-token: write
 
-# Una publicación de main nunca se cancela a la mitad; las compilaciones de PR sí.
+# Una publicación nunca se cancela a la mitad.
 concurrency:
-  group: pages-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: pages
+  cancel-in-progress: false
 
 jobs:
+  pages-status:
+    name: ¿Está activado GitHub Pages?
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.status.outputs.enabled }}
+    steps:
+      - name: Revisar la configuración de Pages
+        id: status
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          build_type=$(gh api "repos/${{ github.repository }}/pages" --jq '.build_type' 2>/dev/null || echo "desactivado")
+          if [ "$build_type" = "workflow" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "GitHub Pages está activado con GitHub Actions: se publica."
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=No se publicó en GitHub Pages::Pages está '$build_type'. Para publicar aquí: Settings → Pages → Source: GitHub Actions. Si usas solo Vercel, no hace falta hacer nada."
+          fi
+
   build:
     name: Compilar
+    needs: pages-status
+    if: needs.pages-status.outputs.enabled == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -39,18 +63,15 @@ jobs:
         run: npm run build
 
       - name: Preparar GitHub Pages
-        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v6
 
       - name: Subir la página compilada
-        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
   deploy:
     name: Publicar
-    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     environment:

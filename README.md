@@ -30,6 +30,8 @@ Todo se procesa en tu navegador: tus modelos **no se suben a ningún servidor**.
 
 1. **Abre tu modelo**: pulsa **Abrir modelo** o arrastra el archivo `.glb` a la ventana.
    - Si tienes un `.gltf` con archivos aparte (`.bin`, imágenes), elígelos **todos juntos**.
+   - ¿No tienes un modelo a mano? En la pantalla inicial hay botones para abrir **ejemplos**
+     (un muñeco R15 con animaciones, una malla pesada y un carrito de piezas).
 2. **Mira el panel *Información***. Si sale el aviso amarillo, alguna malla tiene demasiados
    triángulos para Roblox.
 3. **Ajusta el tamaño y la posición** en *Ajustes*:
@@ -120,11 +122,27 @@ el editor y lo publica. Solo hay que activarlo **una vez**:
 
 La dirección será: **https://josuemorenoaprend.github.io/editor-3d-roblox/**
 
-En los pull requests el flujo solo **compila** (para avisar si algo se rompió), sin publicar.
+Si Pages **no** está activado (por ejemplo, si decides usar **solo Vercel**), el flujo no publica
+nada y termina en verde con un aviso. No hace falta borrarlo: empieza a publicar solo el día que
+actives Pages.
 
-Si decides usar **solo Vercel** y no activas Pages, el paso *Publicar* de este flujo fallará en `main`
-(la compilación sí se seguirá revisando). En ese caso puedes activar Pages igual, o borrar el archivo
-`.github/workflows/deploy.yml`.
+---
+
+## Comprobación automática de cada cambio (GitHub Actions)
+
+El flujo **Comprobar** (`.github/workflows/ci.yml`) se ejecuta en cada `push`: compila el editor y
+ejecuta todas las pruebas (`npm run check`). En cada pull request verás el resultado (✓ o ✗).
+Las capturas de pantalla de las pruebas quedan en la ejecución, en **Artifacts →
+capturas-y-resultados**.
+
+**Si en la pestaña *Actions* no aparece ninguna ejecución**, GitHub Actions está desactivado en el
+repositorio. Para activarlo:
+
+1. Entra al repositorio → **Settings** → **Actions** → **General**.
+2. En **Actions permissions** elige **Allow all actions and reusable workflows**.
+3. Pulsa **Save**.
+4. En la pestaña **Actions**, si aparece un botón para habilitar los flujos, púlsalo.
+5. Sube cualquier cambio (o usa **Actions → Comprobar → Run workflow**) para que corra.
 
 ---
 
@@ -155,6 +173,28 @@ npm run preview
 
 Sirve la versión compilada para probarla (en http://localhost:4173/editor-3d-roblox/).
 
+### Pruebas automáticas
+
+```bash
+npm test
+```
+
+Pruebas rápidas del núcleo (Vitest, unos segundos).
+
+```bash
+npm run test:e2e
+```
+
+Usa el editor en un navegador Chromium sin ventana, como lo harías tú, en tamaño de computadora y de
+celular. Las capturas quedan en `test-results/capturas/`. La primera vez en tu computadora quizás
+tengas que instalar Chromium con `npx playwright install chromium`.
+
+```bash
+npm run check
+```
+
+Compila y ejecuta **todas** las pruebas. Es lo que revisa GitHub en cada cambio.
+
 ### Cómo está organizado el código
 
 ```
@@ -171,8 +211,16 @@ src/core/             la lógica 3D, sin interfaz
   simplify.js         reducir polígonos (simplificador de meshoptimizer)
   animation.js        reproducir animaciones (AnimationMixer)
   exporter.js         exportar .glb (GLTFExporter) y comprobar el resultado
+  keyframes.js        pistas de animación con giros en grados
+  errors.js           errores con un mensaje claro para el usuario
+src/samples/          modelos de ejemplo hechos por código (muñeco R15, malla pesada, carrito)
 src/ui/               un archivo por panel de la interfaz
+tests/unit/           pruebas del núcleo (Vitest)
+tests/e2e/            pruebas en el navegador (Playwright)
 ```
+
+Las reglas y el plan del proyecto (para cualquier persona o IA que trabaje en él) están en
+`AGENTS.md`, la lista de tareas en `MEJORAS.md` y el diario de trabajo en `BITACORA.md`.
 
 **Versiones fijas:** `three` 0.186.1, `meshoptimizer` 1.3.0 y `vite` 8.3.4 (en `package.json`
 sin `^`, para que una actualización no rompa nada sin avisar).

@@ -14,7 +14,9 @@ Cómo leer esta lista:
 ## ⏳ Espera respuesta
 
 - **¿Dónde publicar el editor? ¿Vercel, GitHub Pages o los dos?** (pregunta hecha en el ciclo 0).
-  Mientras tanto, el paso de Pages no debe romper nada (F0-08).
+  Mientras tanto, el paso de Pages ya no rompe nada: si Pages está desactivado, se salta (ciclo 3).
+- **Activar GitHub Actions** en el repositorio (*Settings → Actions → General → Allow all actions
+  and reusable workflows → Save*). Sin eso no corre ninguna comprobación automática (F0-07, F0-08).
 - **Accesibilidad con axe:** `axe-core` tiene licencia **MPL-2.0**, que no está en la lista permitida
   (MIT, BSD, Apache, CC0). ¿Se permite solo para las pruebas? Se preguntará al llegar a F5-06.
 
@@ -45,9 +47,15 @@ Cómo leer esta lista:
 - [ ] **F0-07** · Alta · **GitHub Actions** ejecuta `npm run check` en cada push y en cada PR.
   Averiguar por qué no corrió nada en el PR #1.
   - Comprobación: aparece una ejecución verde en la pestaña *Actions* de la rama.
+  - Avance (ciclo 3): flujo `ci.yml` (“Comprobar”) listo y YAML revisado. Causa encontrada: el repo
+    tiene 0 flujos y 0 ejecuciones, ni siquiera al abrir el PR #2 → **Actions está desactivado**.
+    ⏳ Espera que el usuario lo active para ver la primera ejecución verde.
 - [ ] **F0-08** · Alta · El paso de publicar en **GitHub Pages** no rompe nada si Pages no está
   activado (⏳ la decisión Vercel/Pages/los dos sigue pendiente).
   - Comprobación: el flujo se salta la publicación cuando Pages está desactivado y no sale en rojo.
+  - Avance (ciclo 3): `deploy.yml` revisa primero si Pages está activado con “GitHub Actions”; si no,
+    termina en verde con un aviso. Ya no corre en los PR (eso lo hace “Comprobar”).
+    ⏳ Se verá funcionando cuando Actions esté activado y llegue un cambio a `main`.
 - [ ] **F0-09** · Alta · **Deshacer y rehacer** (Ctrl+Z / Ctrl+Y, Ctrl+Shift+Z y botones) para todas
   las acciones.
   - Comprobación: pruebas del historial + e2e: ajustar, reducir, deshacer y rehacer.

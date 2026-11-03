@@ -16,6 +16,8 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
   hacer (por ejemplo, descargarlo otra vez desde Tripo AI).
 - Las pruebas automáticas ahora también usan el editor como lo harías tú, en un navegador, en tamaño
   de computadora y de celular: abren los ejemplos, animan, reducen, ajustan y exportan.
+- GitHub revisará cada cambio con todas las pruebas (cuando actives Actions; los pasos están en el
+  README). La publicación en GitHub Pages ya no sale en rojo si no usas Pages.
 
 ## Versión 1
 

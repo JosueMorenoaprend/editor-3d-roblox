@@ -4,6 +4,36 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 3 — GitHub Actions y publicación que no falla (2026-11-03)
+
+**Tarea:** F0-07 (Actions con `npm run check`) y F0-08 (que Pages no rompa nada).
+
+**Qué hice**
+
+- `.github/workflows/ci.yml` (“Comprobar”): en cada push a cualquier rama instala todo, instala
+  Chromium y ejecuta `npm run check`. Guarda las capturas como *artifact* (14 días). Se puede lanzar a
+  mano. Solo usa `push` (no `pull_request`) para no correr dos veces por cada commit de un PR.
+- `.github/workflows/deploy.yml`: ahora primero pregunta a la API de GitHub si Pages está activado con
+  “GitHub Actions”. Si no, **termina en verde con un aviso** y no publica. Ya no corre en los PR.
+- README: cómo activar Actions, qué hace “Comprobar”, cómo ejecutar las pruebas y los ejemplos.
+
+**Por qué no corrió nada en el PR #1:** después de abrir el PR #2 y subir 3 commits, GitHub sigue con
+**0 flujos registrados y 0 ejecuciones**. Si Actions estuviera activo, el `pull_request` del flujo
+antiguo y el `push` del nuevo habrían creado ejecuciones. Conclusión: **Actions está desactivado** en
+la configuración del repositorio (no lo puedo cambiar desde aquí). Pasos para activarlo en el README.
+
+**Cómo lo verifiqué**
+
+- YAML de los dos flujos leído con PyYAML; el script de bash revisado con `bash -n`; las versiones de
+  las acciones existen (`checkout@v7`, `setup-node@v7`, `upload-artifact@v7`, `configure-pages@v6`,
+  `upload-pages-artifact@v5`, `deploy-pages@v5`).
+- `npm run check` en verde.
+- **Falta** ver una ejecución real: F0-07 y F0-08 quedan pendientes (⏳) hasta que Actions esté activo.
+
+**Qué sigue:** ciclo 4 — arreglar el fondo cortado en móvil (F0-13) y empezar deshacer/rehacer (F0-09).
+
+---
+
 ## Ciclo 2 — Ejemplos con un clic y pruebas de punta a punta (2026-11-03)
 
 **Tarea:** F0-04 (Playwright), con F0-05 (botones de ejemplo, necesarios para las pruebas), la parte
