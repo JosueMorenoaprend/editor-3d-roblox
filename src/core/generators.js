@@ -68,6 +68,25 @@ export const GENERATORS = [
 		description: 'Baja, se queda agachado un momento y vuelve a subir, sin despegar los pies del piso.',
 		params: [ speed, percent( 'depth', 'Cuánto baja', 0.6 ) ],
 	},
+	{
+		id: 'saludar',
+		name: 'Saludar',
+		description: 'Levanta el brazo derecho, saluda con la mano tres veces y lo baja.',
+		params: [ speed, percent( 'raise', 'Altura del brazo', 0.6 ), percent( 'energy', 'Energía del saludo', 0.5 ) ],
+	},
+	{
+		id: 'atacar',
+		name: 'Atacar',
+		description: 'Desde la guardia, se prepara y da un golpe con la mano derecha (sirve también con una espada ' +
+			'o una herramienta en la mano).',
+		params: [ speed, percent( 'power', 'Fuerza del golpe', 0.6 ) ],
+	},
+	{
+		id: 'bailar',
+		name: 'Bailar',
+		description: 'Un baile simple: rebota y sube un brazo y después el otro, al ritmo.',
+		params: [ speed, percent( 'energy', 'Energía', 0.6 ) ],
+	},
 ];
 
 /** Valores de los deslizadores por defecto de un generador. */
@@ -401,6 +420,99 @@ const MOTIONS = {
 						rightUpperArm: turn( X, - 30 * low ).multiply( rig.armsDown.right ),
 						leftLowerArm: new Quaternion().setFromAxisAngle( elbows.left, MathUtils.degToRad( 25 * low ) ),
 						rightLowerArm: new Quaternion().setFromAxisAngle( elbows.right, MathUtils.degToRad( 25 * low ) ),
+					},
+					hips: new Vector3( 0, - drop * low, 0 ),
+				};
+
+			},
+		};
+
+	},
+
+	saludar( { speed: rate, raise, energy }, rig ) {
+
+		const lift = 110 + 50 * raise; // grados que sube el brazo derecho por el costado
+		const swing = 10 + 22 * energy; // vaivén de la mano
+		return {
+			cycle: 2.4 / rate,
+			pose( phase ) {
+
+				// Sube el brazo, saluda tres veces (con el codo doblado hacia la cabeza) y lo baja.
+				const up = curve( [ [ 0, 0 ], [ 0.18, 1 ], [ 0.82, 1 ], [ 1, 0 ] ], phase );
+				const hand = up * swing * Math.sin( 3 * TAU * phase );
+				return {
+					rotations: {
+						rightUpperArm: turn( Z, - lift * up ).multiply( rig.armsDown.right ),
+						rightLowerArm: turn( Z, - 25 * up + hand ),
+						leftUpperArm: rig.armsDown.left,
+						chest: turn( Z, 3 * up ),
+						head: turn( Z, - 4 * up ),
+					},
+					hips: new Vector3(),
+				};
+
+			},
+		};
+
+	},
+
+	atacar( { speed: rate, power }, rig ) {
+
+		const reach = 60 + 30 * power; // cuánto sube el brazo hacia adelante al golpear
+		const twist = 12 + 18 * power; // giro del pecho (el hombro derecho va atrás y después adelante)
+		const elbows = { left: rig.bendAxis( 'leftLowerArm', FORWARD ), right: rig.bendAxis( 'rightLowerArm', FORWARD ) };
+		const bend = ( side, degrees ) => new Quaternion().setFromAxisAngle( elbows[ side ], MathUtils.degToRad( degrees ) );
+		return {
+			cycle: 1.1 / rate,
+			pose( phase ) {
+
+				// Guardia → se prepara (brazo atrás) → golpea → vuelve a la guardia.
+				const back = curve( [ [ 0, 0 ], [ 0.3, 1 ], [ 0.42, 0 ], [ 1, 0 ] ], phase );
+				const hit = curve( [ [ 0, 0 ], [ 0.3, 0 ], [ 0.42, 1 ], [ 0.6, 1 ], [ 0.9, 0 ], [ 1, 0 ] ], phase );
+				return {
+					rotations: {
+						spine: turn( X, 4 + 6 * hit ),
+						chest: turn( Y, - twist * 0.7 * back + twist * hit ),
+						head: turn( Y, twist * 0.5 * back - twist * 0.6 * hit ),
+						rightUpperArm: turn( X, - 15 + 30 * back - ( reach - 15 ) * hit ).multiply( rig.armsDown.right ),
+						rightLowerArm: bend( 'right', 100 + 15 * back - 95 * hit ),
+						leftUpperArm: turn( X, - 35 + 10 * hit ).multiply( rig.armsDown.left ),
+						leftLowerArm: bend( 'left', 105 ),
+					},
+					hips: new Vector3(),
+				};
+
+			},
+		};
+
+	},
+
+	bailar( { speed: rate, energy }, rig ) {
+
+		const arms = 40 + 80 * energy; // cuánto suben los brazos
+		const sway = 3 + 7 * energy; // vaivén del cuerpo
+		const drop = ( 0.02 + 0.05 * energy ) * rig.legs; // rebote, con los pies en el piso
+		const elbows = { left: rig.bendAxis( 'leftLowerArm', FORWARD ), right: rig.bendAxis( 'rightLowerArm', FORWARD ) };
+		const bend = ( side, degrees ) => new Quaternion().setFromAxisAngle( elbows[ side ], MathUtils.degToRad( degrees ) );
+		return {
+			cycle: 1.6 / rate,
+			pose( phase ) {
+
+				const s = Math.sin( TAU * phase );
+				const low = ( 1 - Math.cos( 2 * TAU * phase ) ) / 2; // baja y sube dos veces por ciclo
+				// Un brazo sube mientras el otro baja, por turnos.
+				const left = ( 1 + s ) / 2;
+				const right = ( 1 - s ) / 2;
+				return {
+					rotations: {
+						...plantedLegs( rig, drop * low ),
+						spine: turn( Z, sway * s ),
+						chest: turn( Z, sway * 0.6 * s ).multiply( turn( Y, sway * s ) ),
+						head: turn( Z, - sway * 1.2 * s ),
+						leftUpperArm: turn( Z, 25 + arms * left ).multiply( turn( X, - 20 ) ).multiply( rig.armsDown.left ),
+						rightUpperArm: turn( Z, - 25 - arms * right ).multiply( turn( X, - 20 ) ).multiply( rig.armsDown.right ),
+						leftLowerArm: bend( 'left', 30 + 40 * ( 1 - left ) ),
+						rightLowerArm: bend( 'right', 30 + 40 * ( 1 - right ) ),
 					},
 					hips: new Vector3( 0, - drop * low, 0 ),
 				};

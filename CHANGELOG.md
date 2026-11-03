@@ -91,6 +91,8 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
   los generadores, de otro archivo o hecha a mano) en el editor de keyframes. Al guardar, reemplaza a la de
   antes (Ctrl+Z la devuelve).
 - El aviso del guardado automático dice si incluye tu animación a medio hacer (y cuántos keyframes tiene).
+- **Nuevo: Saludar, Atacar y Bailar** en *Crear una animación*: saludar con la mano, un golpe desde la guardia
+  (sirve también con una espada en la mano) y un baile simple, cada uno con sus deslizadores.
 
 ## Versión 1
 

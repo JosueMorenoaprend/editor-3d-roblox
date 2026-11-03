@@ -30,8 +30,8 @@ Cómo leer esta lista:
 1. ~~**F1-14**~~ y ~~**F1-16**~~ (hechas en los ciclos 16 y 17).
 2. ~~**F1-05**~~ (hecha en el ciclo 18).
 3. ~~**F1-10**~~ (ciclo 19), ~~**F1-21**~~ (ciclo 20), ~~**F1-22**~~ (ciclo 21), ~~**F1-23**~~ (ciclo 22),
-   ~~**F1-11**~~ (ciclo 23), ~~**F1-24**~~ (ciclo 24), ~~**F1-26**~~ (ciclo 25) y ~~**F1-25**~~ (ciclo 26).
-   Siguen las Media de la Fase 1 (F1-08, F1-15, F1-09…).
+   ~~**F1-11**~~ (ciclo 23), ~~**F1-24**~~ (ciclo 24), ~~**F1-26**~~ (ciclo 25), ~~**F1-25**~~ (ciclo 26) y
+   ~~**F1-08**~~ (ciclo 27). Siguen las Media de la Fase 1 (F1-15, F1-09…).
 4. **F5-14** y **F5-13** (Media): el panel ya es muy largo, sobre todo en el celular.
 5. Fase 2 (conexión con IA): el guion de animación usa el mapa y los giros “en el espacio del personaje”
    que ya existen (F2-01, F2-02).
@@ -176,8 +176,14 @@ Cómo leer esta lista:
     muevan del piso. 12 pruebas más de Vitest (válidas, en bucle, en el lugar, con el R15 y con Mixamo;
     pies quietos ±1 cm al agacharse y antes de saltar; altura; brazos arriba al caer) + e2e (escritorio y
     móvil) que lee del GLB que con altura 0 la cadera nunca sube.
-- [ ] **F1-08** · Media · Generadores: **saludar, atacar y baile simple**.
-  - Comprobación: igual que F1-06.
+- [x] **F1-08** · Media · Generadores: **saludar, atacar y baile simple**. *(ciclo 27)*
+  - Comprobación: igual que F1-06. ✔ **Saludar** (altura del brazo, energía: sube el brazo derecho, saluda
+    tres veces y lo baja), **Atacar** (fuerza: guardia → se prepara → golpe con la mano derecha → guardia) y
+    **Bailar** (energía: rebota con los pies en el piso y sube un brazo y después el otro). Las pruebas que
+    recorren todos los generadores los cubren solas (válidos, se repiten sin saltos y quedan en el lugar, con
+    el R15 y con un Mixamo con ejes girados) + 2 pruebas nuevas (la mano del saludo sube sobre la cabeza; el
+    golpe lleva la mano > 0,6 brazos adelante del hombro y más que la guardia; al bailar, los brazos se turnan)
+    + e2e (escritorio y móvil): Atacar al 100 %, Saludar y Bailar → GLB válido con las 3. Captura revisada.
 - [ ] **F1-09** · Media · **Estilos** para los generadores (enérgico, cansado, …).
   - Comprobación: pruebas que comparan amplitud/velocidad entre estilos.
 - [x] **F1-10** · Alta · **Línea de tiempo de keyframes**: elegir un hueso, girarlo con
@@ -410,9 +416,9 @@ Cómo leer esta lista:
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
 | 0 — Base sólida | 17 | 13 |
-| 1 — Animación | 26 | 17 |
+| 1 — Animación | 26 | 18 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 15 | 0 |
-| **Total** | **83** | **30** |
+| **Total** | **83** | **31** |

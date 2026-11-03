@@ -4,6 +4,36 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 27 — Generadores Saludar, Atacar y Bailar (2026-11-03)
+
+**Auditoría:** punto de partida, el commit del ciclo 26 (`d831bea`). Actions: sin ejecuciones.
+
+**Tarea:** F1-08 (Media). Atacar es clave para los juegos de Roblox.
+
+**Qué hice** (en `generators.js`, con las mismas reglas que los demás: pose por fase en el espacio del
+personaje, `rig.armsDown` para los brazos en pose T, la cadera solo en Y y `curve()` para las fases)
+
+- **Saludar** (altura del brazo, energía): sube el brazo derecho por el costado, el codo se dobla hacia la
+  cabeza y la mano va y viene tres veces; después baja. Empieza y termina en reposo.
+- **Atacar** (fuerza): guardia (puños adelante) → se prepara (brazo y hombro derechos atrás) → golpe (brazo
+  estirado hacia adelante, pecho girado, el cuerpo se inclina un poco) → vuelve a la guardia.
+- **Bailar** (energía): rebota dos veces por ciclo con los pies en el piso (`plantedLegs`), el cuerpo va de lado
+  a lado y los brazos suben por turnos.
+
+**Cómo lo verifiqué**
+
+- Vitest: las pruebas que recorren todos los generadores ya cubren los 3 (válidos, último cuadro = primero, la
+  cadera no avanza; con el R15 y con un Mixamo con ejes girados; iguales aunque los ejes estén girados) + 2
+  pruebas nuevas, una por personaje (la mano del saludo pasa sobre la cabeza; el golpe lleva la mano a más de
+  0,6 largos de brazo delante del hombro y más adelante que en la guardia; al bailar, cada mano sube por turno).
+- Playwright (escritorio y móvil): Atacar al 100 %, Saludar y Bailar → GLB válido con las 3. La prueba que cuenta
+  los botones ahora espera 9. Captura revisada: el muñeco en guardia, con los puños adelante.
+- `npm run check` → código 0: **145/145** Vitest y **66/66** Playwright.
+
+**Qué sigue:** F1-15 (bucle, recortar, velocidad y combinar) y F1-09 (estilos).
+
+---
+
 ## Ciclo 26 — Editar con keyframes una animación que ya existe (2026-11-03)
 
 **Auditoría:** punto de partida, el commit del ciclo 25 (`b26a8ee`). Actions: sin ejecuciones.

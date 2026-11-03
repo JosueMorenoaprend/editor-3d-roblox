@@ -96,7 +96,7 @@ test( 'saltar con altura 0 (para el salto del jugador en Roblox) y agacharse', a
 	const select = page.locator( '#anim-select' );
 	await page.goto( './' );
 	await openSample( page, 'Muñeco R15' );
-	await expect( page.locator( '#anim-create-buttons [data-generator]' ) ).toHaveCount( 6 );
+	await expect( page.locator( '#anim-create-buttons [data-generator]' ) ).toHaveCount( 9 );
 
 	// Agacharse: 2 deslizadores.
 	await page.locator( '[data-generator="agacharse"]' ).click();
@@ -121,5 +121,31 @@ test( 'saltar con altura 0 (para el salto del jugador en Roblox) y agacharse', a
 	const heights = readGLBAccessor( bytes, json, jump.samplers[ channel.sampler ].output ).map( ( [ , y ] ) => y );
 	expect( Math.max( ...heights ) ).toBeLessThanOrEqual( heights[ 0 ] + 1e-5 );
 	expect( Math.min( ...heights ) ).toBeLessThan( heights[ 0 ] - 0.02 ); // se agacha antes de saltar
+
+} );
+
+test( 'atacar, saludar y bailar: se agregan y se exportan válidos', async ( { page }, testInfo ) => {
+
+	await page.goto( './' );
+	await openSample( page, 'Muñeco R15' );
+	await page.locator( '[data-generator="atacar"]' ).click();
+	await expect( page.locator( '#anim-create-description' ) ).toContainText( 'golpe con la mano derecha' );
+	await page.locator( '#gen-power' ).fill( '1' );
+	await expect( page.locator( '#gen-power-value' ) ).toHaveText( '100 %' );
+	await page.waitForTimeout( 500 );
+	await page.locator( '#viewport' ).scrollIntoViewIfNeeded();
+	await capture( page, testInfo, 'generador-atacar', { wait: false } );
+	await page.locator( '#btn-anim-create-add' ).click();
+	await expect( page.locator( '.toast' ).last() ).toContainText( 'agregué «Atacar»' );
+	for ( const id of [ 'saludar', 'bailar' ] ) {
+
+		await page.locator( `[data-generator="${ id }"]` ).click();
+		await page.locator( '#btn-anim-create-add' ).click();
+
+	}
+
+	await expect( page.locator( '.toast' ).last() ).toContainText( 'agregué «Bailar»' );
+	const { bytes } = await exportAndValidate( page, testInfo, 'muneco_atacar.glb' );
+	expect( readGLBJson( bytes ).animations.map( ( item ) => item.name ) ).toEqual( expect.arrayContaining( [ 'Atacar', 'Saludar (2)', 'Bailar' ] ) );
 
 } );

@@ -74,6 +74,8 @@ Cómo anotar el resultado: cambia `[ ]` por `[x]` si funcionó, o escribe debajo
    desplaza (se queda en el lugar). Anota si algún brazo o pierna gira hacia el lado equivocado.
 4. Si puedes, reemplaza las animaciones del script *Animate* del personaje (walk, run, idle, jump, fall)
    por estas y juega: ¿se ven bien al caminar, saltar y caer?
+5. Agrega también **Saludar**, **Atacar** y **Bailar** y repite el paso 3: ¿se saluda con la mano derecha y el
+   golpe va hacia adelante?
 
 ## R-07 · Animación hecha a mano con keyframes
 

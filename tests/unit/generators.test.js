@@ -277,3 +277,39 @@ describe( 'generadores de animación', () => {
 	} );
 
 } );
+
+describe( 'saludar, atacar y bailar', () => {
+
+	for ( const [ who, model ] of characters() ) {
+
+		it( `con ${ who }: la mano sube sobre la cabeza, el golpe va adelante y los brazos se turnan`, () => {
+
+			const bone = ( key ) => boneOf( model, key );
+			const wave = generateAnimation( model, 'saludar' );
+			const start = poseAt( model, wave, 0 );
+			const up = poseAt( model, wave, wave.duration / 2 );
+			expect( up[ bone( 'rightHand' ) ].position.y ).toBeGreaterThan( up[ bone( 'head' ) ].position.y );
+			expect( start[ bone( 'rightHand' ) ].position.y ).toBeLessThan( start[ bone( 'rightUpperArm' ) ].position.y );
+			const arm = start[ bone( 'rightUpperArm' ) ].position.distanceTo( start[ bone( 'rightHand' ) ].position );
+
+			// El golpe: la mano derecha va bien adelante del hombro, más que en la guardia.
+			const punch = generateAnimation( model, 'atacar' );
+			const forward = ( pose ) => pose[ bone( 'rightHand' ) ].position.z - pose[ bone( 'rightUpperArm' ) ].position.z;
+			const guard = forward( poseAt( model, punch, 0 ) );
+			const hit = forward( poseAt( model, punch, punch.duration / 2 ) );
+			expect( hit ).toBeGreaterThan( 0.6 * arm );
+			expect( hit ).toBeGreaterThan( guard + 0.2 * arm );
+
+			// Bailar: primero arriba la mano izquierda, después la derecha.
+			const dance = generateAnimation( model, 'bailar' );
+			const height = ( pose, side ) => pose[ bone( side + 'Hand' ) ].position.y;
+			const first = poseAt( model, dance, dance.duration / 4 );
+			const second = poseAt( model, dance, ( 3 * dance.duration ) / 4 );
+			expect( height( first, 'left' ) ).toBeGreaterThan( height( first, 'right' ) + 0.5 * arm );
+			expect( height( second, 'right' ) ).toBeGreaterThan( height( second, 'left' ) + 0.5 * arm );
+
+		} );
+
+	}
+
+} );
