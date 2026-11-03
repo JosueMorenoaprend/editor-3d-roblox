@@ -4,6 +4,56 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 15 — Auditoría profunda + Saltar, Caer y Agacharse (2026-11-03)
+
+**Auditoría profunda (cada 5 ciclos; la del ciclo 10 no se había hecho)**
+
+- **Rendimiento:** pasar una animación de 60 s (1.801 cuadros, 15 huesos) a otro personaje tarda 45 ms y
+  generar “Caminar”, menos de 1 ms: no hace falta un Web Worker. Sigue pendiente F5-10 (el visor dibuja 60
+  veces por segundo aunque nada se mueva).
+- **Tamaño:** el JS principal pesa 817 KB (218 KB comprimido), 40 KB más que en el ciclo 6 por la Fase 1.
+  El decodificador Draco (720 KB) y el worker de reducir (166 KB) se cargan solo cuando hacen falta.
+- **Seguridad:** todo texto que viene del modelo (nombres de huesos, animaciones, archivos) pasa por
+  `escapeHtml` antes de `innerHTML`; los avisos usan `textContent`; nada sale a internet; sin dependencias
+  nuevas.
+- **Código repetido:** el chequeo “¿la vista previa es la mía?” estaba copiado en 3 paneles →
+  `AnimationController.isPreviewing( clip )`; el panel de huesos tenía su propia búsqueda de huesos →
+  `findBones()`. El ayudante `poseAt` de las pruebas está en 3 archivos (F5-15, Baja).
+- **Interfaz con ojos nuevos** (capturas de página completa con el muñeco): el panel es muy largo (más de
+  3.000 px en el celular) porque todas las secciones arrancan abiertas → **F5-14** (Media). En el celular,
+  además, la vista 3D queda fuera de la pantalla al usar el panel (F5-13).
+- **`MEJORAS.md` reordenado:** nueva sección “Orden sugerido para los próximos ciclos”.
+
+**Tarea:** F1-07 (Alta).
+
+**Qué hice**
+
+- `generators.js`: **Saltar** (se agacha, despega, arriba, toca el piso, amortigua; deslizadores: altura,
+  agacharse antes, velocidad; con altura 0 % la cadera no sube, para usarlo como salto del jugador en
+  Roblox, y la descripción lo explica), **Caer** (en bucle: brazos arriba y afuera, piernas sueltas) y
+  **Agacharse** (baja, se queda y sube).
+- `plantedLegs()`: con la cadera más baja, el muslo y la rodilla se doblan justo lo necesario (ley de los
+  cosenos con el largo del muslo y de la pierna) para que el tobillo siga debajo de la cadera y el pie,
+  plano: **los pies no se hunden ni se mueven**. `curve()`: valores por fases con transiciones suaves.
+- Los 6 botones de *Crear una animación* van en una grilla de 3 columnas.
+
+**Cómo lo verifiqué**
+
+- Vitest: 12 pruebas más de los generadores (las comprobaciones generales cubren los 6 con el R15 y con
+  Mixamo; agacharse: los pies quedan a menos de 1 cm de su lugar en todo el ciclo, la cadera baja el 45 %
+  del largo de las piernas y las rodillas se doblan más de 60°; saltar: pies apoyados al agacharse, arriba
+  en el aire con los brazos arriba, y con altura 0 la cadera nunca sube; caer: manos arriba todo el ciclo).
+  Comprobé que fallan si el muslo se dobla a la mitad de lo necesario.
+- Playwright: flujo nuevo (escritorio y móvil): 6 generadores, Agacharse, Saltar con altura 0 → agregar
+  “Saltar (2)” → exportar → leer del GLB que la cadera nunca sube y que sí se agacha antes.
+- Captura revisada: la grilla de botones y el muñeco con los brazos arriba en el aire (sin subir).
+- `npm run check` → código 0: **116/116** Vitest y **40/40** Playwright.
+
+**Qué sigue:** F1-14 (dejar en el lugar las animaciones importadas) y F1-16 (elegir qué animaciones
+exportar), según el orden sugerido.
+
+---
+
 ## Ciclo 14 — Crear animaciones: caminar, correr y respirar (2026-11-03)
 
 **Auditoría:** el punto de partida es el commit del ciclo 13 (`4367b89`), que acababa de pasar

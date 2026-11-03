@@ -1,11 +1,12 @@
-// Generadores de animación: caminar, correr y respirar, ajustables con deslizadores.
+// Generadores de animación: caminar, correr, respirar, saltar, caer y agacharse, ajustables con deslizadores.
 //
 // Cada generador describe la pose en cada momento del ciclo (fase de 0 a 1) con giros en el espacio del
 // personaje (mira a +Z, su izquierda es +X y arriba es +Y), relativos al padre de cada hueso en reposo:
 // P⁻¹·D·P·L (ver skeletonPose.js). Así funcionan con cualquier esqueleto que tenga su mapa de huesos:
 // R15, Mixamo, Tripo… Si el personaje tiene los brazos en pose T, primero se bajan a los costados.
 // Las animaciones quedan "en el lugar" (la cadera sube y baja, pero no avanza), como las usa Roblox, y se
-// repiten sin saltos (el último cuadro es igual al primero).
+// repiten sin saltos (el último cuadro es igual al primero). Al agacharse o caer, las piernas se doblan con
+// un cálculo de 2 huesos (ley de los cosenos) para que los pies no se hundan ni floten.
 import { AnimationClip, MathUtils, Quaternion, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack } from 'three';
 import { validateBoneMap } from './boneMap.js';
 import { UserError } from './errors.js';
@@ -48,6 +49,25 @@ export const GENERATORS = [
 		description: 'Quieto, respirando (para cuando el personaje no hace nada).',
 		params: [ speed, percent( 'depth', 'Intensidad', 0.5 ) ],
 	},
+	{
+		id: 'saltar',
+		name: 'Saltar',
+		description: 'Se agacha, salta y cae amortiguando. La altura es para verlo aquí: si es el salto del ' +
+			'jugador en Roblox, ponla en 0 % (el salto de verdad lo hace el juego).',
+		params: [ speed, percent( 'height', 'Altura del salto', 0.4 ), percent( 'crouch', 'Agacharse antes de saltar', 0.5 ) ],
+	},
+	{
+		id: 'caer',
+		name: 'Caer',
+		description: 'Cayendo, con los brazos arriba y las piernas sueltas (se repite mientras cae).',
+		params: [ speed, percent( 'flail', 'Agitar brazos y piernas', 0.5 ) ],
+	},
+	{
+		id: 'agacharse',
+		name: 'Agacharse',
+		description: 'Baja, se queda agachado un momento y vuelve a subir, sin despegar los pies del piso.',
+		params: [ speed, percent( 'depth', 'Cuánto baja', 0.6 ) ],
+	},
 ];
 
 /** Valores de los deslizadores por defecto de un generador. */
@@ -61,7 +81,7 @@ export function defaultParams( id ) {
 /**
  * Crea la animación.
  * @param {import('./model.js').LoadedModel} model el personaje (con su mapa de huesos completo)
- * @param {string} id 'caminar' | 'correr' | 'respirar'
+ * @param {string} id 'caminar' | 'correr' | 'respirar' | 'saltar' | 'caer' | 'agacharse'
  * @param {Record<string, number>} [params] valores de los deslizadores (los que falten, por defecto)
  * @param {{ name?: string }} [options]
  * @returns {AnimationClip}
@@ -93,6 +113,9 @@ class Rig {
 		this.rest = new RestPose( model.container, model.restPose );
 		this.bones = findBones( model.container );
 		this.legs = legLength( this.map, this.rest, this.bones ) || 0.5;
+		// Muslo (cadera → rodilla) y pierna (rodilla → tobillo), para doblar las piernas con los pies apoyados.
+		this.thigh = this.segment( 'UpperLeg', 'LowerLeg' ) || this.legs / 2;
+		this.shin = this.segment( 'LowerLeg', 'Foot' ) || this.legs / 2;
 		// Brazos a los costados: si están en pose T (o A), se bajan; si ya cuelgan (R15), se dejan.
 		this.armsDown = {};
 		for ( const side of [ 'left', 'right' ] ) {
@@ -111,6 +134,20 @@ class Rig {
 	bone( key ) {
 
 		return this.map[ key ] ? this.bones.get( this.map[ key ] ) : undefined;
+
+	}
+
+	/** Largo promedio (de los dos lados) entre dos articulaciones de las piernas, o null. */
+	segment( from, to ) {
+
+		const lengths = [ 'left', 'right' ].map( ( side ) => {
+
+			const a = this.bone( side + from );
+			const b = this.bone( side + to );
+			return a && b ? this.rest.position( a ).distanceTo( this.rest.position( b ) ) : 0;
+
+		} ).filter( ( length ) => length > 1e-6 );
+		return lengths.length ? lengths.reduce( ( sum, value ) => sum + value, 0 ) / lengths.length : null;
 
 	}
 
@@ -280,7 +317,166 @@ const MOTIONS = {
 
 	},
 
+	saltar( { speed: rate, height, crouch }, rig ) {
+
+		const squat = ( 0.08 + 0.22 * crouch ) * rig.legs; // cuánto baja la cadera antes de saltar
+		const rise = 0.6 * height * rig.legs; // cuánto sube en el aire
+		// 0 parado → 0,25 agachado → 0,38 despega → 0,52 arriba → 0,66 toca el piso → 0,78 amortigua → 1 parado.
+		const hipsY = [ [ 0, 0 ], [ 0.25, - squat ], [ 0.38, rise * 0.35 ], [ 0.52, rise ], [ 0.66, 0 ], [ 0.78, - squat * 0.8 ], [ 1, 0 ] ];
+		const tuckCurve = [ [ 0.38, 0 ], [ 0.52, 15 + 30 * height ], [ 0.64, 0 ] ];
+		const leanCurve = [ [ 0, 0 ], [ 0.25, 8 + 14 * crouch ], [ 0.38, 0 ], [ 0.66, 0 ], [ 0.78, 6 + 10 * crouch ], [ 1, 0 ] ];
+		// Brazos: atrás al agacharse, arriba al despegar, adelante al caer (grados; negativo = hacia adelante).
+		const armCurve = [ [ 0, 0 ], [ 0.25, 35 ], [ 0.38, - 110 ], [ 0.52, - 150 ], [ 0.68, - 60 ], [ 0.8, - 25 ], [ 1, 0 ] ];
+		return {
+			cycle: 1.3 / rate,
+			pose( phase ) {
+
+				const y = curve( hipsY, phase );
+				const lean = curve( leanCurve, phase );
+				const arm = curve( armCurve, phase );
+				const tuck = curve( tuckCurve, phase );
+				// Con la cadera abajo, los pies quedan apoyados; arriba, las piernas se recogen un poco.
+				const legs = y < 0 ? plantedLegs( rig, - y ) : tuckedLegs( tuck );
+				return {
+					rotations: {
+						...legs,
+						spine: turn( X, lean * 0.6 ),
+						chest: turn( X, lean * 0.4 ),
+						head: turn( X, - lean * 0.6 ),
+						leftUpperArm: turn( X, arm ).multiply( rig.armsDown.left ),
+						rightUpperArm: turn( X, arm ).multiply( rig.armsDown.right ),
+					},
+					hips: new Vector3( 0, y, 0 ),
+				};
+
+			},
+		};
+
+	},
+
+	caer( { speed: rate, flail }, rig ) {
+
+		const wave = 4 + 16 * flail;
+		return {
+			cycle: 0.9 / rate,
+			pose( phase ) {
+
+				const s = Math.sin( TAU * phase );
+				const c = Math.cos( TAU * phase );
+				const raise = 125 + wave * s; // brazos arriba y afuera
+				return {
+					rotations: {
+						...tuckedLegs( 18, wave * 0.6 * s ),
+						spine: turn( X, - 6 ),
+						head: turn( X, 12 ),
+						leftUpperArm: turn( X, wave * 0.5 * c ).multiply( turn( Z, raise ) ).multiply( rig.armsDown.left ),
+						rightUpperArm: turn( X, - wave * 0.5 * c ).multiply( turn( Z, - raise ) ).multiply( rig.armsDown.right ),
+					},
+					hips: new Vector3(),
+				};
+
+			},
+		};
+
+	},
+
+	agacharse( { speed: rate, depth }, rig ) {
+
+		const drop = ( 0.15 + 0.3 * depth ) * rig.legs;
+		const elbows = { left: rig.bendAxis( 'leftLowerArm', FORWARD ), right: rig.bendAxis( 'rightLowerArm', FORWARD ) };
+		return {
+			cycle: 2.4 / rate,
+			pose( phase ) {
+
+				// Baja, se queda abajo un momento y vuelve a subir.
+				const low = curve( [ [ 0, 0 ], [ 0.3, 1 ], [ 0.7, 1 ], [ 1, 0 ] ], phase );
+				return {
+					rotations: {
+						...plantedLegs( rig, drop * low ),
+						spine: turn( X, 18 * low ),
+						chest: turn( X, 6 * low ),
+						head: turn( X, - 16 * low ),
+						// Los brazos van un poco adelante para mantener el equilibrio.
+						leftUpperArm: turn( X, - 30 * low ).multiply( rig.armsDown.left ),
+						rightUpperArm: turn( X, - 30 * low ).multiply( rig.armsDown.right ),
+						leftLowerArm: new Quaternion().setFromAxisAngle( elbows.left, MathUtils.degToRad( 25 * low ) ),
+						rightLowerArm: new Quaternion().setFromAxisAngle( elbows.right, MathUtils.degToRad( 25 * low ) ),
+					},
+					hips: new Vector3( 0, - drop * low, 0 ),
+				};
+
+			},
+		};
+
+	},
+
 };
+
+/**
+ * Valor de una curva definida por puntos [fase, valor] (en orden), con transiciones suaves entre ellos
+ * (sin cambios bruscos de velocidad). Antes del primer punto y después del último, queda fija.
+ */
+function curve( points, phase ) {
+
+	if ( phase <= points[ 0 ][ 0 ] ) return points[ 0 ][ 1 ];
+	for ( let i = 1; i < points.length; i ++ ) {
+
+		const [ end, to ] = points[ i ];
+		if ( phase <= end ) {
+
+			const [ start, from ] = points[ i - 1 ];
+			const u = ( phase - start ) / ( end - start || 1 );
+			return from + ( to - from ) * u * u * ( 3 - 2 * u );
+
+		}
+
+	}
+
+	return points[ points.length - 1 ][ 1 ];
+
+}
+
+/**
+ * Piernas con los pies apoyados: la cadera baja `drop` metros y el muslo y la rodilla se doblan justo lo
+ * necesario (ley de los cosenos) para que el tobillo siga debajo de la cadera; el pie queda plano.
+ */
+function plantedLegs( rig, drop ) {
+
+	const a = rig.thigh;
+	const b = rig.shin;
+	const reach = Math.max( a + b - Math.max( drop, 0 ), Math.abs( a - b ) + 1e-3 );
+	const clamp = ( value ) => Math.min( 1, Math.max( - 1, value ) );
+	const knee = MathUtils.radToDeg( Math.PI - Math.acos( clamp( ( a * a + b * b - reach * reach ) / ( 2 * a * b ) ) ) );
+	const hip = MathUtils.radToDeg( Math.acos( clamp( ( a * a + reach * reach - b * b ) / ( 2 * a * reach ) ) ) );
+	const rotations = {};
+	for ( const side of [ 'left', 'right' ] ) {
+
+		rotations[ side + 'UpperLeg' ] = turn( X, - hip );
+		rotations[ side + 'LowerLeg' ] = turn( X, knee );
+		rotations[ side + 'Foot' ] = turn( X, hip - knee );
+
+	}
+
+	return rotations;
+
+}
+
+/** Piernas recogidas (en el aire): rodillas dobladas `knee` grados; `kick` alterna un poco las piernas. */
+function tuckedLegs( knee, kick = 0 ) {
+
+	const rotations = {};
+	for ( const [ side, sign ] of [ [ 'left', 1 ], [ 'right', - 1 ] ] ) {
+
+		const thigh = knee * 0.6 + kick * sign;
+		rotations[ side + 'UpperLeg' ] = turn( X, - thigh );
+		rotations[ side + 'LowerLeg' ] = turn( X, knee );
+		rotations[ side + 'Foot' ] = turn( X, thigh - knee );
+
+	}
+
+	return rotations;
+
+}
 
 /**
  * Piernas alternadas. s = sen(2π·fase), c = cos(2π·fase). La izquierda va adelante cuando s > 0; cada

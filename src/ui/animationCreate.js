@@ -73,8 +73,7 @@ export function initAnimationCreate( app ) {
 	/** En qué parte del ciclo va la vista previa (0 a 1). */
 	function currentFraction() {
 
-		const anim = app.animation;
-		return current && current.clip && anim.preview && anim.preview.clip === current.clip ? anim.time / current.clip.duration : 0;
+		return current && app.animation.isPreviewing( current.clip ) ? app.animation.time / current.clip.duration : 0;
 
 	}
 
@@ -118,7 +117,7 @@ export function initAnimationCreate( app ) {
 	function close() {
 
 		cancelAnimationFrame( frame );
-		if ( current && app.animation.preview && app.animation.preview.clip === current.clip ) app.animation.stop();
+		if ( current && app.animation.isPreviewing( current.clip ) ) app.animation.stop();
 		current = null;
 		editor.hidden = true;
 		params.innerHTML = '';

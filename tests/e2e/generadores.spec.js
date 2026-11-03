@@ -90,3 +90,36 @@ test( 'correr y respirar; "Cerrar" detiene la vista previa', async ( { page } ) 
 	await expect( select.locator( 'option' ) ).toHaveCount( 3 );
 
 } );
+
+test( 'saltar con altura 0 (para el salto del jugador en Roblox) y agacharse', async ( { page }, testInfo ) => {
+
+	const select = page.locator( '#anim-select' );
+	await page.goto( './' );
+	await openSample( page, 'Muñeco R15' );
+	await expect( page.locator( '#anim-create-buttons [data-generator]' ) ).toHaveCount( 6 );
+
+	// Agacharse: 2 deslizadores.
+	await page.locator( '[data-generator="agacharse"]' ).click();
+	await expect( page.locator( '#anim-create-params input[type="range"]' ) ).toHaveCount( 2 );
+	await expect( select.locator( 'option:checked' ) ).toContainText( 'Agacharse (2,4 s, vista previa)' );
+
+	// Saltar con la altura en 0 %: la explicación lo dice y la cadera nunca sube del reposo.
+	await page.locator( '[data-generator="saltar"]' ).click();
+	await expect( page.locator( '#anim-create-description' ) ).toContainText( 'ponla en 0 %' );
+	await page.locator( '#gen-height' ).fill( '0' );
+	await expect( page.locator( '#gen-height-value' ) ).toHaveText( '0 %' );
+	await page.waitForTimeout( 500 );
+	await page.locator( '#viewport' ).scrollIntoViewIfNeeded();
+	await capture( page, testInfo, 'generador-saltar', { wait: false } );
+	await page.locator( '#btn-anim-create-add' ).click();
+	await expect( page.locator( '.toast' ).last() ).toContainText( 'agregué «Saltar (2)»' );
+
+	const { bytes } = await exportAndValidate( page, testInfo, 'muneco_salto.glb' );
+	const json = readGLBJson( bytes );
+	const jump = json.animations.find( ( animation ) => animation.name === 'Saltar (2)' );
+	const channel = jump.channels.find( ( item ) => json.nodes[ item.target.node ].name === 'LowerTorso' && item.target.path === 'translation' );
+	const heights = readGLBAccessor( bytes, json, jump.samplers[ channel.sampler ].output ).map( ( [ , y ] ) => y );
+	expect( Math.max( ...heights ) ).toBeLessThanOrEqual( heights[ 0 ] + 1e-5 );
+	expect( Math.min( ...heights ) ).toBeLessThan( heights[ 0 ] - 0.02 ); // se agacha antes de saltar
+
+} );

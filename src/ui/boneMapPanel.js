@@ -7,7 +7,7 @@ import {
 	HUMANOID_BONES, REQUIRED_BONES, boneLabel, humanoidBone, listBones, sameBoneMap, validateBoneMap,
 } from '../core/boneMap.js';
 import { createBoneTestClip } from '../core/boneTest.js';
-import { nextBoneKey } from '../core/skeletonPose.js';
+import { findBones, nextBoneKey } from '../core/skeletonPose.js';
 import { BoneHighlight } from './boneHighlight.js';
 import { $, escapeHtml, formatInt } from './dom.js';
 import { toast } from './toast.js';
@@ -150,7 +150,7 @@ export function initBoneMapPanel( app ) {
 	/** ¿Está sonando (o en pausa) la prueba de este panel? */
 	function testRunning() {
 
-		return !! test && app.animation.preview?.clip === test.clip;
+		return !! test && app.animation.isPreviewing( test.clip );
 
 	}
 
@@ -198,14 +198,7 @@ export function initBoneMapPanel( app ) {
 
 	function findBone( name ) {
 
-		if ( ! app.model || ! name ) return null;
-		let found = null;
-		app.model.container.traverse( ( object ) => {
-
-			if ( ! found && object.isBone && object.name === name ) found = object;
-
-		} );
-		return found;
+		return app.model && name ? findBones( app.model.container ).get( name ) || null : null;
 
 	}
 

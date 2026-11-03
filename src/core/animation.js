@@ -81,6 +81,13 @@ export class AnimationController extends EventTarget {
 
 	}
 
+	/** ¿La vista previa en curso es la de este clip? (cada panel sabe así si sigue sonando la suya) */
+	isPreviewing( clip ) {
+
+		return !! clip && this.preview !== null && this.preview.clip === clip;
+
+	}
+
 	/** Agrega animaciones al modelo (por ejemplo, las de otro archivo ya pasadas a este personaje). */
 	addClips( clips ) {
 

@@ -166,7 +166,8 @@ src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
   skeletonPose.js       pose de reposo en el espacio del modelo y hacia dónde apunta cada hueso
   retarget.js           pasar una animación de un personaje a otro con sus mapas de huesos
   animationImport.js    leer las animaciones de otro GLB (con o sin cuerpo) y pasarlas a mi personaje
-  generators.js         generadores Caminar, Correr y Respirar (pose por fase → clip en el lugar, en bucle)
+  generators.js         generadores Caminar, Correr, Respirar, Saltar, Caer y Agacharse (pose por fase →
+                        clip en el lugar, en bucle; piernas con los pies apoyados por ley de cosenos)
 src/samples/            modelos de prueba generados por código (sin licencias de terceros)
   r15Dummy.js           muñeco R15: 16 huesos, 3 animaciones (Saludar, Caminar, Saltar)
   heavyMesh.js          malla pesada: 120.000 triángulos con textura
@@ -203,7 +204,9 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
   punto al cambiar un deslizador). Exportar y guardar la detienen y el autoguardado espera.
 - **Generadores nuevos** (`generators.js`): describe la pose por fase con giros relativos al padre en
   reposo (`turn( eje, grados )`), usa `rig.armsDown` si mueve los brazos y deja la cadera solo en Y para
-  que quede en el lugar; `Rig.bake()` repite el primer cuadro al final (bucle sin saltos).
+  que quede en el lugar; `Rig.bake()` repite el primer cuadro al final (bucle sin saltos). Para fases
+  (agacharse → despegar → caer) usa `curve( [ [fase, valor]… ], fase )`; si la cadera baja con los pies en
+  el piso, `plantedLegs( rig, cuánto )`.
 - `app.run( mensaje, tarea, prefijoDeError )` muestra “Trabajando…” y convierte los errores en avisos
   en español.
 - **Tareas largas:** `app.run( mensaje, ( { progress, signal } ) => …, error, { cancellable: true } )`

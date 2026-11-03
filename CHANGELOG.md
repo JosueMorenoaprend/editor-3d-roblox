@@ -52,6 +52,9 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
   con deslizadores (velocidad, largo del paso, balanceo de brazos, inclinación, intensidad). Tu personaje
   la muestra mientras mueves los deslizadores; con **Agregar** queda guardada. Todas quedan “en el
   lugar” (sin avanzar), como las usa Roblox, y se repiten sin saltos.
+- **Nuevo: Saltar, Caer y Agacharse** en *Crear una animación*. Al agacharse (o antes de saltar) las
+  piernas se doblan sin que los pies se muevan del piso. En **Saltar** puedes poner la altura en 0 % para
+  usarla como el salto del jugador en Roblox (el salto de verdad lo hace el juego).
 
 ## Versión 1
 

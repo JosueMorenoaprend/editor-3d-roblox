@@ -733,6 +733,16 @@ select:disabled {
 	font-weight: 650;
 }
 
+.generator-buttons {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 6px;
+}
+
+.generator-buttons .btn {
+	padding-inline: 6px;
+}
+
 .anim-create .btn[aria-pressed='true'] {
 	background: var(--accent);
 	border-color: var(--accent);

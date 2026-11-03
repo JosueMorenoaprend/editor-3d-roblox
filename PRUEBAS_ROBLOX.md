@@ -67,11 +67,13 @@ Cómo anotar el resultado: cambia `[ ]` por `[x]` si funcionó, o escribe debajo
 
 - [ ] **Pendiente de probar**
 1. Abre tu personaje (de Tripo con rig, o el muñeco R15 de ejemplo).
-2. En *Animaciones* → **Crear una animación**, agrega **Caminar**, **Correr** y **Respirar** (con los
-   valores que quieras) y exporta con **Incluir animaciones**.
+2. En *Animaciones* → **Crear una animación**, agrega **Caminar**, **Correr**, **Respirar**, **Caer** y
+   **Saltar** (este con la altura en 0 %) y exporta con **Incluir animaciones**.
 3. En Roblox Studio, impórtalo con **Importar 3D**. En el *Animation Editor*, o con un script que use
    `Animator:LoadAnimation`, comprueba que cada una se repite sin saltos y que el personaje no se
    desplaza (se queda en el lugar). Anota si algún brazo o pierna gira hacia el lado equivocado.
+4. Si puedes, reemplaza las animaciones del script *Animate* del personaje (walk, run, idle, jump, fall)
+   por estas y juega: ¿se ven bien al caminar, saltar y caer?
 
 ---
 

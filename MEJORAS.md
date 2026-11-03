@@ -25,6 +25,16 @@ Cómo leer esta lista:
 - **Accesibilidad con axe:** `axe-core` tiene licencia **MPL-2.0**, que no está en la lista permitida
   (MIT, BSD, Apache, CC0). ¿Se permite solo para las pruebas? Se preguntará al llegar a F5-06.
 
+## Orden sugerido para los próximos ciclos (auditoría profunda del ciclo 15)
+
+1. **F1-14** (Alta) en el lugar para animaciones importadas (las de Mixamo suelen avanzar) y **F1-16**
+   (Alta) elegir qué animaciones exportar: cortas y necesarias para usar todo en Roblox.
+2. **F1-05** (Alta) FBX de Mixamo (la fuente de animaciones gratis más usada) con el retarget del ciclo 13.
+3. **F1-10** (Alta) línea de tiempo de keyframes; después las Media de la Fase 1 (F1-08, F1-15, F1-11…).
+4. **F5-14** y **F5-13** (Media): el panel ya es muy largo, sobre todo en el celular.
+5. Fase 2 (conexión con IA): el guion de animación usa el mapa y los giros “en el espacio del personaje”
+   que ya existen (F2-01, F2-02).
+
 ---
 
 ## Fase 0 — Base sólida
@@ -145,8 +155,13 @@ Cómo leer esta lista:
     válidos, último cuadro = primero, la cadera no avanza; pies y brazos alternados; deslizadores; igual
     con ejes girados) + e2e (escritorio y móvil) que exporta y lee del GLB que la cadera de “Caminar (2)”
     sube y baja pero no avanza.
-- [ ] **F1-07** · Alta · Generadores: **saltar, caer y agacharse** (altura del salto, etc.).
-  - Comprobación: igual que F1-06.
+- [x] **F1-07** · Alta · Generadores: **saltar, caer y agacharse** (altura del salto, etc.). *(ciclo 15)*
+  - Comprobación: igual que F1-06. ✔ Saltar (altura, agacharse antes; con altura 0 % la cadera no sube:
+    para el salto del jugador en Roblox), Caer (en bucle, brazos arriba) y Agacharse (baja, se queda y
+    sube). Las piernas se doblan con un cálculo de 2 huesos (ley de los cosenos) para que los pies no se
+    muevan del piso. 12 pruebas más de Vitest (válidas, en bucle, en el lugar, con el R15 y con Mixamo;
+    pies quietos ±1 cm al agacharse y antes de saltar; altura; brazos arriba al caer) + e2e (escritorio y
+    móvil) que lee del GLB que con altura 0 la cadera nunca sube.
 - [ ] **F1-08** · Media · Generadores: **saludar, atacar y baile simple**.
   - Comprobación: igual que F1-06.
 - [ ] **F1-09** · Media · **Estilos** para los generadores (enérgico, cansado, …).
@@ -266,6 +281,16 @@ Cómo leer esta lista:
 - [ ] **F5-10** · Media · **Dibujar solo cuando algo cambia**: hoy el visor dibuja 60 veces por segundo aunque nada se mueva y gasta batería en laptop y tablet. *(auditoría del ciclo 5)* — Comprobación: prueba que cuenta cuadros dibujados con la escena quieta (≈0) y moviéndose.
 - [ ] **F5-11** · Baja · **Código repetido**: recorrer materiales y texturas está hecho 4 veces (`info.js`, `exporter.js`, `model.js`, `viewportTools.js`); unificar en un ayudante. *(auditoría del ciclo 5)* — Comprobación: pruebas en verde y un solo ayudante.
 - [ ] **F5-12** · Baja · La etiqueta “v1” de la barra superior quedó vieja: mostrar la versión real. *(auditoría del ciclo 5)* — Comprobación: e2e lee la versión de `package.json` en la barra.
+- [ ] **F5-14** · Media · **Panel más corto**: hoy todas las secciones arrancan abiertas y el panel mide
+  más de 3.000 px en el celular (y hay que bajar mucho en una laptop para llegar a *Animaciones* y
+  *Exportar*). Abrir solas solo las que hacen falta (*Reducir polígonos* si una malla pasa el límite;
+  *Mapa de huesos* si falta algo) y recordar las que el usuario cierra. *(auditoría del ciclo 15)* —
+  Comprobación: e2e: con el muñeco R15, *Reducir polígonos* empieza cerrada y *Animaciones* se ve sin
+  bajar tanto; con la malla pesada, *Reducir polígonos* empieza abierta; lo que cierres sigue cerrado al
+  recargar.
+- [ ] **F5-15** · Baja · Pruebas: el ayudante `poseAt` (poner el modelo en un momento de una animación) está
+  repetido en 3 archivos de `tests/unit`; unificarlo en `helpers.js`. *(auditoría del ciclo 15)* —
+  Comprobación: pruebas en verde y un solo ayudante.
 - [ ] **F5-13** · Media · **En el celular, la vista 3D queda a la vista mientras bajas por el panel** (fija arriba y más baja). Hoy, al probar el mapa de huesos o un ajuste desde abajo, la página tiene que subir hasta la vista 3D para verlo. *(auditoría del ciclo 12)* — Comprobación: e2e móvil: con el panel bajado hasta *Mapa de huesos*, la vista 3D sigue visible.
 
 ---
@@ -275,9 +300,9 @@ Cómo leer esta lista:
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
 | 0 — Base sólida | 16 | 12 |
-| 1 — Animación | 20 | 5 |
+| 1 — Animación | 20 | 6 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
-| 5 — Experiencia | 13 | 0 |
-| **Total** | **74** | **17** |
+| 5 — Experiencia | 15 | 0 |
+| **Total** | **76** | **18** |

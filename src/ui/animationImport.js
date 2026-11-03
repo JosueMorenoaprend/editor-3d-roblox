@@ -77,7 +77,7 @@ export function initAnimationImport( app ) {
 
 	function close() {
 
-		if ( found && app.animation.preview && found.clips.includes( app.animation.preview.clip ) ) app.animation.stop();
+		if ( found && found.clips.some( ( clip ) => app.animation.isPreviewing( clip ) ) ) app.animation.stop();
 		found = null;
 		result.hidden = true;
 		result.innerHTML = '';

@@ -191,6 +191,82 @@ describe( 'generadores de animación', () => {
 
 	} );
 
+	for ( const [ who, make ] of [ [ 'R15', () => openSample( 'r15' ).model ], [ 'Mixamo', () => buildTPoseHumanoid( { twisted: true, prefix: 'mixamorig' } ) ] ] ) {
+
+		it( `agacharse (${ who }): la cadera baja, las rodillas se doblan y los pies no se mueven del piso`, () => {
+
+			const model = make();
+			const clip = generateAnimation( model, 'agacharse', { depth: 1 } );
+			const hips = boneOf( model, 'hips' );
+			const feet = [ boneOf( model, 'leftFoot' ), boneOf( model, 'rightFoot' ) ];
+			const rest = poseAt( model, clip, 0 );
+			for ( let i = 0; i <= 12; i ++ ) {
+
+				const pose = poseAt( model, clip, ( clip.duration * i ) / 12 );
+				for ( const foot of feet ) {
+
+					expect( pose[ foot ].position.distanceTo( rest[ foot ].position ), `${ foot } en ${ i }/12` ).toBeLessThan( 0.01 );
+
+				}
+
+			}
+
+			// En el medio, agachado: la cadera bajó un 45 % del largo de las piernas y las rodillas se doblaron.
+			const low = poseAt( model, clip, clip.duration / 2 );
+			const legs = rest[ boneOf( model, 'leftUpperLeg' ) ].position.distanceTo( rest[ feet[ 0 ] ].position );
+			expect( rest[ hips ].position.y - low[ hips ].position.y ).toBeCloseTo( 0.45 * legs, 3 );
+			const knee = low[ boneOf( model, 'leftLowerLeg' ) ].quaternion.angleTo( rest[ boneOf( model, 'leftLowerLeg' ) ].quaternion );
+			expect( MathUtils.radToDeg( knee ) ).toBeGreaterThan( 60 );
+
+		} );
+
+		it( `saltar (${ who }): pies apoyados al agacharse, en el aire arriba, y con altura 0 no sube`, () => {
+
+			const model = make();
+			const hips = boneOf( model, 'hips' );
+			const foot = boneOf( model, 'leftFoot' );
+			const clip = generateAnimation( model, 'saltar', { height: 1 } );
+			const rest = poseAt( model, clip, 0 );
+			const crouched = poseAt( model, clip, clip.duration * 0.25 );
+			expect( crouched[ hips ].position.y ).toBeLessThan( rest[ hips ].position.y - 0.01 );
+			expect( crouched[ foot ].position.distanceTo( rest[ foot ].position ) ).toBeLessThan( 0.01 );
+			const top = poseAt( model, clip, clip.duration * 0.52 );
+			expect( top[ hips ].position.y - rest[ hips ].position.y ).toBeGreaterThan( 0.1 );
+			expect( top[ foot ].position.y - rest[ foot ].position.y ).toBeGreaterThan( 0.05 );
+			// En el aire, los brazos van arriba (las manos por encima de los hombros).
+			expect( top[ boneOf( model, 'leftHand' ) ].position.y ).toBeGreaterThan( top[ boneOf( model, 'leftUpperArm' ) ].position.y );
+
+			// Para el salto del jugador en Roblox: con altura 0 la cadera nunca sube del reposo.
+			const flat = generateAnimation( model, 'saltar', { height: 0 } );
+			for ( let i = 0; i <= 26; i ++ ) {
+
+				const pose = poseAt( model, flat, ( flat.duration * i ) / 26 );
+				expect( pose[ hips ].position.y, `${ i }/26` ).toBeLessThanOrEqual( rest[ hips ].position.y + 1e-6 );
+
+			}
+
+		} );
+
+		it( `caer (${ who }): los brazos quedan arriba todo el tiempo`, () => {
+
+			const model = make();
+			const clip = generateAnimation( model, 'caer' );
+			for ( let i = 0; i <= 8; i ++ ) {
+
+				const pose = poseAt( model, clip, ( clip.duration * i ) / 8 );
+				for ( const side of [ 'left', 'right' ] ) {
+
+					expect( pose[ boneOf( model, side + 'Hand' ) ].position.y, `${ side } ${ i }/8` )
+						.toBeGreaterThan( pose[ boneOf( model, side + 'UpperArm' ) ].position.y );
+
+				}
+
+			}
+
+		} );
+
+	}
+
 	it( 'sin el mapa de huesos completo explica qué hacer', () => {
 
 		const model = buildTPoseHumanoid();
