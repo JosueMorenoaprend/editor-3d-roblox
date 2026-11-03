@@ -4,6 +4,42 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 25 — La animación a medio hacer se guarda sola (2026-11-03)
+
+**Auditoría:** punto de partida, el commit del ciclo 24 (`9b64f98`). Actions: sin ejecuciones.
+
+**Tarea:** F1-26 (Media), separada de F1-24 en el ciclo anterior.
+
+**Qué hice**
+
+- Proyecto **formato 3**: `keyframeDraft` con el borrador (`KeyframeAnimation.toJSON()`: nombre, duración y
+  `[tiempo, x, y, z, w]` por hueso). `fromJSON()` ignora lo que no entiende (archivo dañado). Los proyectos
+  viejos se siguen abriendo (no traen borrador).
+- `model.keyframeDraft`: el editor lo actualiza con cada cambio de keyframes (también al deshacer) y con el
+  nombre, y emite el evento `draft`. El autoguardado cuenta ese evento como un cambio, también al descartar el
+  borrador: si no, el registro viejo (con el borrador) habría vuelto después de cancelarlo.
+- Al abrir un proyecto o recuperar el autoguardado con un borrador, el botón dice «Seguir con «Saludo a mano»
+  (2 keyframes)…» y abre el editor con él.
+- “Guardar proyecto” ya no avisa que la animación a medio hacer “no va en el archivo”: ahora sí va. El aviso
+  queda solo para exportar el GLB.
+
+**Cuidado:** el editor emite `draft` al cerrarse solo si su modelo sigue abierto. Al abrir otro modelo, ese
+evento habría hecho que el autoguardado guardara el modelo recién abierto sin cambios, borrando lo guardado
+antes (lo prohíbe la prueba “abrir otro modelo sin cambios no borra lo guardado”).
+
+**Cómo lo verifiqué**
+
+- Vitest: 1 prueba nueva (ida y vuelta por JSON; datos dañados se ignoran). La prueba e2e del mapa de huesos
+  esperaba el formato 2 del proyecto: ahora espera el 3.
+- Playwright (escritorio y móvil): 2 keyframes → autoguardado → recargar → Recuperar mi trabajo → «Seguir con
+  «Saludo a mano» (2 keyframes)…» → 2 keyframes, el nombre y los 70° → Cancelar → «Crear a mano…». Las
+  pruebas de autoguardado y de proyecto siguen pasando.
+- `npm run check` → código 0: **136/136** Vitest y **62/62** Playwright.
+
+**Qué sigue:** F1-25 (editar con keyframes una animación que ya existe), F1-08 y F1-15.
+
+---
+
 ## Ciclo 24 — Ctrl+Z deshace cada keyframe (2026-11-03)
 
 **Auditoría:** punto de partida, el commit del ciclo 23 (`f6b0be3`). Actions: sin ejecuciones.

@@ -92,7 +92,9 @@ export function initKeyframePanel( app ) {
 		app.animation.stop();
 		editor = {
 			model,
-			animation: new KeyframeAnimation( { name: uniqueClipName( 'Mi animación', model.clips.map( ( clip ) => clip.name ) ), duration: 2 } ),
+			// Si quedó una a medio hacer (autoguardado o proyecto), se sigue con esa.
+			animation: model.keyframeDraft ? KeyframeAnimation.fromJSON( model.keyframeDraft )
+				: new KeyframeAnimation( { name: uniqueClipName( 'Mi animación', model.clips.map( ( clip ) => clip.name ) ), duration: 2 } ),
 			rest: new RestPose( model.container, model.restPose ),
 			bones: findBones( model.container ),
 			key: null,
@@ -105,7 +107,7 @@ export function initKeyframePanel( app ) {
 		};
 		app.animation.setIdlePose( applyWorkingPose );
 		nameInput.value = editor.animation.name;
-		durationInput.value = '2';
+		durationInput.value = String( editor.animation.duration );
 		fillParts();
 		openButton.hidden = true;
 		editorBox.hidden = false;
@@ -171,6 +173,7 @@ export function initKeyframePanel( app ) {
 	nameInput.addEventListener( 'input', () => {
 
 		editor.animation.name = nameInput.value.trim() || 'Mi animación';
+		syncDraft();
 
 	} );
 
@@ -205,12 +208,14 @@ export function initKeyframePanel( app ) {
 		const time = editor.time;
 		const before = draft.snapshot();
 		change();
+		syncDraft();
 		const after = draft.snapshot();
 		const show = ( state ) => {
 
 			if ( ! editor || editor.animation !== draft ) return;
 			if ( editor.playing || editor.other ) app.animation.stop();
 			draft.restore( state );
+			syncDraft();
 			durationInput.value = String( draft.duration );
 			editor.time = Math.min( time, draft.duration );
 			showPose();
@@ -398,6 +403,10 @@ export function initKeyframePanel( app ) {
 		editor = null;
 		// Los pasos de este borrador ya no se pueden deshacer: se guardó (Ctrl+Z quita la animación entera) o se descartó.
 		app.history.removeWhere( ( command ) => command.draft === animation );
+		// El borrador ya no queda a medio hacer (se guardó o se descartó).
+		model.keyframeDraft = null;
+		if ( model === app.model ) app.emit( 'draft' );
+		renderOpenButton();
 		app.animation.setIdlePose( null );
 		gizmo?.detach();
 		app.viewer.controls.enabled = true;
@@ -430,6 +439,24 @@ export function initKeyframePanel( app ) {
 			toast( `Se descartaron los giros sin keyframe de ${ lost.join( ', ' ) }. Para guardarlos, pulsa «Poner keyframe» antes de cambiar de momento.` );
 
 		}
+
+	}
+
+	/** El borrador va en el modelo: el autoguardado y "Guardar proyecto" lo guardan aunque no esté terminado. */
+	function syncDraft() {
+
+		if ( ! editor ) return;
+		editor.model.keyframeDraft = editor.animation.keyCount > 0 ? editor.animation.toJSON() : null;
+		app.emit( 'draft' );
+
+	}
+
+	/** "Crear a mano…", o "Seguir con «…»" si hay una animación a medio hacer. */
+	function renderOpenButton() {
+
+		const draft = app.model ? app.model.keyframeDraft : null;
+		const count = draft ? Object.values( draft.keys || {} ).reduce( ( sum, list ) => sum + ( Array.isArray( list ) ? list.length : 0 ), 0 ) : 0;
+		openButton.textContent = draft ? `Seguir con «${ draft.name || 'Mi animación' }» (${ plural( count, 'keyframe' ) })…` : 'Crear a mano con keyframes…';
 
 	}
 
@@ -507,12 +534,12 @@ export function initKeyframePanel( app ) {
 
 	}
 
-	// Al exportar o guardar el proyecto: la animación a medio hacer todavía no está en el personaje.
+	// Al exportar el GLB: la animación a medio hacer todavía no está en el personaje (el proyecto sí la guarda).
 	app.on( 'exporting', () => {
 
 		if ( ! editor || editor.animation.keyCount === 0 ) return;
-		toast( `«${ editor.animation.name }» todavía no está guardada, así que no va en el archivo. ` +
-			'Pulsa «Guardar animación» y vuelve a exportar (o a guardar el proyecto).', 'info', 9000 );
+		toast( `«${ editor.animation.name }» todavía no está guardada, así que no va en el GLB. ` +
+			'Pulsa «Guardar animación» y vuelve a exportar.', 'info', 9000 );
 
 	} );
 
@@ -521,6 +548,7 @@ export function initKeyframePanel( app ) {
 		close();
 		// Solo un personaje con esqueleto se puede animar.
 		box.hidden = ! app.model || findBones( app.model.container ).size === 0;
+		renderOpenButton();
 
 	} );
 

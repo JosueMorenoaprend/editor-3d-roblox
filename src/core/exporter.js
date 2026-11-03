@@ -10,10 +10,11 @@ const SAFE_MIME = new Set( [ 'image/png', 'image/jpeg' ] );
 
 /**
  * Versión del formato de proyecto (un GLB normal con datos extra del editor).
- * 1: modelo, ajustes y animaciones. 2: además, el mapa de huesos (`boneMap`).
+ * 1: modelo, ajustes y animaciones. 2: además, el mapa de huesos (`boneMap`). 3: además, la animación con
+ * keyframes a medio hacer (`keyframeDraft`), si había una.
  * Los proyectos viejos se siguen abriendo: lo que no traen se calcula al abrir.
  */
-export const PROJECT_FORMAT = 2;
+export const PROJECT_FORMAT = 3;
 
 /**
  * Exporta el GLB para Roblox.
@@ -61,6 +62,7 @@ export async function exportProject( model, { appVersion = '' } = {} ) {
 					baseName: model.baseName,
 					fileName: model.fileName,
 					boneMap: { ...model.boneMap },
+					...( model.keyframeDraft ? { keyframeDraft: model.keyframeDraft } : {} ),
 					appVersion,
 					savedAt: new Date().toISOString(),
 				},

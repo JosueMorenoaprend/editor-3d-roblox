@@ -30,8 +30,8 @@ Cómo leer esta lista:
 1. ~~**F1-14**~~ y ~~**F1-16**~~ (hechas en los ciclos 16 y 17).
 2. ~~**F1-05**~~ (hecha en el ciclo 18).
 3. ~~**F1-10**~~ (ciclo 19), ~~**F1-21**~~ (ciclo 20), ~~**F1-22**~~ (ciclo 21), ~~**F1-23**~~ (ciclo 22),
-   ~~**F1-11**~~ (ciclo 23) y ~~**F1-24**~~ (ciclo 24). Siguen las Media de la Fase 1 (F1-26, F1-25,
-   F1-08, F1-15…).
+   ~~**F1-11**~~ (ciclo 23), ~~**F1-24**~~ (ciclo 24) y ~~**F1-26**~~ (ciclo 25). Siguen las Media de la
+   Fase 1 (F1-25, F1-08, F1-15…).
 4. **F5-14** y **F5-13** (Media): el panel ya es muy largo, sobre todo en el celular.
 5. Fase 2 (conexión con IA): el guion de animación usa el mapa y los giros “en el espacio del personaje”
    que ya existen (F2-01, F2-02).
@@ -273,7 +273,8 @@ Cómo leer esta lista:
   - Comprobación: e2e exporta con el editor abierto y ve el aviso. ✔ Exportar y Guardar proyecto emiten el
     evento `exporting`; si el editor de keyframes tiene keyframes, avisa (9 s): «“Mi animación” todavía no
     está guardada, así que no va en el archivo. Pulsa «Guardar animación» y vuelve a exportar (o a guardar
-    el proyecto).». e2e (escritorio y móvil): exportar con el editor abierto muestra el aviso.
+    el proyecto).». e2e (escritorio y móvil): exportar con el editor abierto muestra el aviso. (Desde el
+    ciclo 25 solo avisa al exportar el GLB: el proyecto ya guarda la animación a medio hacer, F1-26.)
 - [x] **F1-24** · Media · **Deshacer cada keyframe** (Ctrl+Z dentro del editor; hoy deshace la última
   acción del modelo). *(auditoría del ciclo 19; hecho en el ciclo 24. El autoguardado del borrador, que
   también estaba en esta tarea, pasó a F1-26 con la misma prioridad)*
@@ -284,10 +285,16 @@ Cómo leer esta lista:
     historial (`history.removeWhere()`): Ctrl+Z quita la animación entera. Pruebas de Vitest
     (`removeWhere` deja las demás acciones en orden; la copia del borrador no cambia después) + e2e
     (escritorio y móvil): 2 keyframes → Ctrl+Z → queda 1 → Ctrl+Y → 2 → guardar → Ctrl+Z quita la animación.
-- [ ] **F1-26** · Media · **Autoguardar el borrador** de keyframes: hoy, si se cierra la página antes de
+- [x] **F1-26** · Media · **Autoguardar el borrador** de keyframes: hoy, si se cierra la página antes de
   “Guardar animación”, se pierde. Guardarlo en el proyecto (subir `PROJECT_FORMAT`) y ofrecer seguir con él
-  al abrir. *(separada de F1-24 en el ciclo 24)*
+  al abrir. *(separada de F1-24 en el ciclo 24; hecha en el ciclo 25)*
   - Comprobación: e2e: 2 keyframes → recargar la página → recuperar → el borrador vuelve con sus 2 keyframes.
+    ✔ Proyecto formato 3: `keyframeDraft` (`KeyframeAnimation.toJSON()` / `fromJSON()`, que ignora lo dañado)
+    en `model.keyframeDraft`. El editor lo actualiza con cada cambio y avisa con el evento `draft`; el
+    autoguardado lo cuenta como cambio (también descartarlo, para que no vuelva). Al abrir un proyecto con
+    borrador, el botón dice «Seguir con «Saludo a mano» (2 keyframes)…». Prueba de Vitest (ida y vuelta, y
+    datos dañados) + e2e (escritorio y móvil): 2 keyframes → autoguardado → recargar → Recuperar mi trabajo →
+    Seguir con… → 2 keyframes, el nombre y los 70° → Cancelar → el botón vuelve a «Crear a mano…».
 - [ ] **F1-25** · Media · **Editar con keyframes una animación que ya existe** (generada, importada o hecha
   a mano): hoy, una vez guardada, no se puede volver a abrir para ajustarla. *(auditoría del ciclo 19)*
   - Comprobación: e2e abre “Saludar” del R15 en el editor, cambia un keyframe y la exportación lo trae.
@@ -394,9 +401,9 @@ Cómo leer esta lista:
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
 | 0 — Base sólida | 17 | 13 |
-| 1 — Animación | 26 | 15 |
+| 1 — Animación | 26 | 16 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 15 | 0 |
-| **Total** | **83** | **28** |
+| **Total** | **83** | **29** |

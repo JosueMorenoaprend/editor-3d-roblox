@@ -116,6 +116,36 @@ export class KeyframeAnimation {
 
 	}
 
+	/** Datos para guardar en el proyecto: { name, duration, keys: { hueso: [ [ tiempo, x, y, z, w ]… ] } }. */
+	toJSON() {
+
+		const keys = {};
+		for ( const [ bone, list ] of this.keys ) keys[ bone ] = list.map( ( key ) => [ key.time, ...key.quaternion ] );
+		return { name: this.name, duration: this.duration, keys };
+
+	}
+
+	/** Vuelve a armar un borrador guardado con toJSON(). Lo que no se entiende (archivo dañado) se ignora. */
+	static fromJSON( data ) {
+
+		const duration = Number( data?.duration );
+		const name = typeof data?.name === 'string' && data.name.trim() ? data.name : undefined;
+		const animation = new KeyframeAnimation( { name, duration: duration >= 0.2 && duration <= 30 ? duration : 2 } );
+		for ( const [ bone, list ] of Object.entries( data?.keys || {} ) ) {
+
+			if ( ! Array.isArray( list ) ) continue;
+			for ( const item of list ) {
+
+				if ( Array.isArray( item ) && item.length === 5 && item.every( ( value ) => Number.isFinite( value ) ) ) animation.setKey( bone, item[ 0 ], item.slice( 1 ) );
+
+			}
+
+		}
+
+		return animation;
+
+	}
+
 	/** La animación para reproducir o exportar (una pista de giro por hueso con keyframes). */
 	toClip( name = this.name ) {
 

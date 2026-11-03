@@ -294,3 +294,33 @@ test( 'Ctrl+Z deshace cada keyframe mientras editas', async ( { page } ) => {
 	await expect( page.locator( '#anim-select option' ) ).toHaveCount( 3 );
 
 } );
+
+test( 'la animación a medio hacer se guarda sola y vuelve al recargar la página', async ( { page } ) => {
+
+	const open = page.locator( '#btn-keys-open' );
+	await page.goto( './' );
+	await openSample( page, 'Muñeco R15' );
+	await open.click();
+	await page.locator( '#keys-name' ).fill( 'Saludo a mano' );
+	await page.locator( '#btn-keys-set' ).click();
+	await page.locator( '#keys-time' ).fill( '1' );
+	await page.locator( '#keys-z' ).fill( '70' );
+	await page.locator( '#btn-keys-set' ).click();
+	await expect( page.locator( '#autosave-status' ) ).toContainText( 'Guardado automático', { timeout: 20_000 } );
+
+	// Se cierra la página sin pulsar "Guardar animación"; al volver, se recupera el trabajo.
+	await page.reload();
+	await page.getByRole( 'button', { name: 'Recuperar mi trabajo' } ).click();
+	await expect( open ).toHaveText( 'Seguir con «Saludo a mano» (2 keyframes)…' );
+	await open.click();
+	await expect( page.locator( '#keys-status' ) ).toContainText( '2 keyframes en total' );
+	await expect( page.locator( '#keys-name' ) ).toHaveValue( 'Saludo a mano' );
+	await page.locator( '#keys-time' ).fill( '1' );
+	await expect( page.locator( '#keys-z-value' ) ).toHaveText( '70°' );
+
+	// Descartarla: ya no vuelve.
+	await page.locator( '#btn-keys-cancel' ).click();
+	await page.locator( '#btn-keys-cancel' ).click();
+	await expect( open ).toHaveText( 'Crear a mano con keyframes…' );
+
+} );

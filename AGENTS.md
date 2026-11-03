@@ -203,8 +203,9 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
 - `App` es un `EventTarget`. Eventos: `model` (se abrió o cerró un modelo), `geometry` (cambiaron las
   mallas), `transform` (cambió escala/giro/posición), `settings` (cambió una preferencia), `bonemap`
   (cambió `model.boneMap`), `clips` (se agregaron o quitaron animaciones de `model.clips`; usa
-  `app.animation.addClips/removeClips`, que no dejan el reproductor apuntando a una animación borrada) y `exporting` (justo antes de exportar o
-  guardar el proyecto: quien tenga trabajo sin guardar avisa que no va en el archivo).
+  `app.animation.addClips/removeClips`, que no dejan el reproductor apuntando a una animación borrada) y `exporting` (justo antes de exportar el GLB:
+  quien tenga trabajo sin guardar avisa que no va en el archivo) y `draft` (cambió la animación con keyframes
+  a medio hacer: el autoguardado la guarda).
 - **Mapa de huesos** (`model.boneMap`, clave estándar → nombre del hueso): al abrir, el del proyecto o,
   si no hay, el detectado. Todo lo que anime (generadores, retarget, guion de IA) debe usarlo, y girar
   los huesos **en el espacio del personaje** (mira a +Z, izquierda +X) con `P⁻¹·D·P·L` como en
@@ -253,7 +254,8 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
 - **Proyecto** (`exportProject` / `LoadedModel.project`): un GLB normal con
   `scenes[0].extras.editor3dRoblox = { kind: 'proyecto', format, baseName, boneMap… }` y el nodo raíz
   marcado `{ type: 'contenedor' }` (su TRS = ajustes del editor). Texturas PNG a tamaño completo.
-  Formato 2 (ciclo 12): agrega `boneMap`. Si agregas estado nuevo que deba sobrevivir (guiones…),
+  Formato 2 (ciclo 12): agrega `boneMap`. Formato 3 (ciclo 25): agrega `keyframeDraft` (la animación con
+  keyframes a medio hacer, `model.keyframeDraft`). Si agregas estado nuevo que deba sobrevivir (guiones…),
   guárdalo ahí, sube `PROJECT_FORMAT` y haz que los proyectos viejos se sigan abriendo.
 
 **Estilo de código:** el de three.js (tabulaciones, espacios dentro de los paréntesis:

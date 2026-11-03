@@ -26,6 +26,8 @@ export class LoadedModel {
 		const project = readProject( source );
 		/** Datos del proyecto (si se abrió un proyecto), o null. */
 		this.project = project ? project.info : null;
+		/** Animación con keyframes a medio hacer (datos de KeyframeAnimation.toJSON()), o null. La pone el editor de keyframes. */
+		this.keyframeDraft = project && project.info.keyframeDraft && typeof project.info.keyframeDraft === 'object' ? project.info.keyframeDraft : null;
 		if ( project ) {
 
 			const { editor3dRoblox, ...rest } = project.root.userData;

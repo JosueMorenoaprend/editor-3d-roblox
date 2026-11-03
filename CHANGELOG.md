@@ -84,6 +84,9 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
   empezaste y que la animación se repita sin saltos).
 - **Ctrl+Z deshace cada keyframe** mientras editas (también los botones ↶ ↷). Cuando guardas la animación,
   Ctrl+Z la quita entera.
+- **Tu animación con keyframes a medio hacer ya no se pierde:** se guarda sola (y también con «Guardar
+  proyecto»). Si cierras la página, al recuperar tu trabajo el botón dice «Seguir con «…»» y sigues donde
+  estabas.
 
 ## Versión 1
 

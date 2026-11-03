@@ -35,7 +35,9 @@ export function initAutosave( app ) {
 	let again = false;
 
 	/** Solo vale la pena guardar si hubo cambios (abrir un archivo no borra lo guardado antes). */
-	const hasEdits = () => app.history.canUndo || app.history.canRedo;
+	const hasEdits = () => app.history.canUndo || app.history.canRedo || draftChanged;
+	/** ¿Cambió la animación con keyframes a medio hacer? (también cuenta descartarla: así no vuelve). */
+	let draftChanged = false;
 
 	function schedule() {
 
@@ -99,9 +101,17 @@ export function initAutosave( app ) {
 
 	} );
 
+	app.on( 'draft', () => {
+
+		draftChanged = true;
+		schedule();
+
+	} );
+
 	app.on( 'model', () => {
 
 		clearTimeout( timer );
+		draftChanged = false;
 		card.hidden = true;
 		status.textContent = 'Mientras editas, tu trabajo se guarda solo en este navegador.';
 		status.dataset.state = '';

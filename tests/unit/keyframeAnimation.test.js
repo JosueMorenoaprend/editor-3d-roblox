@@ -161,3 +161,29 @@ describe( 'deshacer en el borrador', () => {
 	} );
 
 } );
+
+describe( 'guardar el borrador en el proyecto', () => {
+
+	it( 'toJSON() y fromJSON() van y vuelven, y lo dañado se ignora', () => {
+
+		const animation = new KeyframeAnimation( { name: 'Saludo a mano', duration: 3 } );
+		const up = new Quaternion().setFromAxisAngle( new Vector3( 0, 0, 1 ), 1 );
+		animation.setKey( 'LeftUpperArm', 0, new Quaternion() );
+		animation.setKey( 'LeftUpperArm', 1.25, up );
+		const data = JSON.parse( JSON.stringify( animation.toJSON() ) );
+		const back = KeyframeAnimation.fromJSON( data );
+		expect( back.name ).toBe( 'Saludo a mano' );
+		expect( back.duration ).toBe( 3 );
+		expect( back.keyTimes( 'LeftUpperArm' ) ).toEqual( [ 0, 1.25 ] );
+		expect( back.toClip().tracks[ 0 ].values.slice( 4 ) ).toEqual( Float32Array.from( up.toArray() ) );
+
+		data.keys.Head = [ [ 0.5, 1, 'x', 0, 0 ], 'nada' ];
+		data.duration = - 4;
+		const odd = KeyframeAnimation.fromJSON( data );
+		expect( odd.duration ).toBe( 2 );
+		expect( odd.keyTimes( 'Head' ) ).toEqual( [] );
+		expect( KeyframeAnimation.fromJSON( null ).keyCount ).toBe( 0 );
+
+	} );
+
+} );

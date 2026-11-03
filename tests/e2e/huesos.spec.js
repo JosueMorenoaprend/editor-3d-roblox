@@ -69,7 +69,7 @@ test( 'corregir el mapa de huesos a mano, probarlo y guardarlo en el proyecto', 
 	const { errors } = await validateGLB( bytes, 'personaje_raro.proyecto.glb' );
 	expect( errors, describeIssues( errors ) ).toHaveLength( 0 );
 	const saved = readGLBJson( bytes ).scenes[ 0 ].extras.editor3dRoblox;
-	expect( saved.format ).toBe( 2 );
+	expect( saved.format ).toBe( 3 ); // formato 3 (ciclo 25): también guarda la animación con keyframes a medio hacer
 	expect( saved.boneMap ).toMatchObject( { leftHand: 'Bone_07', rightFoot: 'Bone_12', hips: 'LowerTorso' } );
 
 	// Otro día: recargar la página y abrir el proyecto. El mapa vuelve con las correcciones.
