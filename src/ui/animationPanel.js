@@ -16,6 +16,7 @@ export function initAnimationPanel( app ) {
 
 	select.addEventListener( 'change', () => {
 
+		if ( select.value === 'vista-previa' ) return;
 		const wasPlaying = anim.isPlaying;
 		anim.select( Number( select.value ) );
 		if ( wasPlaying ) anim.play();
@@ -56,6 +57,21 @@ export function initAnimationPanel( app ) {
 	function renderState() {
 
 		if ( controls.hidden ) return;
+		// Mientras suena una vista previa (por ejemplo, la prueba del mapa de huesos), la lista la muestra.
+		let previewOption = select.querySelector( 'option[value="vista-previa"]' );
+		if ( anim.preview ) {
+
+			const clip = anim.preview.clip;
+			if ( ! previewOption ) previewOption = select.appendChild( new Option( '', 'vista-previa' ) );
+			previewOption.textContent = `${ clip.name } (${ formatNumber( clip.duration, 2 ) } s, vista previa)`;
+			select.value = 'vista-previa';
+
+		} else if ( previewOption ) {
+
+			previewOption.remove();
+
+		}
+
 		const index = anim.selectedIndex;
 		if ( index >= 0 ) select.value = String( index );
 		playButton.textContent = anim.isPlaying ? 'Pausa' : 'Reproducir';

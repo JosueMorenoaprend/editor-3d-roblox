@@ -10,6 +10,8 @@
 	--ok: #3ecf8e;
 	--warn: #ffb547;
 	--danger: #ff6b6b;
+	/* Hueso elegido: mismo color que la marca en la vista 3D (BONE_COLOR en ui/boneHighlight.js). */
+	--bone: #ff4fb4;
 	--radius: 10px;
 	--panel-width: 360px;
 	--topbar-height: 56px;
@@ -709,6 +711,161 @@ select:disabled {
 	accent-color: var(--accent);
 }
 
+/* ---------- Mapa de huesos ---------- */
+.bonemap-controls {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.bonemap-controls .alert ul {
+	margin: 6px 0;
+	padding-left: 18px;
+}
+
+.bonemap-now {
+	margin: 0;
+	padding: 7px 10px;
+	border-radius: 8px;
+	color: #ffd1ec;
+	background: rgba(255, 79, 180, 0.1);
+	border: 1px solid rgba(255, 79, 180, 0.4);
+}
+
+.bonemap-now:empty {
+	display: none;
+}
+
+/* Lista plegable dentro de una sección. */
+.subsection {
+	border-top: 1px solid var(--border);
+	padding-top: 6px;
+}
+
+.subsection > summary {
+	cursor: pointer;
+	list-style: none;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: #a9c5ff;
+	user-select: none;
+}
+
+.subsection > summary::-webkit-details-marker {
+	display: none;
+}
+
+.subsection > summary::before {
+	content: '▸';
+	transition: transform 0.15s;
+}
+
+.subsection[open] > summary::before {
+	transform: rotate(90deg);
+}
+
+.bonemap-list {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	margin-top: 8px;
+}
+
+.bonemap-group {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+
+.bonemap-group legend {
+	padding: 0;
+	margin-bottom: 4px;
+	font-size: 12px;
+	font-weight: 650;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.bonemap-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) auto;
+	align-items: center;
+	gap: 4px 6px;
+	padding: 3px 4px;
+	border-radius: 8px;
+}
+
+.bonemap-row.active {
+	background: rgba(255, 79, 180, 0.1);
+	box-shadow: inset 0 0 0 1px var(--bone);
+}
+
+.bonemap-row label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	font-size: 13px;
+	color: var(--text);
+	overflow-wrap: anywhere;
+}
+
+.bonemap-row select {
+	min-height: 32px;
+	padding: 4px 6px;
+	font-size: 13px;
+}
+
+.bonemap-icon {
+	flex: none;
+	display: inline-grid;
+	place-items: center;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	font-size: 11px;
+	font-weight: 700;
+	color: var(--muted);
+	background: var(--surface-2);
+}
+
+.bonemap-row[data-state='ok'] .bonemap-icon {
+	color: var(--ok);
+	background: rgba(62, 207, 142, 0.14);
+}
+
+.bonemap-row[data-state='missing'] .bonemap-icon,
+.bonemap-row[data-state='problem'] .bonemap-icon {
+	color: #1d2027;
+	background: var(--warn);
+}
+
+.bonemap-row[data-state='missing'] select,
+.bonemap-row[data-state='problem'] select {
+	border-color: var(--warn);
+}
+
+.bonemap-try {
+	min-height: 32px;
+	padding: 4px 10px;
+}
+
+.bonemap-issue {
+	grid-column: 1 / -1;
+	margin: 0;
+	font-size: 12px;
+	color: var(--warn);
+}
+
 /* ---------- Avisos flotantes ---------- */
 .toasts {
 	position: fixed;
@@ -839,6 +996,14 @@ select:disabled {
 }
 
 @media (max-width: 520px) {
+	.bonemap-row {
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.bonemap-row label {
+		grid-column: 1 / -1;
+	}
+
 	.brand-sub,
 	.tag,
 	.hide-narrow {

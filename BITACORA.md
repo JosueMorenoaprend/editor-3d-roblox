@@ -4,6 +4,74 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 12 — Editor visual del mapa de huesos (2026-11-03)
+
+**Auditoría:** `npm run check` en verde al empezar (68/68 Vitest, 26/26 Playwright). Capturas revisadas
+(muñeco animando, carrito en el celular). Hallazgos nuevos en `MEJORAS.md`: F0-16 (el ⛔ rojo de
+“Es muy pequeña” en *Reducir polígonos* asusta sin motivo), F1-17 (elegir un hueso tocándolo en la
+vista 3D), F1-18 (saber hacia dónde mira el personaje en vez de suponer +Z) y F5-13 (en el celular, la
+vista 3D debería quedar a la vista al bajar por el panel). La medida “tarea más larga mientras reducía”
+dio 259 ms en una corrida (antes 0–89 ms): varía con la carga de la máquina; el límite de la prueba es
+800 ms.
+
+**GitHub Actions:** sigue en 0 flujos, 0 ejecuciones y 0 checks (repositorio público, no es un fork;
+`main` solo tiene `README.md`, lo que no impide que corra `ci.yml` con `push` en esta rama).
+
+**Tarea:** F1-03 (Alta).
+
+**Qué hice**
+
+- `boneMap.js`: `validateBoneMap()` también dice el problema de **cada parte** (`issues`, para marcar su
+  fila); `listBones()` (huesos en orden de árbol, con profundidad); `cleanBoneMap()` (limpia un mapa
+  guardado: solo claves estándar y huesos que existen); `sameBoneMap()`.
+- `LoadedModel.boneMap`: al abrir, el mapa del proyecto o, si no hay, el que se detecta solo.
+- Proyecto **formato 2**: guarda `boneMap` en `extras`. Los proyectos de formato 1 se siguen abriendo
+  (el mapa se detecta solo).
+- `boneTest.js`: **animación de prueba** que mueve cada parte por turnos (la cabeza gira, el brazo sube,
+  el antebrazo va hacia adelante, la rodilla se dobla…). Los giros se piensan en el espacio del
+  personaje y se pasan a cada hueso con `P⁻¹·D·P·L` (P: giro de reposo del padre; L: giro de reposo
+  del hueso), así se ve igual en esqueletos con los ejes de cada hueso girados (Mixamo). Es la base de
+  los generadores (F1-06) y del guion para IA (F2-02).
+- `AnimationController.playPreview()`: reproduce una vez un clip que no es del modelo (no se exporta).
+  Al terminar, el modelo vuelve al reposo y queda elegida la animación de antes. Se detiene justo
+  *después* de actualizar el mezclador (no dentro de su aviso `finished`). El panel *Animaciones*
+  muestra la vista previa mientras suena.
+- Sección **Mapa de huesos** (`ui/boneMapPanel.js`): estado (“✓ Mapa completo” o qué falta), tipo de
+  esqueleto, partes encontradas, **Probar el mapa** (con “Ahora se mueve: «Brazo izquierdo»
+  (LeftUpperArm)”), **Detectar otra vez**, y la lista “Ver y corregir cada hueso” (se abre sola si
+  falta algo) con un selector por parte, ▶ para mover solo ese hueso y una explicación de qué está
+  mal en cada fila. Todo cambio va al historial (deshacer/rehacer) y, por eso, al autoguardado.
+- `ui/boneHighlight.js`: el hueso elegido se marca en **rosa** en la vista 3D (bolita en la
+  articulación y línea hacia el hueso siguiente), visible a través de la malla y siguiendo la
+  animación. La fila elegida se marca del mismo color.
+- Pruebas: el `FileReader` para Node pasó a `tests/helpers/fileReader.js` (lo usan Vitest y e2e);
+  `tests/helpers/oddRig.js` genera un personaje con huesos de nombres raros (`Bone_07`, `Bone_12`);
+  `captureScrolledTo()` para capturar una sección del panel.
+
+**Errores encontrados y arreglados en el ciclo**
+
+- Al empezar una prueba, `playPreview()` primero detiene lo anterior, y ese aviso hacía creer al panel
+  que la prueba *nueva* ya había terminado (decía “Probado” al instante). Lo descubrió la prueba e2e;
+  ahora la prueba se anota después de arrancar.
+- Capturar con `locator.screenshot()` una sección más alta que la pantalla, dentro del panel con
+  scroll, daba una imagen rota (no era un error de la interfaz): ahora se baja hasta la sección y se
+  captura la pantalla.
+
+**Cómo lo verifiqué**
+
+- Vitest: 14 pruebas nuevas (8 de la animación de prueba y la vista previa, 3 del mapa, 3 de
+  proyectos). Comprobé que la prueba de “ejes girados” **falla** si se quita `P⁻¹·…·P` de la fórmula.
+- Playwright: 2 flujos nuevos (escritorio y móvil): corregir a mano → ▶ → deshacer/rehacer → probar
+  todo → guardar proyecto → recargar → el mapa vuelve → GLB válido; y el muñeco R15 (mapa completo,
+  “Detectar otra vez”, la prueba en *Animaciones*, exportar en medio de la prueba).
+- Capturas revisadas: faltan huesos (escritorio), lista en el celular (dos renglones por parte), el
+  brazo izquierdo levantándose con la marca rosa (escritorio y celular) y el R15 completo.
+- `npm run check` → código 0: **82/82** Vitest y **30/30** Playwright.
+
+**Qué sigue:** F1-04 — importar animaciones GLB y pasarlas a mi personaje (retarget) usando este mapa.
+
+---
+
 ## Traspaso a una sesión nueva (2026-11-03)
 
 - El usuario pidió seguir en otra sesión en la nube “con todo al máximo”: **Opus 5.5, esfuerzo max y

@@ -2,6 +2,9 @@
 //
 // Pensado para la v2: `addClips()` permitirá sumar animaciones de Mixamo ya
 // adaptadas al esqueleto del personaje (SkeletonUtils.retargetClip).
+//
+// `playPreview( clip )` reproduce una vez una animación que NO es del modelo (por ejemplo, la prueba
+// del mapa de huesos): no se exporta ni se guarda, y al terminar el modelo vuelve a su pose de reposo.
 import { AnimationMixer, LoopOnce, LoopRepeat } from 'three';
 
 export class AnimationController extends EventTarget {
@@ -15,6 +18,9 @@ export class AnimationController extends EventTarget {
 		this.action = null;
 		this.loop = true;
 		this.speed = 1;
+		/** Vista previa en curso: { clip, previousIndex } (o null). */
+		this.preview = null;
+		this._previewDone = false;
 
 	}
 
@@ -28,11 +34,46 @@ export class AnimationController extends EventTarget {
 		this.action = null;
 		if ( this.mixer ) {
 
-			this.mixer.addEventListener( 'finished', () => this._emit() );
+			this.mixer.addEventListener( 'finished', ( event ) => {
+
+				// Al terminar la vista previa, el modelo vuelve al reposo y a la animación de antes.
+				// (No se detiene aquí, en mitad de la actualización del mezclador, sino justo después.)
+				if ( this.preview && event.action.getClip() === this.preview.clip ) this._previewDone = true;
+				else this._emit();
+
+			} );
 
 		}
 
 		this._emit();
+
+	}
+
+	/**
+	 * Reproduce una vez una animación que no es del modelo (vista previa). Detiene lo que estaba sonando.
+	 * @param {import('three').AnimationClip} clip
+	 */
+	playPreview( clip ) {
+
+		if ( ! this.mixer || ! clip ) return;
+		const previousIndex = this.preview ? this.preview.previousIndex : this.selectedIndex;
+		this.stop();
+		this.preview = { clip, previousIndex };
+		const action = this.mixer.clipAction( clip );
+		action.setLoop( LoopOnce, 1 );
+		action.clampWhenFinished = false;
+		// Sigue la velocidad elegida (en cámara lenta se ve mejor qué hueso se mueve).
+		action.setEffectiveTimeScale( this.speed );
+		action.reset().play();
+		this.action = action;
+		this._emit();
+
+	}
+
+	/** ¿Se está reproduciendo (o está en pausa) una vista previa? */
+	get previewing() {
+
+		return this.preview !== null;
 
 	}
 
@@ -115,7 +156,17 @@ export class AnimationController extends EventTarget {
 
 		if ( this.mixer ) this.mixer.stopAllAction();
 		if ( this.model ) this.model.restoreRestPose();
-		const index = this.selectedIndex;
+		let index = this.selectedIndex;
+		if ( this.preview ) {
+
+			// Se termina la vista previa: vuelve a quedar elegida la animación de antes.
+			index = this.preview.previousIndex;
+			if ( this.mixer ) this.mixer.uncacheClip( this.preview.clip );
+			this.preview = null;
+			this._previewDone = false;
+
+		}
+
 		this.action = null;
 		if ( index >= 0 && this.mixer ) {
 
@@ -164,6 +215,7 @@ export class AnimationController extends EventTarget {
 		action.time = Math.min( Math.max( seconds, 0 ), action.getClip().duration );
 		this.mixer.update( 0 );
 		this._emit();
+		this._finishPreview();
 
 	}
 
@@ -190,11 +242,23 @@ export class AnimationController extends EventTarget {
 
 		}
 
+		this._finishPreview();
+
+	}
+
+	/** Si la vista previa llegó al final, la termina (el modelo vuelve al reposo). */
+	_finishPreview() {
+
+		if ( ! this._previewDone ) return;
+		this._previewDone = false;
+		if ( this.preview ) this.stop();
+
 	}
 
 	_applyLoop() {
 
-		if ( ! this.action ) return;
+		// La vista previa siempre suena una sola vez.
+		if ( ! this.action || this.preview ) return;
 		this.action.setLoop( this.loop ? LoopRepeat : LoopOnce, Infinity );
 		this.action.clampWhenFinished = true;
 

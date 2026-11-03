@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { exportGLB, exportProject } from '../../src/core/exporter.js';
+import { detectBoneMap } from '../../src/core/boneDetect.js';
+import { PROJECT_FORMAT, exportGLB, exportProject } from '../../src/core/exporter.js';
 import { parseGLB } from '../../src/core/loader.js';
 import { LoadedModel } from '../../src/core/model.js';
 import { getTransformState, resetTransform, rotate90, scaleToHeight } from '../../src/core/transform.js';
@@ -26,7 +27,7 @@ describe( 'proyectos', () => {
 		const saved = getTransformState( model );
 
 		const { reopened } = await roundTrip( model, 'carrito_piezas.proyecto.glb' );
-		expect( reopened.project ).toMatchObject( { kind: 'proyecto', format: 1, baseName: 'carrito_piezas' } );
+		expect( reopened.project ).toMatchObject( { kind: 'proyecto', format: PROJECT_FORMAT, baseName: 'carrito_piezas' } );
 		expect( reopened.baseName ).toBe( 'carrito_piezas' );
 		const state = getTransformState( reopened );
 		for ( const key of [ 'position', 'quaternion', 'scale' ] ) {
@@ -75,6 +76,54 @@ describe( 'proyectos', () => {
 		// Los ajustes quedan dentro del modelo: el contenedor nuevo empieza sin ajustes.
 		expect( getTransformState( opened ).position ).toEqual( [ 0, 0, 0 ] );
 		expect( opened.baseName ).toBe( 'carrito_roblox' );
+
+	} );
+
+	it( 'guarda el mapa de huesos con las correcciones hechas a mano', async () => {
+
+		const { model } = openSample( 'r15' );
+		const detected = detectBoneMap( model.container ).boneMap;
+		expect( model.boneMap ).toEqual( detected );
+
+		// El usuario elige otro hueso como cadera y deja la mano izquierda sin elegir.
+		const { leftHand, ...rest } = detected;
+		expect( leftHand ).toBe( 'LeftHand' );
+		model.boneMap = { ...rest, hips: 'HumanoidRootPart' };
+		const { reopened, arrayBuffer } = await roundTrip( model, 'muneco_r15.proyecto.glb' );
+
+		// Al abrir el proyecto vuelve SU mapa, no el que se detectaría solo.
+		expect( reopened.boneMap ).toEqual( { ...rest, hips: 'HumanoidRootPart' } );
+		expect( reopened.boneMap.leftHand ).toBeUndefined();
+		expect( readGLBJson( arrayBuffer ).scenes[ 0 ].extras.editor3dRoblox ).toMatchObject( {
+			format: PROJECT_FORMAT,
+			boneMap: { hips: 'HumanoidRootPart', chest: 'UpperTorso' },
+		} );
+
+	} );
+
+	it( 'un proyecto viejo (formato 1, sin mapa de huesos) se abre y el mapa se detecta solo', async () => {
+
+		const { model } = openSample( 'r15' );
+		const { arrayBuffer } = await exportProject( model );
+		const gltf = await parseGLB( arrayBuffer );
+		const info = gltf.scene.userData.editor3dRoblox;
+		delete info.boneMap;
+		info.format = 1;
+		const reopened = new LoadedModel( gltf, 'viejo.proyecto.glb' );
+		expect( reopened.project.format ).toBe( 1 );
+		expect( reopened.boneMap ).toEqual( detectBoneMap( reopened.container ).boneMap );
+		expect( reopened.boneMap.hips ).toBe( 'LowerTorso' );
+
+	} );
+
+	it( 'un mapa guardado con huesos que no existen se limpia al abrir', async () => {
+
+		const { model } = openSample( 'r15' );
+		model.boneMap = { ...model.boneMap, head: 'NoExiste', inventado: 'Head' };
+		const { reopened } = await roundTrip( model, 'muneco_r15.proyecto.glb' );
+		expect( reopened.boneMap.head ).toBeUndefined();
+		expect( reopened.boneMap.inventado ).toBeUndefined();
+		expect( reopened.boneMap.chest ).toBe( 'UpperTorso' );
 
 	} );
 

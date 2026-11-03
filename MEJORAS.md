@@ -92,6 +92,9 @@ Cómo leer esta lista:
   *(encontrado en el ciclo 2; hecho en el ciclo 9)*
   - Comprobación: prueba por cada mensaje de error con su texto en español claro. ✔ 3 pruebas de
     Vitest (`describeError`) + 2 flujos e2e (valores inválidos; `.gltf` al que le falta la textura).
+- [ ] **F0-16** · Baja · En *Reducir polígonos*, las mallas de menos de 50 triángulos salen con un ⛔ rojo
+  y “Es muy pequeña”: asusta sin motivo. Decir “No hace falta reducirla”. *(auditoría del ciclo 12)*
+  - Comprobación: e2e del carrito sin ⛔ y con el texto nuevo.
 
 ## Fase 1 — Animación (lo más importante para el usuario)
 
@@ -105,9 +108,17 @@ Cómo leer esta lista:
     R15, lados por posición y mensajes cuando no se reconoce.
   - Pendiente fuera de aquí: Tripo no publica los nombres de su convención `tripo` (la que usa por
     defecto); el detector lee palabras dentro de los nombres, pero falta probarlo con un GLB real de
-    Tripo (paso T-01 en `PRUEBAS_ROBLOX.md`). Si falla, el editor visual (F1-03) permitirá corregirlo.
-- [ ] **F1-03** · Alta · **Editor visual** para ver y corregir el mapa de huesos.
-  - Comprobación: e2e cambia una asignación y se usa al aplicar animaciones.
+    Tripo (paso T-01 en `PRUEBAS_ROBLOX.md`). Si falla, ya se puede corregir a mano (F1-03).
+- [x] **F1-03** · Alta · **Editor visual** para ver y corregir el mapa de huesos. *(ciclo 12)*
+  - Comprobación: e2e cambia una asignación y se usa al aplicar animaciones. ✔ Sección *Mapa de huesos*:
+    estado (“Mapa completo” o qué falta), tipo de esqueleto, una lista por parte del cuerpo para elegir
+    cada hueso (con deshacer), ▶ para mover un hueso, **Probar el mapa** (cada parte por turnos) y
+    “Detectar otra vez”. El hueso elegido se marca en rosa en la vista 3D. El mapa se guarda en el
+    proyecto (formato 2) y en el autoguardado. e2e (escritorio y móvil): personaje con 2 huesos de
+    nombres raros → elegirlos a mano → ▶ mueve el hueso elegido (`Bone_07`) → deshacer/rehacer → guardar
+    el proyecto → recargar → el mapa vuelve con las correcciones → GLB para Roblox válido. La primera
+    animación hecha con el mapa es la de prueba (8 pruebas de Vitest: giros iguales en esqueletos con
+    los ejes girados, como Mixamo); F1-04 y F1-06 usarán el mismo mapa y la misma forma de girar.
 - [ ] **F1-04** · Alta · **Importar animaciones GLB** (Tripo, Mixamo convertidas) y pasarlas a mi
   personaje con `SkeletonUtils.retargetClip`, con vista previa.
   - Comprobación: prueba unitaria de retarget entre dos esqueletos distintos + e2e.
@@ -137,6 +148,14 @@ Cómo leer esta lista:
   - Comprobación: pruebas unitarias de cada operación.
 - [ ] **F1-16** · Alta · **Exportar una o varias animaciones** (elegir cuáles) dentro del GLB.
   - Comprobación: e2e exporta 2 de 3 animaciones, reabre y el validador da 0 errores.
+- [ ] **F1-17** · Media · **Elegir un hueso tocándolo en la vista 3D** (“¿Cuál es la mano izquierda?” →
+  clic cerca de la mano): con nombres sin sentido (`Bone_23`), elegir de una lista es difícil.
+  *(auditoría del ciclo 12)*
+  - Comprobación: e2e asigna un hueso haciendo clic en la vista 3D.
+- [ ] **F1-18** · Media · **Saber hacia dónde mira el personaje** (con el esqueleto: de la pierna derecha a
+  la izquierda y de la cadera a la cabeza) en vez de suponer que mira a +Z. Hoy, si un modelo mira a
+  otro lado, los lados sin nombre y los movimientos generados salen cambiados. *(auditoría del ciclo 12)*
+  - Comprobación: pruebas con un esqueleto que mira a −Z y a +X: mismo mapa y mismos movimientos.
 
 ## Fase 2 — Conexión con IA
 
@@ -221,6 +240,7 @@ Cómo leer esta lista:
 - [ ] **F5-10** · Media · **Dibujar solo cuando algo cambia**: hoy el visor dibuja 60 veces por segundo aunque nada se mueva y gasta batería en laptop y tablet. *(auditoría del ciclo 5)* — Comprobación: prueba que cuenta cuadros dibujados con la escena quieta (≈0) y moviéndose.
 - [ ] **F5-11** · Baja · **Código repetido**: recorrer materiales y texturas está hecho 4 veces (`info.js`, `exporter.js`, `model.js`, `viewportTools.js`); unificar en un ayudante. *(auditoría del ciclo 5)* — Comprobación: pruebas en verde y un solo ayudante.
 - [ ] **F5-12** · Baja · La etiqueta “v1” de la barra superior quedó vieja: mostrar la versión real. *(auditoría del ciclo 5)* — Comprobación: e2e lee la versión de `package.json` en la barra.
+- [ ] **F5-13** · Media · **En el celular, la vista 3D queda a la vista mientras bajas por el panel** (fija arriba y más baja). Hoy, al probar el mapa de huesos o un ajuste desde abajo, la página tiene que subir hasta la vista 3D para verlo. *(auditoría del ciclo 12)* — Comprobación: e2e móvil: con el panel bajado hasta *Mapa de huesos*, la vista 3D sigue visible.
 
 ---
 
@@ -228,10 +248,10 @@ Cómo leer esta lista:
 
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
-| 0 — Base sólida | 15 | 12 |
-| 1 — Animación | 16 | 2 |
+| 0 — Base sólida | 16 | 12 |
+| 1 — Animación | 18 | 3 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
-| 5 — Experiencia | 12 | 0 |
-| **Total** | **68** | **14** |
+| 5 — Experiencia | 13 | 0 |
+| **Total** | **72** | **15** |

@@ -37,6 +37,12 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
 - Todos los mensajes de error ahora dicen **qué pasó y qué hacer** (y, al final, un detalle técnico
   por si necesitas pedir ayuda). Si escribes un valor que no sirve (por ejemplo, un límite de 5
   triángulos), el editor te dice qué escribir.
+- **Nuevo: Mapa de huesos.** Una sección nueva te muestra qué hueso de tu personaje es cada parte del
+  cuerpo (cadera, brazos, piernas…) y si falta alguna. Si el editor no reconoce un hueso (pasa con
+  nombres raros como `Bone_07`), lo eliges tú de una lista; el hueso elegido se marca en rosa en la
+  vista 3D. Con **▶** ves moverse un hueso y con **Probar el mapa** se mueve cada parte por turnos, para
+  comprobar que todo está bien. Los cambios se pueden deshacer y se guardan en tu proyecto. Es lo que
+  usarán las próximas funciones de animación.
 
 ## Versión 1
 

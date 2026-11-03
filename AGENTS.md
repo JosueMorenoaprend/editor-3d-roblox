@@ -120,6 +120,9 @@ Cada auditoría agrega a `MEJORAS.md` los errores y mejoras nuevas que encuentre
   y cómo arreglarlo; `app.run()` lo muestra sin registrarlo como fallo del programa. Para errores
   inesperados, pasa `{ help: 'cómo arreglarlo' }` a `app.run()`: `describeError()` arma el mensaje.
 - **Pruebas que provocan errores de consola a propósito:** `test.use( { allowedConsoleErrors: /texto/ } )`.
+- **Capturas de una sección del panel:** `captureScrolledTo( page, testInfo, nombre, selector )` (en
+  `tests/e2e/fixtures.js`). No uses `locator.screenshot()` en elementos más altos que la pantalla dentro
+  del panel con scroll: la imagen sale rota.
 - **No uses `pkill -f "<texto>"`** con un texto que aparezca en tu propio comando: se mata la shell.
 - **Internet:** si `WebFetch` no resuelve un dominio, prueba `curl` desde la terminal (en la sesión de
   la nube, `curl` sí llegaba a developers.tripo3d.com y create.roblox.com).
@@ -155,17 +158,20 @@ src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
   errors.js             UserError: errores con mensaje claro para el usuario
   history.js            deshacer/rehacer (app.history): comandos { label, undo, redo }
   autosave.js           autoguardado en IndexedDB (un registro con el último proyecto)
-  boneMap.js            mapa de huesos humanoide estándar (hips, leftUpperArm…) y su validación
+  boneMap.js            mapa de huesos humanoide estándar (hips, leftUpperArm…), validación y limpieza
   boneDetect.js         detecta el mapa solo (palabras en los nombres + forma del esqueleto)
+  boneTest.js           animación de prueba del mapa: giros en el espacio del personaje → cada hueso
 src/samples/            modelos de prueba generados por código (sin licencias de terceros)
   r15Dummy.js           muñeco R15: 16 huesos, 3 animaciones (Saludar, Caminar, Saltar)
   heavyMesh.js          malla pesada: 120.000 triángulos con textura
   multiPart.js          carrito: 8 piezas, varios materiales, geometría compartida
   index.js              SAMPLES y createSample( id )
 src/ui/                 un archivo por panel de la interfaz (samples.js: botones de ejemplo)
+  boneMapPanel.js       sección "Mapa de huesos" (corregir a mano, ▶, Probar el mapa)
+  boneHighlight.js      marca rosa del hueso elegido en la vista 3D
 tests/unit/             pruebas Vitest del núcleo (Node)
 tests/e2e/              pruebas Playwright (flujos reales en el navegador; playwright.config.js)
-tests/helpers/          ayudantes compartidos (validar GLB, etc.)
+tests/helpers/          ayudantes compartidos (validar GLB, FileReader para Node, personaje con huesos raros)
 bridge/                 (futuro) puente MCP "Claude en vivo"
 ```
 
@@ -174,7 +180,14 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
 - `LoadedModel` envuelve los nodos del archivo en un **contenedor** (Group). Los ajustes (escala, giro,
   posición) van en el contenedor, así nunca chocan con las animaciones, que mueven los nodos de adentro.
 - `App` es un `EventTarget`. Eventos: `model` (se abrió o cerró un modelo), `geometry` (cambiaron las
-  mallas), `transform` (cambió escala/giro/posición), `settings` (cambió una preferencia).
+  mallas), `transform` (cambió escala/giro/posición), `settings` (cambió una preferencia), `bonemap`
+  (cambió `model.boneMap`).
+- **Mapa de huesos** (`model.boneMap`, clave estándar → nombre del hueso): al abrir, el del proyecto o,
+  si no hay, el detectado. Todo lo que anime (generadores, retarget, guion de IA) debe usarlo, y girar
+  los huesos **en el espacio del personaje** (mira a +Z, izquierda +X) con `P⁻¹·D·P·L` como en
+  `boneTest.js`, para que funcione igual con ejes de hueso girados (Mixamo).
+- **Vistas previas:** `app.animation.playPreview( clip )` reproduce una vez un clip que no es del modelo
+  (no se exporta); exportar y guardar lo detienen y el autoguardado espera, como con las animaciones.
 - `app.run( mensaje, tarea, prefijoDeError )` muestra “Trabajando…” y convierte los errores en avisos
   en español.
 - **Tareas largas:** `app.run( mensaje, ( { progress, signal } ) => …, error, { cancellable: true } )`
@@ -190,9 +203,10 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
 - Exportar: `GLTFExporter` binario, en la pose de reposo; texturas WebP → PNG; vértices cuantizados →
   Float32 (para no depender de extensiones que Roblox podría no leer).
 - **Proyecto** (`exportProject` / `LoadedModel.project`): un GLB normal con
-  `scenes[0].extras.editor3dRoblox = { kind: 'proyecto', format, baseName… }` y el nodo raíz marcado
-  `{ type: 'contenedor' }` (su TRS = ajustes del editor). Texturas PNG a tamaño completo. Si agregas
-  estado nuevo que deba sobrevivir (mapa de huesos, guiones…), guárdalo ahí y sube `PROJECT_FORMAT`.
+  `scenes[0].extras.editor3dRoblox = { kind: 'proyecto', format, baseName, boneMap… }` y el nodo raíz
+  marcado `{ type: 'contenedor' }` (su TRS = ajustes del editor). Texturas PNG a tamaño completo.
+  Formato 2 (ciclo 12): agrega `boneMap`. Si agregas estado nuevo que deba sobrevivir (guiones…),
+  guárdalo ahí, sube `PROJECT_FORMAT` y haz que los proyectos viejos se sigan abriendo.
 
 **Estilo de código:** el de three.js (tabulaciones, espacios dentro de los paréntesis:
 `fn( a, b )`, líneas en blanco al abrir y cerrar bloques). Identificadores en inglés, comentarios y

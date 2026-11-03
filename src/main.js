@@ -8,6 +8,7 @@
 //   core/transform.js  escala, giros de 90°, apoyar en el suelo
 //   core/simplify.js   reducir polígonos (meshoptimizer)
 //   core/animation.js  reproducir animaciones (AnimationMixer)
+//   core/boneMap.js    mapa de huesos (qué hueso es cada parte del cuerpo) y su detección/prueba
 //   core/exporter.js   exportar .glb (GLTFExporter)
 //   ui/*.js            los paneles de la interfaz
 import './style.css';
@@ -17,6 +18,7 @@ import { Viewer } from './core/viewer.js';
 import { initAdjustPanel } from './ui/adjustPanel.js';
 import { initAnimationPanel } from './ui/animationPanel.js';
 import { initAutosave } from './ui/autosave.js';
+import { initBoneMapPanel } from './ui/boneMapPanel.js';
 import { $ } from './ui/dom.js';
 import { initExportPanel } from './ui/exportPanel.js';
 import { initHistoryControls } from './ui/historyControls.js';
@@ -54,6 +56,7 @@ function start() {
 	initInfoPanel( app );
 	initAdjustPanel( app );
 	initSimplifyPanel( app );
+	initBoneMapPanel( app );
 	initAnimationPanel( app );
 	initExportPanel( app );
 	initProjectPanel( app );

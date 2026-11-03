@@ -83,14 +83,23 @@ export function mappedParentKey( boneMap, key ) {
  * Revisa un mapa contra el esqueleto del modelo. Los mensajes están en español y dicen qué hacer.
  * @param {Record<string, string>} boneMap clave estándar → nombre del hueso
  * @param {import('three').Object3D} root el modelo (se buscan los huesos por nombre)
- * @returns {{ ok: boolean, missing: string[], problems: string[] }}
+ * @returns {{ ok: boolean, missing: string[], problems: string[], issues: Record<string, string> }}
  *   ok: se puede usar para animar (no falta ningún obligatorio y no hay errores)
+ *   issues: el primer problema de cada clave (para marcar su fila en la interfaz)
  */
 export function validateBoneMap( boneMap, root ) {
 
 	const problems = [];
+	const issues = {};
+	const report = ( keys, message ) => {
+
+		problems.push( message );
+		for ( const key of keys ) if ( ! issues[ key ] ) issues[ key ] = message;
+
+	};
+
 	const missing = REQUIRED_BONES.filter( ( key ) => ! boneMap[ key ] );
-	for ( const key of missing ) problems.push( `Falta elegir qué hueso es «${ boneLabel( key ) }».` );
+	for ( const key of missing ) report( [ key ], `Falta elegir qué hueso es «${ boneLabel( key ) }».` );
 
 	const bones = new Map();
 	root.traverse( ( object ) => {
@@ -106,21 +115,21 @@ export function validateBoneMap( boneMap, root ) {
 		if ( ! name ) continue;
 		if ( ! BY_KEY.has( key ) ) {
 
-			problems.push( `"${ key }" no es un hueso del mapa estándar.` );
+			report( [], `"${ key }" no es un hueso del mapa estándar.` );
 			continue;
 
 		}
 
 		if ( ! bones.has( name ) ) {
 
-			problems.push( `El modelo no tiene un hueso llamado "${ name }" (elegido como «${ boneLabel( key ) }»).` );
+			report( [ key ], `El modelo no tiene un hueso llamado "${ name }" (elegido como «${ boneLabel( key ) }»).` );
 			continue;
 
 		}
 
 		if ( used.has( name ) ) {
 
-			problems.push( `El hueso "${ name }" está elegido dos veces: como «${ boneLabel( used.get( name ) ) }» y como «${ boneLabel( key ) }». Cada papel necesita su propio hueso.` );
+			report( [ used.get( name ), key ], `El hueso "${ name }" está elegido dos veces: como «${ boneLabel( used.get( name ) ) }» y como «${ boneLabel( key ) }». Cada papel necesita su propio hueso.` );
 
 		}
 
@@ -137,13 +146,63 @@ export function validateBoneMap( boneMap, root ) {
 		if ( ! bone || ! parent || bone === parent ) continue;
 		if ( ! isDescendant( bone, parent ) ) {
 
-			problems.push( `«${ boneLabel( key ) }» ("${ name }") debería estar dentro de «${ boneLabel( parentKey ) }» ("${ parent.name }"). Revisa si están cambiados.` );
+			report( [ key ], `«${ boneLabel( key ) }» ("${ name }") debería estar dentro de «${ boneLabel( parentKey ) }» ("${ parent.name }"). Revisa si están cambiados.` );
 
 		}
 
 	}
 
-	return { ok: problems.length === 0, missing, problems };
+	return { ok: problems.length === 0, missing, problems, issues };
+
+}
+
+/**
+ * Huesos del modelo en el orden del árbol, con su profundidad (para listarlos con sangría).
+ * @param {import('three').Object3D} root
+ * @returns {{ name: string, depth: number, bone: import('three').Bone }[]}
+ */
+export function listBones( root ) {
+
+	const list = [];
+	const visit = ( object, depth ) => {
+
+		if ( object.isBone ) list.push( { name: object.name, depth, bone: object } );
+		for ( const child of object.children ) visit( child, object.isBone ? depth + 1 : depth );
+
+	};
+
+	visit( root, 0 );
+	return list;
+
+}
+
+/**
+ * Deja solo lo que sirve de un mapa guardado (por ejemplo, el de un proyecto): claves del mapa
+ * estándar que nombran huesos que existen en el modelo. Nunca lanza errores.
+ * @param {unknown} boneMap
+ * @param {import('three').Object3D} root
+ * @returns {Record<string, string>}
+ */
+export function cleanBoneMap( boneMap, root ) {
+
+	const clean = {};
+	if ( ! boneMap || typeof boneMap !== 'object' ) return clean;
+	const names = new Set( listBones( root ).map( ( item ) => item.name ) );
+	for ( const { key } of HUMANOID_BONES ) {
+
+		const name = boneMap[ key ];
+		if ( typeof name === 'string' && names.has( name ) ) clean[ key ] = name;
+
+	}
+
+	return clean;
+
+}
+
+/** ¿Los dos mapas eligen los mismos huesos? */
+export function sameBoneMap( a, b ) {
+
+	return HUMANOID_BONES.every( ( { key } ) => ( a[ key ] || '' ) === ( b[ key ] || '' ) );
 
 }
 

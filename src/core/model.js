@@ -6,6 +6,8 @@
 //
 // Así los ajustes nunca chocan con las animaciones, que mueven los nodos de adentro.
 import * as THREE from 'three';
+import { detectBoneMap } from './boneDetect.js';
+import { cleanBoneMap } from './boneMap.js';
 
 export class LoadedModel {
 
@@ -79,6 +81,12 @@ export class LoadedModel {
 
 		this.localBox = new THREE.Box3();
 		this.updateLocalBox();
+
+		// Mapa de huesos (qué hueso es la cadera, el brazo izquierdo…, ver boneMap.js): el que se
+		// guardó en el proyecto (con las correcciones del usuario) o, si no hay, el que se detecta solo.
+		const saved = project ? cleanBoneMap( project.info.boneMap, container ) : {};
+		/** @type {Record<string, string>} clave estándar → nombre del hueso */
+		this.boneMap = Object.keys( saved ).length > 0 ? saved : detectBoneMap( container ).boneMap;
 
 	}
 

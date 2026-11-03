@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-	HUMANOID_BONES, REQUIRED_BONES, boneLabel, humanoidBone, mappedParentKey, mirrorKey, validateBoneMap,
+	HUMANOID_BONES, REQUIRED_BONES, boneLabel, cleanBoneMap, humanoidBone, listBones, mappedParentKey, mirrorKey,
+	sameBoneMap, validateBoneMap,
 } from '../../src/core/boneMap.js';
 import { openSample } from './helpers.js';
 
@@ -103,6 +104,49 @@ describe( 'mapa de huesos estándar', () => {
 		expect( text ).toContain( 'no tiene un hueso llamado "Cabezota"' );
 		expect( text ).toContain( 'está elegido dos veces' );
 		expect( text ).toContain( '«Antebrazo izquierdo» ("LeftUpperLeg") debería estar dentro de «Brazo izquierdo»' );
+
+		// Cada problema queda también en la clave que hay que corregir (para marcar su fila).
+		expect( result.issues.leftHand ).toContain( 'Falta elegir' );
+		expect( result.issues.head ).toContain( 'Cabezota' );
+		expect( result.issues.rightLowerLeg ).toContain( 'elegido dos veces' );
+		expect( result.issues.rightFoot ).toContain( 'elegido dos veces' );
+		// "LeftUpperLeg" también es el muslo: su primer problema es estar elegido dos veces.
+		expect( result.issues.leftLowerArm ).toContain( 'elegido dos veces' );
+		expect( result.issues.leftUpperLeg ).toContain( 'elegido dos veces' );
+		expect( result.issues.hips ).toBeUndefined();
+		const misplaced = validateBoneMap( { ...R15_MAP, leftHand: 'RightHand', rightHand: 'LeftHand' }, model.container );
+		expect( misplaced.issues.leftHand ).toContain( '«Mano izquierda» ("RightHand") debería estar dentro de «Antebrazo izquierdo»' );
+
+	} );
+
+	it( 'lista los huesos del modelo en orden, con su profundidad', () => {
+
+		const { model } = openSample( 'r15' );
+		const bones = listBones( model.container );
+		expect( bones ).toHaveLength( 16 );
+		expect( bones[ 0 ] ).toMatchObject( { name: 'HumanoidRootPart', depth: 0 } );
+		expect( bones[ 1 ] ).toMatchObject( { name: 'LowerTorso', depth: 1 } );
+		expect( bones.find( ( b ) => b.name === 'LeftHand' ).depth ).toBe( 5 );
+
+	} );
+
+	it( 'limpia un mapa guardado: solo claves estándar y huesos que existen', () => {
+
+		const { model } = openSample( 'r15' );
+		const { head, leftHand, ...expected } = R15_MAP;
+		void head;
+		void leftHand;
+		expect( cleanBoneMap( { ...R15_MAP, head: 'Cabezota', cola: 'Head', leftHand: 42 }, model.container ) ).toEqual( expected );
+		expect( cleanBoneMap( null, model.container ) ).toEqual( {} );
+		expect( cleanBoneMap( 'roto', model.container ) ).toEqual( {} );
+
+	} );
+
+	it( 'compara dos mapas sin importar el orden ni las claves vacías', () => {
+
+		expect( sameBoneMap( R15_MAP, { ...R15_MAP } ) ).toBe( true );
+		expect( sameBoneMap( R15_MAP, { ...R15_MAP, spine: '' } ) ).toBe( true );
+		expect( sameBoneMap( R15_MAP, { ...R15_MAP, head: 'LowerTorso' } ) ).toBe( false );
 
 	} );
 

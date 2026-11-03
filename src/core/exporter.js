@@ -8,8 +8,12 @@ import { LoadedModel } from './model.js';
 // Formatos de imagen que Roblox Studio acepta dentro de un GLB.
 const SAFE_MIME = new Set( [ 'image/png', 'image/jpeg' ] );
 
-/** Versión del formato de proyecto (un GLB normal con datos extra del editor). */
-export const PROJECT_FORMAT = 1;
+/**
+ * Versión del formato de proyecto (un GLB normal con datos extra del editor).
+ * 1: modelo, ajustes y animaciones. 2: además, el mapa de huesos (`boneMap`).
+ * Los proyectos viejos se siguen abriendo: lo que no traen se calcula al abrir.
+ */
+export const PROJECT_FORMAT = 2;
 
 /**
  * Exporta el GLB para Roblox.
@@ -33,6 +37,7 @@ export function exportGLB( model, { animations = true, maxTextureSize = Infinity
  * - Los ajustes del editor (escala, giro, posición) quedan como ajustes, no "pegados" al modelo:
  *   al abrirlo, "Quitar ajustes" sigue funcionando.
  * - Todas las animaciones y las texturas a tamaño completo y sin pérdida (PNG).
+ * - El mapa de huesos, con las correcciones hechas a mano.
  * - Sigue siendo un GLB normal: cualquier visor lo abre.
  * @param {import('./model.js').LoadedModel} model
  * @param {{ appVersion?: string }} [options]
@@ -54,6 +59,7 @@ export async function exportProject( model, { appVersion = '' } = {} ) {
 					format: PROJECT_FORMAT,
 					baseName: model.baseName,
 					fileName: model.fileName,
+					boneMap: { ...model.boneMap },
 					appVersion,
 					savedAt: new Date().toISOString(),
 				},

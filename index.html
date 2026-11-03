@@ -148,7 +148,30 @@
 					</div>
 				</details>
 
-				<!-- 4. Animaciones -->
+				<!-- 4. Mapa de huesos -->
+				<details class="section" id="bonemap-section" open>
+					<summary>Mapa de huesos</summary>
+					<div class="section-body" id="bonemap-body">
+						<p class="muted" id="bonemap-empty">Abre un personaje con esqueleto para ver qué hueso es cada parte del cuerpo.</p>
+						<div class="bonemap-controls" id="bonemap-controls" hidden>
+							<p class="muted small">Para animar, el editor necesita saber qué hueso es cada parte del cuerpo (cadera, brazos, piernas…). Lo detecta solo; aquí lo revisas y lo corriges.</p>
+							<div id="bonemap-status" role="status"></div>
+							<dl class="stats" id="bonemap-summary"></dl>
+							<div class="btn-group wide">
+								<button type="button" class="btn btn-primary" id="btn-bonemap-test">Probar el mapa</button>
+								<button type="button" class="btn btn-ghost" id="btn-bonemap-detect">Detectar otra vez</button>
+							</div>
+							<p class="small bonemap-now" id="bonemap-now" aria-live="polite"></p>
+							<details class="subsection" id="bonemap-details">
+								<summary>Ver y corregir cada hueso</summary>
+								<p class="muted small">«Izquierdo» es el lado izquierdo del personaje: a tu derecha cuando te mira de frente. El hueso que eliges se marca en rosa en la vista 3D; con ▶ lo ves moverse.</p>
+								<div class="bonemap-list" id="bonemap-list"></div>
+							</details>
+						</div>
+					</div>
+				</details>
+
+				<!-- 5. Animaciones -->
 				<details class="section" open>
 					<summary>Animaciones</summary>
 					<div class="section-body" id="anim-body">
@@ -180,7 +203,7 @@
 					</div>
 				</details>
 
-				<!-- 5. Exportar -->
+				<!-- 6. Exportar -->
 				<details class="section" open>
 					<summary>Exportar</summary>
 					<div class="section-body" id="export-body">
@@ -206,7 +229,7 @@
 					</div>
 				</details>
 
-				<!-- 6. Proyecto -->
+				<!-- 7. Proyecto -->
 				<details class="section" open>
 					<summary>Proyecto</summary>
 					<div class="section-body" id="project-body">

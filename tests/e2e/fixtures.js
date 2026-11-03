@@ -62,6 +62,17 @@ export async function capture( page, testInfo, name, { wait = true, ...options }
 
 }
 
+/**
+ * Baja (dentro del panel o de la página) hasta que el elemento queda arriba y captura la pantalla:
+ * lo mismo que ve el usuario al llegar a esa sección.
+ */
+export async function captureScrolledTo( page, testInfo, name, selector ) {
+
+	await page.locator( selector ).evaluate( ( element ) => element.scrollIntoView( { block: 'start' } ) );
+	return capture( page, testInfo, name );
+
+}
+
 /** Comprueba que la página no tiene scroll horizontal. */
 export async function expectNoHorizontalScroll( page ) {
 

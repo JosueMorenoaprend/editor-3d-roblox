@@ -64,7 +64,11 @@ Cómo anotar el resultado: cambia `[ ]` por `[x]` si funcionó, o escribe debajo
 1. En Tripo AI genera un personaje con **esqueleto (rig)** y descárgalo como **GLB**. Si Tripo te deja
    elegir la convención de huesos, prueba primero la que viene por defecto (`tripo`) y, si puedes,
    también `mixamo`.
-2. Ábrelo en el editor. Cuando exista el panel del mapa de huesos (F1-03), mira si dice
-   **“Mapa completo”** o qué huesos faltan.
-3. Si falta algo, anota aquí los nombres de los huesos del archivo (se ven con el botón *Huesos* o en
-   el panel) para que el detector los aprenda.
+2. Ábrelo en el editor y mira la sección **Mapa de huesos**: ¿dice **“Mapa completo”** o qué partes
+   faltan? ¿Qué dice en *Tipo de esqueleto*?
+3. Pulsa **Probar el mapa** y mira la vista 3D: cada vez que el panel dice “Ahora se mueve: «…»”, ¿se
+   mueve esa parte del cuerpo? (Ojo: «izquierdo» es el lado izquierdo del personaje, a tu derecha
+   cuando te mira de frente.)
+4. Si falta algo o se mueve lo que no es, corrígelo en **Ver y corregir cada hueso** (con ▶ ves qué se
+   mueve) y anota aquí los nombres de los huesos del archivo que tuviste que elegir a mano, para que
+   el detector los aprenda.

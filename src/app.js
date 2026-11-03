@@ -5,6 +5,7 @@
 //   'geometry'  -> cambiaron las mallas (por ejemplo, al reducir polígonos)
 //   'transform' -> cambió la escala, rotación o posición
 //   'settings'  -> cambió una preferencia (límite de triángulos, etc.)
+//   'bonemap'   -> cambió el mapa de huesos (model.boneMap), por ejemplo al corregirlo a mano
 import { AnimationController } from './core/animation.js';
 import { UserError, describeError } from './core/errors.js';
 import { History } from './core/history.js';
