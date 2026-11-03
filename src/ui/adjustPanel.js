@@ -1,5 +1,5 @@
 // Panel "Ajustes": escala, altura deseada, giros de 90° y apoyar en el suelo.
-import { METERS_PER_STUD } from '../app.js';
+import { METERS_PER_STUD } from '../core/units.js';
 import {
 	centerAndGround, getUniformScale, resetTransform, rotate90, scaleToHeight, setUniformScale,
 } from '../core/transform.js';

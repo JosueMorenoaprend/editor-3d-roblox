@@ -5,6 +5,11 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
 ## En preparación (rama `mejoras-continuas`)
 
 - Empezó el plan de mejoras continuas: la lista completa de tareas está en `MEJORAS.md`.
+- El editor ahora tiene **pruebas automáticas**: 32 revisiones que se ejecutan con `npm test` y
+  comprueban que abrir, medir, ajustar, reducir y exportar siguen funcionando. Cada archivo GLB que
+  exportan pasa el **validador oficial de glTF** sin errores.
+- Hay **3 modelos de ejemplo hechos por código** (un muñeco R15 con 16 huesos y 3 animaciones, una
+  malla pesada con textura y un carrito de 8 piezas). Pronto podrás abrirlos con un botón.
 
 ## Versión 1
 

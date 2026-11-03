@@ -12,9 +12,6 @@ import { forgetOriginals } from './core/simplify.js';
 import { $, nextPaint } from './ui/dom.js';
 import { toast } from './ui/toast.js';
 
-/** Metros por stud de Roblox (aproximado). */
-export const METERS_PER_STUD = 0.28;
-
 const SETTINGS_KEY = 'editor-3d-roblox:ajustes';
 const DEFAULT_SETTINGS = {
 	triangleLimit: 20000,

@@ -1,5 +1,5 @@
 // Panel "Información": triángulos, medidas, huesos, animaciones y aviso del límite de Roblox.
-import { METERS_PER_STUD } from '../app.js';
+import { METERS_PER_STUD } from '../core/units.js';
 import { computeModelInfo } from '../core/info.js';
 import { isSimplified } from '../core/simplify.js';
 import { $, escapeHtml, formatBytes, formatInt, formatNumber, plural, readNumber } from './dom.js';

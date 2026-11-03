@@ -22,14 +22,16 @@ Cómo leer esta lista:
 
 ## Fase 0 — Base sólida
 
-- [ ] **F0-01** · Alta · Pruebas del núcleo con **Vitest** (`npm test`).
+- [x] **F0-01** · Alta · Pruebas del núcleo con **Vitest** (`npm test`). *(ciclo 1)*
   - Comprobación: `npm test` en verde, con pruebas de `info`, `transform`, `simplify`, `model`,
-    `exporter` y los ejemplos.
-- [ ] **F0-02** · Alta · **Modelos de prueba generados por código**: muñeco humanoide tipo R15 con
-  huesos y una animación, malla pesada (~120.000 triángulos) con textura y modelo de varias piezas.
+    `exporter` y los ejemplos. ✔ 32 pruebas en 6 archivos.
+- [x] **F0-02** · Alta · **Modelos de prueba generados por código**: muñeco humanoide tipo R15 con
+  huesos y animaciones, malla pesada (~120.000 triángulos) con textura y modelo de varias piezas. *(ciclo 1)*
   - Comprobación: pruebas que verifican los 16 huesos con nombres R15, los triángulos y las piezas.
+    ✔ `tests/unit/samples.test.js`.
 - [ ] **F0-03** · Alta · Cada GLB exportado en las pruebas pasa **gltf-validator con 0 errores**.
   - Comprobación: pruebas (Vitest y Playwright) que fallan si el validador da algún error.
+  - Avance: Vitest ya lo comprueba con los 3 ejemplos (ciclo 1). Falta en Playwright (con texturas).
 - [ ] **F0-04** · Alta · Pruebas de punta a punta con **Playwright** y Chromium sin ventana (WebGL por
   SwiftShader): abrir ejemplo, abrir archivo, ajustar, reducir, animar, exportar y reabrir. Capturas a
   1280×800 y 390×844. Fallan si hay errores en la consola. Script `npm run test:e2e`.
@@ -161,6 +163,13 @@ Cómo leer esta lista:
 - [ ] **F4-06** · Media · Investigar en el **DevForum de Roblox** los errores actuales al importar
   animaciones GLB; agregar opciones de exportación que los eviten y documentarlo.
   - Comprobación: notas con fuentes + opción de exportación con prueba.
+- [ ] **F4-07** · Alta · **Aplicar escala y giro al exportar** (como *Apply transforms* de Blender):
+  hoy los ajustes quedan como escala/giro en un nodo padre de los huesos, y los huesos de Roblox no
+  tienen escala. Hornear el ajuste en la malla, los huesos y las animaciones, y dejar la malla con
+  esqueleto en la raíz (quita el aviso `NODE_SKINNED_MESH_NON_ROOT`). Verificar antes en la
+  documentación de Roblox. *(encontrado en el ciclo 1)*
+  - Comprobación: prueba que ningún nodo del GLB tiene escala distinta de 1, el validador no da ese
+    aviso, el modelo mide lo mismo y las animaciones se ven igual + paso en `PRUEBAS_ROBLOX.md`.
 
 ## Fase 5 — Experiencia
 
@@ -180,10 +189,10 @@ Cómo leer esta lista:
 
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
-| 0 — Base sólida | 13 | 0 |
+| 0 — Base sólida | 13 | 2 |
 | 1 — Animación | 16 | 0 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
-| 4 — Roblox | 6 | 0 |
+| 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 9 | 0 |
-| **Total** | **62** | **0** |
+| **Total** | **63** | **2** |

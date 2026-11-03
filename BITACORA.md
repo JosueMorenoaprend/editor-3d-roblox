@@ -4,6 +4,45 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 1 — Pruebas del núcleo y modelos de prueba (2026-11-03)
+
+**Tarea:** F0-01 (Vitest) y F0-02 (modelos de prueba por código), más el primer paso de F0-03.
+
+**Qué hice**
+
+- `src/samples/`: 3 modelos generados por código, sin archivos de terceros:
+  - **Muñeco R15**: 16 huesos con los nombres de Roblox (HumanoidRootPart + 15 partes), una malla
+    con esqueleto, ojos para saber hacia dónde mira, 5,2 studs de alto y 3 animaciones
+    (Saludar, Caminar en el lugar, Saltar).
+  - **Malla pesada**: nudo de 120.000 triángulos con UV y una textura de cuadros de colores.
+  - **Carrito de piezas**: 8 mallas, grupos anidados, 5 materiales, una malla con varios materiales
+    y 4 ruedas que comparten la misma geometría.
+- `src/core/keyframes.js`: crear pistas de animación con giros en **grados** (se reutilizará en los
+  generadores de animación y en el guion para IA).
+- `src/core/units.js`: `METERS_PER_STUD` sale de `app.js` para poder usarlo sin la interfaz.
+- Vitest: 32 pruebas en `tests/unit/` (ejemplos, info, modelo, ajustes, reducir y exportar).
+- `tests/helpers/gltf.js`: valida cada GLB con `gltf-validator`; las pruebas exigen **0 errores** y
+  0 avisos (salvo uno aceptado y explicado, ver abajo).
+- Scripts: `npm test` y `npm run check` (= compilación + Vitest; Playwright llega en el ciclo 2).
+
+**Hallazgo:** el validador avisa `NODE_SKINNED_MESH_NON_ROOT` en el muñeco exportado: la malla con
+esqueleto cuelga del contenedor donde el editor guarda la escala y el giro. glTF y three.js la dibujan
+bien (la mueven los huesos) y Blender/Tripo exportan igual, así que no es un error. Pero los huesos de
+Roblox no tienen escala, y eso puede dar problemas al importar: nueva tarea **F4-07** (aplicar escala y
+giro al exportar). Mientras tanto, ese aviso está en una lista de permitidos con su motivo.
+
+**Cómo lo verifiqué**
+
+- `npm run check`: compilación OK y **32/32 pruebas** en verde.
+- Los 3 ejemplos exportados pasan el validador con **0 errores** (y al reabrirlos tienen los mismos
+  triángulos, huesos y animaciones).
+- Repetí la auditoría en Chromium con la app compilada: consola sin errores, GLB exportado válido.
+
+**Qué sigue:** ciclo 2 — botones “Probar con un ejemplo” y pruebas de punta a punta con Playwright
+(capturas de escritorio y móvil, consola sin errores, GLB con texturas validado).
+
+---
+
 ## Ciclo 0 — Arranque (2026-11-03)
 
 **Qué hice**

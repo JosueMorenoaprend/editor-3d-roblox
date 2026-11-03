@@ -109,6 +109,9 @@ Cada auditoría agrega a `MEJORAS.md` los errores y mejoras nuevas que encuentre
   `playwright install` ahí. En GitHub Actions sí: `npx playwright install --with-deps chromium`.
 - **WebGL sin ventana:** Chromium con `--use-angle=swiftshader --enable-unsafe-swiftshader`.
 - **Validador:** `gltf-validator` (Khronos). Los ayudantes de prueba están en `tests/helpers/`.
+  Las pruebas exigen 0 errores y 0 avisos, salvo los de `ALLOWED_WARNINGS` (cada uno con su motivo).
+- **Vitest en Node:** `tests/unit/setup.js` agrega un `FileReader` mínimo para `GLTFExporter`. En Node
+  no hay `<canvas>`: las texturas se exportan en las pruebas del navegador (`tests/e2e`).
 
 ## 8. Arquitectura
 
@@ -128,7 +131,13 @@ src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
   simplify.js           reducir polígonos (meshoptimizer)
   animation.js          reproducir animaciones (AnimationMixer)
   exporter.js           exportar .glb (GLTFExporter) y comprobar el resultado
+  keyframes.js          pistas de animación con giros en grados
+  units.js              METERS_PER_STUD (metros ↔ studs)
 src/samples/            modelos de prueba generados por código (sin licencias de terceros)
+  r15Dummy.js           muñeco R15: 16 huesos, 3 animaciones (Saludar, Caminar, Saltar)
+  heavyMesh.js          malla pesada: 120.000 triángulos con textura
+  multiPart.js          carrito: 8 piezas, varios materiales, geometría compartida
+  index.js              SAMPLES y createSample( id )
 src/ui/                 un archivo por panel de la interfaz
 tests/unit/             pruebas Vitest del núcleo (Node)
 tests/e2e/              pruebas Playwright (flujos reales en el navegador)
