@@ -4,6 +4,7 @@
 import { importAnimations } from '../core/animationImport.js';
 import { boneLabel, listBones } from '../core/boneMap.js';
 import { loadModelFromFiles } from '../core/loader.js';
+import { addClipsWithUndo } from './clipHistory.js';
 import { $, escapeHtml, formatNumber, plural } from './dom.js';
 import { toast } from './toast.js';
 
@@ -67,26 +68,7 @@ export function initAnimationImport( app ) {
 		const chosen = [ ...result.querySelectorAll( 'input[data-index]:checked' ) ].map( ( check ) => found.clips[ Number( check.dataset.index ) ] );
 		if ( chosen.length === 0 ) return;
 
-		// Se termina cualquier vista previa antes de agregar.
-		app.animation.stop();
-		const add = () => {
-
-			app.animation.addClips( chosen );
-			app.emit( 'clips' );
-
-		};
-
-		const remove = () => {
-
-			app.animation.removeClips( chosen );
-			app.emit( 'clips' );
-
-		};
-
-		add();
-		const names = chosen.map( ( clip ) => clip.name ).join( ', ' );
-		app.history.push( { label: `Agregar animaciones: ${ names }`, undo: remove, redo: add } );
-		app.animation.select( model.clips.indexOf( chosen[ 0 ] ) );
+		const names = addClipsWithUndo( app, chosen );
 		toast( `Listo: agregué ${ plural( chosen.length, 'animación', 'animaciones' ) } (${ names }). ` +
 			'Elígelas arriba para verlas; si no te gustan, deshazlo con Ctrl+Z.', 'ok', 7000 );
 		close();

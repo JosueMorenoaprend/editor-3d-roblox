@@ -63,6 +63,16 @@ Cómo anotar el resultado: cambia `[ ]` por `[x]` si funcionó, o escribe debajo
 3. En Roblox Studio, impórtalo con **Importar 3D** y reproduce la animación: ¿se mueve igual que en el
    editor? ¿Brazos y piernas giran hacia el lado correcto? Anota cualquier aviso del importador.
 
+## R-06 · Animaciones creadas con los generadores
+
+- [ ] **Pendiente de probar**
+1. Abre tu personaje (de Tripo con rig, o el muñeco R15 de ejemplo).
+2. En *Animaciones* → **Crear una animación**, agrega **Caminar**, **Correr** y **Respirar** (con los
+   valores que quieras) y exporta con **Incluir animaciones**.
+3. En Roblox Studio, impórtalo con **Importar 3D**. En el *Animation Editor*, o con un script que use
+   `Animator:LoadAnimation`, comprueba que cada una se repite sin saltos y que el personaje no se
+   desplaza (se queda en el lugar). Anota si algún brazo o pierna gira hacia el lado equivocado.
+
 ---
 
 ## Archivos reales de Tripo (no se pueden descargar desde la nube)

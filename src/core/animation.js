@@ -50,21 +50,25 @@ export class AnimationController extends EventTarget {
 	}
 
 	/**
-	 * Reproduce una vez una animación que no es del modelo (vista previa). Detiene lo que estaba sonando.
+	 * Reproduce una animación que no es del modelo (vista previa). Detiene lo que estaba sonando.
 	 * @param {import('three').AnimationClip} clip
+	 * @param {{ loop?: boolean, time?: number }} [options] loop: repetirla hasta detenerla (si no, suena
+	 *   una vez); time: segundo en que empieza (para seguir en el mismo punto al cambiar un deslizador)
 	 */
-	playPreview( clip ) {
+	playPreview( clip, { loop = false, time = 0 } = {} ) {
 
 		if ( ! this.mixer || ! clip ) return;
 		const previousIndex = this.preview ? this.preview.previousIndex : this.selectedIndex;
 		this.stop();
-		this.preview = { clip, previousIndex };
+		this.preview = { clip, previousIndex, loop };
 		const action = this.mixer.clipAction( clip );
-		action.setLoop( LoopOnce, 1 );
+		action.setLoop( loop ? LoopRepeat : LoopOnce, loop ? Infinity : 1 );
 		action.clampWhenFinished = false;
 		// Sigue la velocidad elegida (en cámara lenta se ve mejor qué hueso se mueve).
 		action.setEffectiveTimeScale( this.speed );
 		action.reset().play();
+		action.time = Math.min( Math.max( time, 0 ), clip.duration );
+		this.mixer.update( 0 );
 		this.action = action;
 		this._emit();
 
@@ -296,5 +300,20 @@ export class AnimationController extends EventTarget {
 		this.dispatchEvent( new Event( 'change' ) );
 
 	}
+
+}
+
+/**
+ * Un nombre de animación que no se repita: "Caminar" → "Caminar (2)" si ya existe.
+ * @param {string} name
+ * @param {Iterable<string>} taken nombres que ya se usan
+ */
+export function uniqueClipName( name, taken ) {
+
+	const used = new Set( taken );
+	if ( ! used.has( name ) ) return name;
+	let n = 2;
+	while ( used.has( `${ name } (${ n })` ) ) n ++;
+	return `${ name } (${ n })`;
 
 }

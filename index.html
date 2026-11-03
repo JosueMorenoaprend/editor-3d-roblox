@@ -200,6 +200,19 @@
 								<span>Repetir</span>
 							</label>
 						</div>
+						<div class="anim-create" id="anim-create" hidden>
+							<p class="anim-subtitle">Crear una animación</p>
+							<div class="btn-group wide" id="anim-create-buttons" role="group" aria-label="Animación para crear"></div>
+							<div class="anim-create-editor" id="anim-create-editor" hidden>
+								<p class="muted small" id="anim-create-description"></p>
+								<div class="anim-create-params" id="anim-create-params"></div>
+								<p class="muted small">Queda en el lugar (sin avanzar), como la usa Roblox. Mueve los deslizadores y mírala en la vista 3D.</p>
+								<div class="btn-group wide">
+									<button type="button" class="btn btn-primary" id="btn-anim-create-add">Agregar</button>
+									<button type="button" class="btn btn-ghost" id="btn-anim-create-close">Cerrar</button>
+								</div>
+							</div>
+						</div>
 						<div class="anim-import" id="anim-import" hidden>
 							<button type="button" class="btn btn-block" id="btn-anim-import">Agregar animaciones de otro archivo…</button>
 							<input type="file" id="anim-import-input" accept=".glb,.gltf,.bin" multiple hidden />

@@ -177,3 +177,41 @@ export function boneDirection( key, boneMap, rest, bones, { guess = true } = {} 
 	return ( part === 'Foot' || part === 'Toes' ? FORWARD : UP ).clone();
 
 }
+
+/**
+ * Giro local de un hueso para un giro D pensado en el espacio del personaje, relativo a su padre en
+ * reposo: P⁻¹ · D · P · L (P: giro de reposo del padre; L: giro de reposo del hueso). Si el padre también
+ * gira, el hueso lo sigue (como el antebrazo sigue al brazo).
+ * @param {RestPose} rest
+ * @param {import('three').Object3D} bone
+ * @param {Quaternion} delta giro D
+ * @returns {Quaternion}
+ */
+export function localRotation( rest, bone, delta ) {
+
+	const parent = rest.rotation( bone.parent );
+	return parent.clone().invert().multiply( delta ).multiply( parent ).multiply( rest.quaternion( bone ) );
+
+}
+
+/**
+ * Largo de las piernas en reposo (promedio de las dos, del muslo al pie), o null si no hay piernas.
+ * @param {Record<string, string>} boneMap
+ * @param {RestPose} rest
+ * @param {Map<string, import('three').Bone>} bones
+ */
+export function legLength( boneMap, rest, bones ) {
+
+	const lengths = [];
+	for ( const side of [ 'left', 'right' ] ) {
+
+		const upper = bones.get( boneMap[ side + 'UpperLeg' ] );
+		const foot = bones.get( boneMap[ side + 'Foot' ] );
+		if ( upper && foot ) lengths.push( rest.position( upper ).distanceTo( rest.position( foot ) ) );
+
+	}
+
+	const length = lengths.reduce( ( sum, value ) => sum + value, 0 ) / ( lengths.length || 1 );
+	return length > 1e-6 ? length : null;
+
+}

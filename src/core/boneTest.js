@@ -8,7 +8,7 @@
 // Es la misma idea que usarán los generadores de animación y el guion para IA.
 import { AnimationClip, MathUtils, Quaternion, QuaternionKeyframeTrack, Vector3 } from 'three';
 import { HUMANOID_BONES, boneLabel } from './boneMap.js';
-import { RestPose, boneDirection, findBones, splitKey } from './skeletonPose.js';
+import { RestPose, boneDirection, findBones, localRotation, splitKey } from './skeletonPose.js';
 
 /** Nombre de la animación de prueba. */
 export const BONE_TEST_NAME = 'Prueba del mapa de huesos';
@@ -74,11 +74,8 @@ export function createBoneTestClip( model, boneMap, keys = null ) {
 		const motion = MOTIONS[ splitKey( key ).part ];
 		if ( ! bone || ! motion ) continue;
 
-		const restLocal = rest.quaternion( bone );
-		const parentRotation = rest.rotation( bone.parent );
-		const parentInverse = parentRotation.clone().invert();
 		// Giro en el espacio del personaje (D) → giro local del hueso: P⁻¹ · D · P · L.
-		const local = ( delta ) => parentInverse.clone().multiply( delta ).multiply( parentRotation ).multiply( restLocal );
+		const local = ( delta ) => localRotation( rest, bone, delta );
 
 		const axis = motion.twist ? UP : swingAxis( key, motion.toward, boneDirection( key, boneMap, rest, bones ) );
 		const amplitude = MathUtils.degToRad( motion.twist ?? motion.angle );

@@ -16,7 +16,7 @@ import {
 	AnimationClip, Matrix4, PropertyBinding, Quaternion, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack,
 } from 'three';
 import { HUMANOID_BONES, humanoidBone } from './boneMap.js';
-import { RestPose, boneDirection, findBones } from './skeletonPose.js';
+import { RestPose, boneDirection, findBones, legLength } from './skeletonPose.js';
 
 /** Cuadros por segundo con que se copia la animación. */
 export const RETARGET_FPS = 30;
@@ -247,22 +247,5 @@ class HipsMotion {
 		return new VectorKeyframeTrack( `${ this.hips.to.name }.position`, times, this.positions );
 
 	}
-
-}
-
-/** Largo de las piernas en reposo (promedio de las dos, del muslo al pie), o null. */
-function legLength( boneMap, rest, bones ) {
-
-	const lengths = [];
-	for ( const side of [ 'left', 'right' ] ) {
-
-		const upper = bones.get( boneMap[ side + 'UpperLeg' ] );
-		const foot = bones.get( boneMap[ side + 'Foot' ] );
-		if ( upper && foot ) lengths.push( rest.position( upper ).distanceTo( rest.position( foot ) ) );
-
-	}
-
-	const length = lengths.reduce( ( sum, value ) => sum + value, 0 ) / ( lengths.length || 1 );
-	return length > 1e-6 ? length : null;
 
 }

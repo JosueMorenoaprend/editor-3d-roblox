@@ -48,6 +48,10 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
   los huesos de tu personaje, aunque los dos esqueletos sean distintos (por ejemplo, de Mixamo a un R15).
   Con **▶ Ver** la ves en tu personaje antes de agregarla; después aparece en la lista, se exporta con
   tu modelo y se puede deshacer.
+- **Nuevo: Crear una animación.** En *Animaciones* elige **Caminar**, **Correr** o **Respirar** y ajústala
+  con deslizadores (velocidad, largo del paso, balanceo de brazos, inclinación, intensidad). Tu personaje
+  la muestra mientras mueves los deslizadores; con **Agregar** queda guardada. Todas quedan “en el
+  lugar” (sin avanzar), como las usa Roblox, y se repiten sin saltos.
 
 ## Versión 1
 

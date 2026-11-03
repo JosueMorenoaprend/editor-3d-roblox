@@ -4,6 +4,53 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 14 — Crear animaciones: caminar, correr y respirar (2026-11-03)
+
+**Auditoría:** el punto de partida es el commit del ciclo 13 (`4367b89`), que acababa de pasar
+`npm run check` (93/93 Vitest, 34/34 Playwright) con sus capturas revisadas. Actions: 0 ejecuciones
+después de ese push.
+
+**Tarea:** F1-06 (Alta). La elegí antes que F1-05 (FBX) porque crea animaciones sin necesitar archivos ni
+cuentas de afuera, y es lo que el usuario más pidió (“crear y ajustar animaciones: correr, saltar…”).
+
+**Qué hice**
+
+- `core/generators.js`: **Caminar**, **Correr** y **Respirar**. Cada uno describe la pose en cada momento
+  del ciclo con giros relativos al padre de cada hueso en reposo (`P⁻¹·D·P·L`, ahora `localRotation()` en
+  `skeletonPose.js`), así funcionan con R15, Mixamo o Tripo. Si los brazos están en pose T (o A), primero
+  bajan a los costados. Piernas alternadas (la rodilla se dobla mientras la pierna avanza y el pie
+  compensa para no clavar la punta), brazos al revés que las piernas, cadera que gira y rebota dos veces
+  por ciclo, pecho que contragira y cabeza estable. Correr: rodillas más dobladas, codos a ~80° y el
+  cuerpo inclinado. Respirar: pecho, hombros y brazos con movimientos pequeños.
+- **En el lugar** (la cadera solo se mueve en Y) y **bucle sin saltos** (`Rig.bake()` repite exactamente
+  el primer cuadro al final), como lo usa Roblox.
+- `playPreview( clip, { loop, time } )`: vista previa en bucle que, al mover un deslizador, sigue en el
+  mismo punto del ciclo (no “salta” al principio).
+- `ui/animationCreate.js`: en *Animaciones*, **Crear una animación** → 3 botones → deslizadores (con su
+  valor: “×0,75”, “90 %”) → vista previa en bucle → **Agregar «Caminar» a mi personaje** (con deshacer;
+  si ya existe, “Caminar (2)”). Si se corrige el mapa de huesos con el generador abierto, se actualiza.
+- `ui/clipHistory.js`: agregar animaciones con deshacer, compartido con “Agregar de otro archivo”;
+  `uniqueClipName()` en `animation.js`.
+- `tests/helpers/gltf.js`: `readGLBAccessor()` para leer en las pruebas los números de un GLB.
+
+**Cómo lo verifiqué**
+
+- Vitest: 11 pruebas nuevas. Los 3 generadores con el R15 y con un esqueleto tipo Mixamo (ejes girados):
+  válidos, último cuadro = primero, la cadera no avanza ni se va al costado; caminar con pies y brazos
+  alternados y las manos de la pose T bajadas; deslizadores (paso más largo, velocidad ×2 = la mitad del
+  ciclo, sin brazos); correr dobla más las rodillas y se inclina; respirar gira menos de 10°; mismas
+  posiciones con ejes girados o derechos. Comprobé que fallan si se invierte el balanceo de un brazo o
+  si no se bajan los brazos.
+- Playwright: 2 flujos nuevos (escritorio y móvil): crear “Caminar” con deslizadores → vista previa en
+  bucle → agregar “Caminar (2)” → deshacer/rehacer → exportar y **leer del GLB** que la cadera sube y baja
+  pero no avanza, y que el último cuadro es igual al primero; y Correr/Respirar/Cerrar.
+- Capturas revisadas: el panel con los deslizadores y el muñeco caminando (escritorio y celular).
+- `npm run check` → código 0: **104/104** Vitest y **38/38** Playwright.
+
+**Qué sigue:** F1-07 (saltar, caer y agacharse) con el mismo sistema, y F1-05 (importar FBX de Mixamo).
+
+---
+
 ## Ciclo 13 — Agregar animaciones de otro archivo (retarget) (2026-11-03)
 
 **Auditoría:** el código de partida es el commit del ciclo 12 (`e4a6731`), que acababa de pasar

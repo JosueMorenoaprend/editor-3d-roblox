@@ -135,9 +135,16 @@ Cómo leer esta lista:
     animación mueve los huesos del personaje. En *Animaciones*: “Agregar animaciones de otro archivo…”.
 - [ ] **F1-05** · Alta · **Importar animaciones FBX** (Mixamo) y pasarlas a mi personaje.
   - Comprobación: prueba con un FBX generado por código + e2e.
-- [ ] **F1-06** · Alta · **Generadores de animación con deslizadores**: caminar, correr y respirar en
-  reposo (velocidad, largo del paso, balanceo de brazos).
-  - Comprobación: pruebas (clips válidos, en el lugar, loop sin saltos) + e2e + GLB válido.
+- [x] **F1-06** · Alta · **Generadores de animación con deslizadores**: caminar, correr y respirar en
+  reposo (velocidad, largo del paso, balanceo de brazos). *(ciclo 14)*
+  - Comprobación: pruebas (clips válidos, en el lugar, loop sin saltos) + e2e + GLB válido. ✔ En
+    *Animaciones* → “Crear una animación”: Caminar (velocidad, largo del paso, balanceo de brazos),
+    Correr (+ inclinación) y Respirar (velocidad, intensidad), con vista previa en bucle mientras se
+    mueven los deslizadores y “Agregar” con deshacer. Si el personaje está en pose T, los brazos bajan a
+    los costados. 11 pruebas de Vitest (los 3 generadores con el R15 y con un esqueleto tipo Mixamo:
+    válidos, último cuadro = primero, la cadera no avanza; pies y brazos alternados; deslizadores; igual
+    con ejes girados) + e2e (escritorio y móvil) que exporta y lee del GLB que la cadera de “Caminar (2)”
+    sube y baja pero no avanza.
 - [ ] **F1-07** · Alta · Generadores: **saltar, caer y agacharse** (altura del salto, etc.).
   - Comprobación: igual que F1-06.
 - [ ] **F1-08** · Media · Generadores: **saludar, atacar y baile simple**.
@@ -268,9 +275,9 @@ Cómo leer esta lista:
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
 | 0 — Base sólida | 16 | 12 |
-| 1 — Animación | 20 | 4 |
+| 1 — Animación | 20 | 5 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 13 | 0 |
-| **Total** | **74** | **16** |
+| **Total** | **74** | **17** |

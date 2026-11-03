@@ -711,7 +711,8 @@ select:disabled {
 	accent-color: var(--accent);
 }
 
-/* Agregar animaciones de otro archivo. */
+/* Crear una animación y agregar animaciones de otro archivo. */
+.anim-create,
 .anim-import {
 	display: flex;
 	flex-direction: column;
@@ -720,9 +721,55 @@ select:disabled {
 	border-top: 1px solid var(--border);
 }
 
-#anim-empty:not([hidden]) + #anim-controls[hidden] + .anim-import {
+/* Si no hay animaciones todavía, el primer bloque va pegado al mensaje (sin línea arriba). */
+#anim-empty:not([hidden]) + #anim-controls[hidden] + .anim-create {
 	border-top: none;
 	padding-top: 0;
+}
+
+.anim-subtitle {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 650;
+}
+
+.anim-create .btn[aria-pressed='true'] {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: #fff;
+}
+
+.anim-create-editor {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 4px;
+	padding: 10px 12px;
+	border-radius: 8px;
+	border: 1px solid rgba(79, 140, 255, 0.5);
+	background: rgba(79, 140, 255, 0.08);
+}
+
+.anim-create-params {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.slider input[type='range'] {
+	width: 100%;
+	accent-color: var(--accent);
+}
+
+.slider-label {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.slider-label output {
+	color: var(--text);
+	font-variant-numeric: tabular-nums;
 }
 
 .anim-import-result {

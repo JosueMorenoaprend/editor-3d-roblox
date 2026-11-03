@@ -16,6 +16,7 @@ import { App } from './app.js';
 import { describeError } from './core/errors.js';
 import { Viewer } from './core/viewer.js';
 import { initAdjustPanel } from './ui/adjustPanel.js';
+import { initAnimationCreate } from './ui/animationCreate.js';
 import { initAnimationImport } from './ui/animationImport.js';
 import { initAnimationPanel } from './ui/animationPanel.js';
 import { initAutosave } from './ui/autosave.js';
@@ -59,6 +60,7 @@ function start() {
 	initSimplifyPanel( app );
 	initBoneMapPanel( app );
 	initAnimationPanel( app );
+	initAnimationCreate( app );
 	initAnimationImport( app );
 	initExportPanel( app );
 	initProjectPanel( app );

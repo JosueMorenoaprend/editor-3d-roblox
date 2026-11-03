@@ -2,6 +2,7 @@
 // o una animación de Mixamo convertida a GLB). Se reconoce el esqueleto del archivo con su propio mapa
 // de huesos y cada animación se pasa a los huesos de mi personaje (retarget.js).
 import { PropertyBinding } from 'three';
+import { uniqueClipName } from './animation.js';
 import { detectBoneMap } from './boneDetect.js';
 import { REQUIRED_BONES, validateBoneMap } from './boneMap.js';
 import { UserError } from './errors.js';
@@ -56,7 +57,7 @@ export function importAnimations( gltf, fileName, target ) {
 		const names = new Set( target.clips.map( ( clip ) => clip.name ) );
 		const result = clips.map( ( clip, i ) => {
 
-			const name = uniqueName( clip.name || `Animación ${ i + 1 }`, names );
+			const name = uniqueClipName( clip.name || `Animación ${ i + 1 }`, names );
 			names.add( name );
 			return retargetClip( source, target, clip, { name } ).clip;
 
@@ -113,15 +114,5 @@ function markAnimatedNodesAsBones( model, clips ) {
 		} );
 
 	}
-
-}
-
-/** "Correr" → "Correr (2)" si ya existe. */
-function uniqueName( name, taken ) {
-
-	if ( ! taken.has( name ) ) return name;
-	let n = 2;
-	while ( taken.has( `${ name } (${ n })` ) ) n ++;
-	return `${ name } (${ n })`;
 
 }

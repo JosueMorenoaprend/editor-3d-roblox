@@ -1,0 +1,305 @@
+// Generadores de animación: caminar, correr y respirar, ajustables con deslizadores.
+//
+// Cada generador describe la pose en cada momento del ciclo (fase de 0 a 1) con giros en el espacio del
+// personaje (mira a +Z, su izquierda es +X y arriba es +Y), relativos al padre de cada hueso en reposo:
+// P⁻¹·D·P·L (ver skeletonPose.js). Así funcionan con cualquier esqueleto que tenga su mapa de huesos:
+// R15, Mixamo, Tripo… Si el personaje tiene los brazos en pose T, primero se bajan a los costados.
+// Las animaciones quedan "en el lugar" (la cadera sube y baja, pero no avanza), como las usa Roblox, y se
+// repiten sin saltos (el último cuadro es igual al primero).
+import { AnimationClip, MathUtils, Quaternion, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack } from 'three';
+import { validateBoneMap } from './boneMap.js';
+import { UserError } from './errors.js';
+import { RestPose, boneDirection, findBones, legLength, localRotation } from './skeletonPose.js';
+
+/** Cuadros por segundo de las animaciones generadas. */
+export const GENERATOR_FPS = 30;
+
+const TAU = Math.PI * 2;
+const X = new Vector3( 1, 0, 0 );
+const Y = new Vector3( 0, 1, 0 );
+const Z = new Vector3( 0, 0, 1 );
+const DOWN = new Vector3( 0, - 1, 0 );
+const FORWARD = new Vector3( 0, 0, 1 );
+const UP = new Vector3( 0, 1, 0 );
+
+const speed = { id: 'speed', label: 'Velocidad', min: 0.5, max: 2, step: 0.05, value: 1, format: 'times' };
+const percent = ( id, label, value ) => ( { id, label, min: 0, max: 1, step: 0.05, value, format: 'percent' } );
+
+/**
+ * Generadores disponibles, con sus deslizadores.
+ * format: cómo mostrar el valor ('times' → "×1,5"; 'percent' → "60 %").
+ */
+export const GENERATORS = [
+	{
+		id: 'caminar',
+		name: 'Caminar',
+		description: 'Camina en el lugar, con los brazos alternados.',
+		params: [ speed, percent( 'stride', 'Largo del paso', 0.5 ), percent( 'arms', 'Balanceo de brazos', 0.5 ) ],
+	},
+	{
+		id: 'correr',
+		name: 'Correr',
+		description: 'Corre en el lugar, inclinado hacia adelante y con los codos doblados.',
+		params: [ speed, percent( 'stride', 'Largo de la zancada', 0.5 ), percent( 'arms', 'Balanceo de brazos', 0.6 ), percent( 'lean', 'Inclinación hacia adelante', 0.4 ) ],
+	},
+	{
+		id: 'respirar',
+		name: 'Respirar',
+		description: 'Quieto, respirando (para cuando el personaje no hace nada).',
+		params: [ speed, percent( 'depth', 'Intensidad', 0.5 ) ],
+	},
+];
+
+/** Valores de los deslizadores por defecto de un generador. */
+export function defaultParams( id ) {
+
+	const generator = GENERATORS.find( ( item ) => item.id === id );
+	return Object.fromEntries( generator.params.map( ( param ) => [ param.id, param.value ] ) );
+
+}
+
+/**
+ * Crea la animación.
+ * @param {import('./model.js').LoadedModel} model el personaje (con su mapa de huesos completo)
+ * @param {string} id 'caminar' | 'correr' | 'respirar'
+ * @param {Record<string, number>} [params] valores de los deslizadores (los que falten, por defecto)
+ * @param {{ name?: string }} [options]
+ * @returns {AnimationClip}
+ */
+export function generateAnimation( model, id, params = {}, { name } = {} ) {
+
+	const generator = GENERATORS.find( ( item ) => item.id === id );
+	if ( ! generator ) throw new Error( `No existe el generador "${ id }".` );
+	if ( ! validateBoneMap( model.boneMap, model.container ).ok ) {
+
+		throw new UserError( 'Primero completa el mapa de huesos de tu personaje (sección «Mapa de huesos»): ' +
+			'sin eso no sé qué hueso mover para cada parte del cuerpo.' );
+
+	}
+
+	const values = { ...defaultParams( id ), ...params };
+	const rig = new Rig( model );
+	const { cycle, pose } = MOTIONS[ id ]( values, rig );
+	return rig.bake( name || generator.name, cycle, pose );
+
+}
+
+/** El personaje preparado para generar: huesos, pose de reposo, brazos bajados y tamaño. */
+class Rig {
+
+	constructor( model ) {
+
+		this.map = model.boneMap;
+		this.rest = new RestPose( model.container, model.restPose );
+		this.bones = findBones( model.container );
+		this.legs = legLength( this.map, this.rest, this.bones ) || 0.5;
+		// Brazos a los costados: si están en pose T (o A), se bajan; si ya cuelgan (R15), se dejan.
+		this.armsDown = {};
+		for ( const side of [ 'left', 'right' ] ) {
+
+			const key = side + 'UpperArm';
+			const direction = this.bone( key ) ? boneDirection( key, this.map, this.rest, this.bones ) : null;
+			const relaxed = new Vector3( side === 'left' ? 0.2 : - 0.2, - 1, 0 ).normalize();
+			this.armsDown[ side ] = direction && direction.angleTo( DOWN ) > MathUtils.degToRad( 30 )
+				? new Quaternion().setFromUnitVectors( direction, relaxed )
+				: new Quaternion();
+
+		}
+
+	}
+
+	bone( key ) {
+
+		return this.map[ key ] ? this.bones.get( this.map[ key ] ) : undefined;
+
+	}
+
+	/**
+	 * Eje para doblar una parte hacia una dirección (por ejemplo, el codo hacia adelante), según hacia
+	 * dónde apunta en reposo. Si ya apunta hacia ahí, usa el eje X.
+	 */
+	bendAxis( key, toward ) {
+
+		const direction = boneDirection( key, this.map, this.rest, this.bones ) || DOWN;
+		const axis = new Vector3().crossVectors( direction, toward );
+		return axis.length() > 0.25 ? axis.normalize() : X.clone();
+
+	}
+
+	/**
+	 * Arma la animación muestreando la pose en todo el ciclo.
+	 * @param {( phase: number ) => { rotations: Record<string, Quaternion>, hips?: Vector3 }} pose
+	 */
+	bake( name, cycle, pose ) {
+
+		const frames = Math.max( 2, Math.round( cycle * GENERATOR_FPS ) );
+		const times = Array.from( { length: frames + 1 }, ( _, i ) => ( i / frames ) * cycle );
+		const tracks = new Map(); // hueso → valores
+		const hips = this.bone( 'hips' );
+		const hipsParent = hips ? this.rest.matrix( hips.parent ).invert() : null;
+		const hipsRest = hips ? this.rest.position( hips ) : null;
+		const hipsValues = [];
+
+		for ( let i = 0; i < frames; i ++ ) {
+
+			const { rotations, hips: offset } = pose( i / frames );
+			for ( const [ key, delta ] of Object.entries( rotations ) ) {
+
+				const bone = this.bone( key );
+				if ( ! bone ) continue;
+				if ( ! tracks.has( bone ) ) tracks.set( bone, [] );
+				tracks.get( bone ).push( ...localRotation( this.rest, bone, delta ).toArray() );
+
+			}
+
+			if ( hips ) hipsValues.push( ...hipsRest.clone().add( offset || new Vector3() ).applyMatrix4( hipsParent ).toArray() );
+
+		}
+
+		// El último cuadro es exactamente el primero: la animación se repite sin saltos.
+		const loop = ( values, size ) => values.concat( values.slice( 0, size ) );
+		const result = [ ...tracks ].map( ( [ bone, values ] ) => new QuaternionKeyframeTrack( `${ bone.name }.quaternion`, times, loop( values, 4 ) ) );
+		if ( hips ) result.push( new VectorKeyframeTrack( `${ hips.name }.position`, times, loop( hipsValues, 3 ) ) );
+		return new AnimationClip( name, cycle, result );
+
+	}
+
+}
+
+/** Giro de `degrees` grados alrededor de un eje. */
+const turn = ( axis, degrees ) => new Quaternion().setFromAxisAngle( axis, MathUtils.degToRad( degrees ) );
+
+/**
+ * Cada generador: a partir de los deslizadores devuelve la duración de un ciclo y la pose en cada fase.
+ * Convenciones (en el espacio del personaje): girar el muslo en X con ángulo negativo lo lleva hacia
+ * adelante; girar la pierna en X con ángulo positivo dobla la rodilla hacia atrás.
+ */
+const MOTIONS = {
+
+	caminar( { speed: rate, stride, arms }, rig ) {
+
+		const step = 12 + 26 * stride; // grados que va el muslo hacia adelante y hacia atrás
+		const knee = 22 + 33 * stride; // rodilla de la pierna que avanza
+		const swing = 32 * arms; // brazos
+		const twist = 3 + 4 * stride; // cadera
+		const bob = ( 0.01 + 0.015 * stride ) * rig.legs; // rebote de la cadera
+		const elbows = { left: rig.bendAxis( 'leftLowerArm', FORWARD ), right: rig.bendAxis( 'rightLowerArm', FORWARD ) };
+		return {
+			cycle: 1.1 / rate,
+			pose( phase ) {
+
+				const s = Math.sin( TAU * phase );
+				const c = Math.cos( TAU * phase );
+				const legs = leg( step, knee, s, c );
+				return {
+					rotations: {
+						...legs,
+						hips: turn( Y, - twist * s ),
+						spine: turn( X, 2 ),
+						chest: turn( Y, twist * 1.4 * s ),
+						head: turn( Y, - twist * 0.4 * s ),
+						leftUpperArm: turn( X, swing * s ).multiply( rig.armsDown.left ),
+						rightUpperArm: turn( X, - swing * s ).multiply( rig.armsDown.right ),
+						leftLowerArm: new Quaternion().setFromAxisAngle( elbows.left, MathUtils.degToRad( 12 + 18 * Math.max( 0, - s ) * arms ) ),
+						rightLowerArm: new Quaternion().setFromAxisAngle( elbows.right, MathUtils.degToRad( 12 + 18 * Math.max( 0, s ) * arms ) ),
+					},
+					// Más alta cuando las piernas se cruzan, más baja al apoyar el pie (dos veces por ciclo).
+					hips: new Vector3( 0, bob * Math.cos( 2 * TAU * phase ), 0 ),
+				};
+
+			},
+		};
+
+	},
+
+	correr( { speed: rate, stride, arms, lean }, rig ) {
+
+		const step = 24 + 26 * stride;
+		const knee = 55 + 45 * stride;
+		const swing = 20 + 35 * arms;
+		const tilt = 4 + 16 * lean;
+		const bob = ( 0.03 + 0.03 * stride ) * rig.legs;
+		const elbows = { left: rig.bendAxis( 'leftLowerArm', FORWARD ), right: rig.bendAxis( 'rightLowerArm', FORWARD ) };
+		return {
+			cycle: 0.7 / rate,
+			pose( phase ) {
+
+				const s = Math.sin( TAU * phase );
+				const c = Math.cos( TAU * phase );
+				return {
+					rotations: {
+						...leg( step, knee, s, c, 18 ),
+						hips: turn( Y, - 7 * s ),
+						spine: turn( X, tilt * 0.6 ),
+						chest: turn( X, tilt * 0.4 ).multiply( turn( Y, 9 * s ) ),
+						head: turn( X, - tilt * 0.8 ),
+						leftUpperArm: turn( X, swing * s ).multiply( rig.armsDown.left ),
+						rightUpperArm: turn( X, - swing * s ).multiply( rig.armsDown.right ),
+						// Codos doblados, un poco más cuando el brazo va adelante.
+						leftLowerArm: new Quaternion().setFromAxisAngle( elbows.left, MathUtils.degToRad( 75 + 15 * Math.max( 0, - s ) ) ),
+						rightLowerArm: new Quaternion().setFromAxisAngle( elbows.right, MathUtils.degToRad( 75 + 15 * Math.max( 0, s ) ) ),
+					},
+					hips: new Vector3( 0, bob * Math.cos( 2 * TAU * phase ), 0 ),
+				};
+
+			},
+		};
+
+	},
+
+	respirar( { speed: rate, depth }, rig ) {
+
+		const amount = 0.4 + 1.2 * depth;
+		const shoulders = { left: rig.bendAxis( 'leftShoulder', UP ), right: rig.bendAxis( 'rightShoulder', UP ) };
+		const elbows = { left: rig.bendAxis( 'leftLowerArm', FORWARD ), right: rig.bendAxis( 'rightLowerArm', FORWARD ) };
+		return {
+			cycle: 4 / rate,
+			pose( phase ) {
+
+				// 0 → 1 → 0: toma aire y lo suelta.
+				const breath = ( 1 - Math.cos( TAU * phase ) ) / 2;
+				const out = 1.5 * amount * breath;
+				return {
+					rotations: {
+						spine: turn( X, - 1 * amount * breath ),
+						chest: turn( X, - 2 * amount * breath ),
+						neck: turn( X, 1.2 * amount * breath ),
+						head: turn( X, 1.5 * amount * breath ),
+						leftShoulder: new Quaternion().setFromAxisAngle( shoulders.left, MathUtils.degToRad( 2.5 * amount * breath ) ),
+						rightShoulder: new Quaternion().setFromAxisAngle( shoulders.right, MathUtils.degToRad( 2.5 * amount * breath ) ),
+						leftUpperArm: turn( Z, out ).multiply( rig.armsDown.left ),
+						rightUpperArm: turn( Z, - out ).multiply( rig.armsDown.right ),
+						leftLowerArm: new Quaternion().setFromAxisAngle( elbows.left, MathUtils.degToRad( 8 ) ),
+						rightLowerArm: new Quaternion().setFromAxisAngle( elbows.right, MathUtils.degToRad( 8 ) ),
+					},
+					hips: new Vector3( 0, - 0.004 * rig.legs * breath, 0 ),
+				};
+
+			},
+		};
+
+	},
+
+};
+
+/**
+ * Piernas alternadas. s = sen(2π·fase), c = cos(2π·fase). La izquierda va adelante cuando s > 0; cada
+ * rodilla se dobla mientras su pierna avanza; el pie se mantiene casi plano.
+ */
+function leg( step, knee, s, c, stance = 5 ) {
+
+	const rotations = {};
+	for ( const [ side, sign ] of [ [ 'left', 1 ], [ 'right', - 1 ] ] ) {
+
+		const thigh = step * s * sign; // + adelante
+		const bend = knee * Math.max( 0, c * sign ) + stance; // + rodilla doblada
+		rotations[ side + 'UpperLeg' ] = turn( X, - thigh );
+		rotations[ side + 'LowerLeg' ] = turn( X, bend );
+		// El pie compensa (en parte) el giro del muslo y de la rodilla para no clavar la punta.
+		rotations[ side + 'Foot' ] = turn( X, 0.6 * ( thigh - bend ) );
+
+	}
+
+	return rotations;
+
+}

@@ -120,6 +120,8 @@ Cada auditoría agrega a `MEJORAS.md` los errores y mejoras nuevas que encuentre
   y cómo arreglarlo; `app.run()` lo muestra sin registrarlo como fallo del programa. Para errores
   inesperados, pasa `{ help: 'cómo arreglarlo' }` a `app.run()`: `describeError()` arma el mensaje.
 - **Pruebas que provocan errores de consola a propósito:** `test.use( { allowedConsoleErrors: /texto/ } )`.
+- **Leer datos de un GLB en las pruebas:** `readGLBJson()` (el JSON) y `readGLBAccessor()` (números de
+  un accessor FLOAT, por ejemplo los tiempos o valores de una pista), en `tests/helpers/gltf.js`.
 - **Capturas de una sección del panel:** `captureScrolledTo( page, testInfo, nombre, selector )` (en
   `tests/e2e/fixtures.js`). No uses `locator.screenshot()` en elementos más altos que la pantalla dentro
   del panel con scroll: la imagen sale rota.
@@ -164,6 +166,7 @@ src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
   skeletonPose.js       pose de reposo en el espacio del modelo y hacia dónde apunta cada hueso
   retarget.js           pasar una animación de un personaje a otro con sus mapas de huesos
   animationImport.js    leer las animaciones de otro GLB (con o sin cuerpo) y pasarlas a mi personaje
+  generators.js         generadores Caminar, Correr y Respirar (pose por fase → clip en el lugar, en bucle)
 src/samples/            modelos de prueba generados por código (sin licencias de terceros)
   r15Dummy.js           muñeco R15: 16 huesos, 3 animaciones (Saludar, Caminar, Saltar)
   heavyMesh.js          malla pesada: 120.000 triángulos con textura
@@ -173,6 +176,8 @@ src/ui/                 un archivo por panel de la interfaz (samples.js: botones
   boneMapPanel.js       sección "Mapa de huesos" (corregir a mano, ▶, Probar el mapa)
   boneHighlight.js      marca rosa del hueso elegido en la vista 3D
   animationImport.js    "Agregar animaciones de otro archivo" (en Animaciones), con ▶ Ver y deshacer
+  animationCreate.js    "Crear una animación" (en Animaciones): generadores con deslizadores
+  clipHistory.js        agregar animaciones al personaje con deshacer (lo usan los dos anteriores)
 tests/unit/             pruebas Vitest del núcleo (Node)
 tests/e2e/              pruebas Playwright (flujos reales en el navegador; playwright.config.js)
 tests/helpers/          ayudantes compartidos (validar GLB, FileReader para Node, personaje con huesos raros,
@@ -193,8 +198,12 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
   los huesos **en el espacio del personaje** (mira a +Z, izquierda +X) con `P⁻¹·D·P·L` como en
   `boneTest.js`, para que funcione igual con ejes de hueso girados (Mixamo). Para pasar animaciones entre
   personajes usa `retargetClip()` (`retarget.js`), no `SkeletonUtils.retargetClip` de three.js.
-- **Vistas previas:** `app.animation.playPreview( clip )` reproduce una vez un clip que no es del modelo
-  (no se exporta); exportar y guardar lo detienen y el autoguardado espera, como con las animaciones.
+- **Vistas previas:** `app.animation.playPreview( clip, { loop, time } )` reproduce un clip que no es del
+  modelo (no se exporta): una vez, o en bucle (`loop`) desde el segundo `time` (para seguir en el mismo
+  punto al cambiar un deslizador). Exportar y guardar la detienen y el autoguardado espera.
+- **Generadores nuevos** (`generators.js`): describe la pose por fase con giros relativos al padre en
+  reposo (`turn( eje, grados )`), usa `rig.armsDown` si mueve los brazos y deja la cadera solo en Y para
+  que quede en el lugar; `Rig.bake()` repite el primer cuadro al final (bucle sin saltos).
 - `app.run( mensaje, tarea, prefijoDeError )` muestra “Trabajando…” y convierte los errores en avisos
   en español.
 - **Tareas largas:** `app.run( mensaje, ( { progress, signal } ) => …, error, { cancellable: true } )`

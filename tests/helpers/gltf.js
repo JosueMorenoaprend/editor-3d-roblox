@@ -47,6 +47,28 @@ export function readGLBJson( bytes ) {
 
 }
 
+/**
+ * Lee los números de un accessor (solo FLOAT) de un GLB: por ejemplo, los tiempos o los valores de una
+ * pista de animación.
+ * @returns {number[][]} un arreglo por elemento (VEC3 → [x, y, z])
+ */
+export function readGLBAccessor( bytes, json, index ) {
+
+	const data = bytes instanceof Uint8Array ? bytes : new Uint8Array( bytes );
+	const view = new DataView( data.buffer, data.byteOffset, data.byteLength );
+	// Cabecera (12) + cabecera del trozo JSON (8) + JSON + cabecera del trozo BIN (8).
+	const binStart = 12 + 8 + view.getUint32( 12, true ) + 8;
+	const accessor = json.accessors[ index ];
+	if ( accessor.componentType !== 5126 ) throw new Error( 'readGLBAccessor solo lee accessors FLOAT.' );
+	const size = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 }[ accessor.type ];
+	const bufferView = json.bufferViews[ accessor.bufferView ];
+	const stride = bufferView.byteStride || size * 4;
+	const start = binStart + ( bufferView.byteOffset || 0 ) + ( accessor.byteOffset || 0 );
+	return Array.from( { length: accessor.count }, ( _, i ) =>
+		Array.from( { length: size }, ( __, c ) => view.getFloat32( start + i * stride + c * 4, true ) ) );
+
+}
+
 /** Texto legible con los problemas, para los mensajes de las pruebas. */
 export function describeIssues( messages ) {
 
