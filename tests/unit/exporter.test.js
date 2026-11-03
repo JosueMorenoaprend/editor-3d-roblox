@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { exportGLB, verifyGLB } from '../../src/core/exporter.js';
 import { simplifierReady, simplifyMeshes } from '../../src/core/simplifySync.js';
 import { centerAndGround, rotate90, scaleToHeight } from '../../src/core/transform.js';
-import { describeIssues, validateGLB } from '../helpers/gltf.js';
+import { describeIssues, readGLBJson, validateGLB } from '../helpers/gltf.js';
 import { openSample, sizeOf } from './helpers.js';
 
 beforeAll( () => simplifierReady );
@@ -64,6 +64,20 @@ describe( 'exportar GLB', () => {
 		const check = await verifyGLB( arrayBuffer, 20000 );
 		expect( check.animations ).toBe( 0 );
 		expect( check.bones ).toBe( 16 );
+
+	} );
+
+	it( 'solo las animaciones elegidas, en un GLB válido', async () => {
+
+		const { model } = openSample( 'r15' );
+		const [ wave, , jump ] = model.clips;
+		const { arrayBuffer } = await exportGLB( model, { clips: [ wave, jump ] } );
+		const { errors } = await validateGLB( arrayBuffer );
+		expect( errors, describeIssues( errors ) ).toHaveLength( 0 );
+		expect( readGLBJson( arrayBuffer ).animations.map( ( animation ) => animation.name ) ).toEqual( [ 'Saludar', 'Saltar' ] );
+		expect( ( await verifyGLB( arrayBuffer, 20000 ) ).animations ).toBe( 2 );
+		// El modelo sigue teniendo las 3.
+		expect( model.clips ).toHaveLength( 3 );
 
 	} );
 

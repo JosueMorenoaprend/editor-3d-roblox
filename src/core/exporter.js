@@ -18,14 +18,15 @@ export const PROJECT_FORMAT = 2;
 /**
  * Exporta el GLB para Roblox.
  * @param {import('./model.js').LoadedModel} model
- * @param {{ animations?: boolean, maxTextureSize?: number }} options
+ * @param {{ animations?: boolean, clips?: import('three').AnimationClip[], maxTextureSize?: number }} options
+ *   animations: false → sin animaciones; clips: cuáles incluir (por defecto, todas las del modelo)
  * @returns {Promise<{ blob: Blob, arrayBuffer: ArrayBuffer }>}
  */
-export function exportGLB( model, { animations = true, maxTextureSize = Infinity } = {} ) {
+export function exportGLB( model, { animations = true, clips = model.clips, maxTextureSize = Infinity } = {} ) {
 
 	// Las texturas WebP/KTX2 se guardan como PNG (Roblox no las lee dentro del GLB).
 	return writeGLB( model, {
-		clips: animations ? model.clips : [],
+		clips: animations ? clips : [],
 		maxTextureSize,
 		textureMime: ( mime ) => ( SAFE_MIME.has( mime ) ? null : 'image/png' ),
 	} );

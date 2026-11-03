@@ -838,6 +838,25 @@ select:disabled {
 	flex: none;
 }
 
+/* Exportar: elegir qué animaciones van en el archivo. */
+.export-clips {
+	margin: 0;
+	padding: 0 0 0 26px;
+	border: none;
+	min-width: 0;
+}
+
+.export-clips legend {
+	padding: 0;
+	margin-bottom: 4px;
+}
+
+.export-clip-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
 /* ---------- Mapa de huesos ---------- */
 .bonemap-controls {
 	display: flex;

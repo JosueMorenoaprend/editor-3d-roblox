@@ -11,6 +11,10 @@ export function initExportPanel( app ) {
 	const button = $( '#btn-export' );
 	const topButton = $( '#btn-export-top' );
 	const result = $( '#export-result' );
+	const clipBox = $( '#export-clips' );
+	const clipList = $( '#export-clip-list' );
+	/** Animaciones que el usuario sacó de la exportación (mientras este modelo esté abierto). */
+	let excluded = new WeakSet();
 
 	textureSelect.value = String( app.settings.textureSize );
 	textureSelect.addEventListener( 'change', () => app.setSetting( 'textureSize', Number( textureSelect.value ) ) );
@@ -22,7 +26,8 @@ export function initExportPanel( app ) {
 
 		const fileName = cleanFileName( nameInput.value || `${ model.baseName }_roblox` ) + '.glb';
 		const maxTextureSize = Number( textureSelect.value ) || Infinity;
-		const withAnimations = animsCheck.checked && model.clips.length > 0;
+		const clips = animsCheck.checked ? model.clips.filter( ( clip ) => ! excluded.has( clip ) ) : [];
+		const withAnimations = clips.length > 0;
 
 		// Se exporta en la pose de reposo, no en el cuadro actual de una animación.
 		const wasPlaying = app.animation.isPlaying;
@@ -31,7 +36,7 @@ export function initExportPanel( app ) {
 
 		const output = await app.run( 'Exportando…', async () => {
 
-			const { blob, arrayBuffer } = await exportGLB( model, { animations: withAnimations, maxTextureSize } );
+			const { blob, arrayBuffer } = await exportGLB( model, { clips, maxTextureSize } );
 			downloadBlob( blob, fileName );
 			const check = await verifyGLB( arrayBuffer, app.settings.triangleLimit );
 			return { blob, check };
@@ -55,6 +60,31 @@ export function initExportPanel( app ) {
 
 	}
 
+	// Una casilla por animación (si hay más de una): las desmarcadas no van en el archivo.
+	function renderClips() {
+
+		const clips = app.model ? app.model.clips : [];
+		clipBox.hidden = clips.length < 2 || ! animsCheck.checked;
+		clipList.innerHTML = clips.map( ( clip, i ) => `
+			<label class="check">
+				<input type="checkbox" data-clip="${ i }"${ excluded.has( clip ) ? '' : ' checked' } />
+				<span>${ escapeHtml( clip.name || `Animación ${ i + 1 }` ) } <span class="mono">(${ formatNumber( clip.duration, 2 ) } s)</span></span>
+			</label>` ).join( '' );
+
+	}
+
+	clipList.addEventListener( 'change', ( event ) => {
+
+		const input = event.target.closest( 'input[data-clip]' );
+		const clip = input && app.model ? app.model.clips[ Number( input.dataset.clip ) ] : null;
+		if ( ! clip ) return;
+		if ( input.checked ) excluded.delete( clip );
+		else excluded.add( clip );
+
+	} );
+
+	animsCheck.addEventListener( 'change', renderClips );
+
 	button.addEventListener( 'click', runExport );
 	topButton.addEventListener( 'click', () => {
 
@@ -74,14 +104,22 @@ export function initExportPanel( app ) {
 
 	}
 
-	app.on( 'model', render );
-	// Al agregar o quitar animaciones, solo cambia la casilla (el nombre que escribiste se queda).
+	app.on( 'model', () => {
+
+		excluded = new WeakSet();
+		render();
+		renderClips();
+
+	} );
+	// Al agregar o quitar animaciones, solo cambian las casillas (el nombre que escribiste se queda).
 	app.on( 'clips', () => {
 
 		animsCheck.disabled = ! app.model || app.model.clips.length === 0;
+		renderClips();
 
 	} );
 	render();
+	renderClips();
 
 }
 

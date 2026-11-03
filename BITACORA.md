@@ -4,6 +4,34 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 17 — Elegir qué animaciones exportar (2026-11-03)
+
+**Auditoría:** punto de partida, el commit del ciclo 16 (`b27328a`), recién comprobado (122/122 Vitest,
+42/42 Playwright). Actions: sin ejecuciones.
+
+**Tarea:** F1-16 (Alta).
+
+**Qué hice**
+
+- `exportGLB( model, { clips } )`: exporta solo las animaciones de la lista (por defecto, todas). El
+  proyecto guarda siempre todas.
+- *Exportar*: con 2 o más animaciones, debajo de “Incluir animaciones” aparece “Cuáles van en el archivo”
+  con una casilla por animación. Lo desmarcado se recuerda mientras el modelo esté abierto (también si se
+  agregan animaciones nuevas, que vienen marcadas); al abrir otro modelo, todo vuelve a estar marcado. Sin
+  “Incluir animaciones”, la lista se oculta.
+
+**Cómo lo verifiqué**
+
+- Vitest: exportar 2 de 3 → GLB válido con Saludar y Saltar, y el modelo sigue con las 3.
+- Playwright (escritorio y móvil): sacar “Caminar” → exportar (validador 0 errores) → “2 animaciones” →
+  el JSON trae Saludar y Saltar → reabrir el archivo: 2 animaciones.
+- Captura revisada (celular): la lista con *Caminar* desmarcada.
+- `npm run check` → código 0: **123/123** Vitest y **44/44** Playwright.
+
+**Qué sigue:** F1-05 — importar animaciones FBX de Mixamo (con el retarget del ciclo 13).
+
+---
+
 ## Ciclo 16 — Dejar en el lugar las animaciones que avanzan (2026-11-03)
 
 **Auditoría:** el punto de partida es el commit del ciclo 15 (`8b2c375`), recién comprobado

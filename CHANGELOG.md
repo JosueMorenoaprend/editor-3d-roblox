@@ -60,6 +60,8 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
   es el personaje del juego). Al agregar animaciones de otro archivo, esto viene marcado.
 - Arreglado: algunas animaciones agregadas desde otro archivo podían exportarse con dos cuadros en el mismo
   instante al final, y el validador oficial rechazaba el GLB.
+- **Nuevo: elegir qué animaciones exportar.** En *Exportar*, debajo de “Incluir animaciones”, marca solo
+  las que quieres llevar a Roblox; tu proyecto las sigue guardando todas.
 
 ## Versión 1
 
