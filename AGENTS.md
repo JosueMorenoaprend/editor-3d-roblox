@@ -117,7 +117,9 @@ Cada auditoría agrega a `MEJORAS.md` los errores y mejoras nuevas que encuentre
   Al subir archivos con `setInputFiles`, pasa `{ name, mimeType, buffer }` y **no rutas**: Chromium no
   recibe archivos cuya ruta tiene letras como “ñ” (los títulos de las pruebas van a la ruta).
 - **Errores para el usuario:** lanza `UserError` (`src/core/errors.js`) con un mensaje que diga qué pasó
-  y cómo arreglarlo; `app.run()` lo muestra sin registrarlo como fallo del programa.
+  y cómo arreglarlo; `app.run()` lo muestra sin registrarlo como fallo del programa. Para errores
+  inesperados, pasa `{ help: 'cómo arreglarlo' }` a `app.run()`: `describeError()` arma el mensaje.
+- **Pruebas que provocan errores de consola a propósito:** `test.use( { allowedConsoleErrors: /texto/ } )`.
 - **No uses `pkill -f "<texto>"`** con un texto que aparezca en tu propio comando: se mata la shell.
 
 ## 8. Arquitectura

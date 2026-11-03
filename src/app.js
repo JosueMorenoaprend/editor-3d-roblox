@@ -6,7 +6,7 @@
 //   'transform' -> cambió la escala, rotación o posición
 //   'settings'  -> cambió una preferencia (límite de triángulos, etc.)
 import { AnimationController } from './core/animation.js';
-import { UserError } from './core/errors.js';
+import { UserError, describeError } from './core/errors.js';
 import { History } from './core/history.js';
 import { loadModelFromFiles } from './core/loader.js';
 import { LoadedModel } from './core/model.js';
@@ -74,11 +74,12 @@ export class App extends EventTarget {
 			toast( model.project ? `Proyecto abierto: ${ model.baseName } (con tus ajustes y animaciones)` : `Modelo abierto: ${ fileName }`, 'ok' );
 			if ( missing.length > 0 ) {
 
-				toast( `No encontré estos archivos del modelo: ${ missing.join( ', ' ) }. Puede que falten texturas.`, 'error' );
+				toast( `No encontré estos archivos del modelo: ${ missing.join( ', ' ) }, así que pueden faltar texturas. ` +
+					'Vuelve a abrirlo eligiendo también esos archivos (todos juntos), o usa la versión .glb.', 'error' );
 
 			}
 
-		}, 'No se pudo abrir el modelo' );
+		}, 'No se pudo abrir el modelo', { help: 'Prueba abrirlo otra vez. Si sigue fallando, descarga el archivo de nuevo (por ejemplo, desde Tripo AI).' } );
 
 	}
 
@@ -150,10 +151,11 @@ export class App extends EventTarget {
 	 * @param {string} message
 	 * @param {( control: { progress: ( fraction: number, text?: string ) => void, signal: AbortSignal } ) => Promise<T>|T} task
 	 * @param {string} errorPrefix
-	 * @param {{ cancellable?: boolean, cancelMessage?: string }} [options]
+	 * @param {{ cancellable?: boolean, cancelMessage?: string, help?: string }} [options]
+	 *   help: cómo arreglarlo si falla de forma inesperada
 	 * @returns {Promise<T|undefined>}
 	 */
-	async run( message, task, errorPrefix = 'Algo salió mal', { cancellable = false, cancelMessage = 'Cancelado.' } = {} ) {
+	async run( message, task, errorPrefix = 'Algo salió mal', { cancellable = false, cancelMessage = 'Cancelado.', help } = {} ) {
 
 		const busy = $( '#busy' );
 		const text = $( '#busy-text' );
@@ -195,7 +197,7 @@ export class App extends EventTarget {
 			// Los errores esperados (archivo equivocado…) ya traen un mensaje claro: no son fallos del programa.
 			if ( error instanceof UserError ) console.warn( error.message );
 			else console.error( error );
-			toast( `${ errorPrefix }: ${ error && error.message ? error.message : error }`, 'error' );
+			toast( describeError( error, { action: errorPrefix, help } ), 'error' );
 			return undefined;
 
 		} finally {

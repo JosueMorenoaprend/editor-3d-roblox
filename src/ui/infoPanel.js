@@ -3,6 +3,7 @@ import { METERS_PER_STUD } from '../core/units.js';
 import { computeModelInfo } from '../core/info.js';
 import { isSimplified } from '../core/simplify.js';
 import { $, escapeHtml, formatBytes, formatInt, formatNumber, plural, readNumber } from './dom.js';
+import { toast } from './toast.js';
 
 export function initInfoPanel( app ) {
 
@@ -15,6 +16,7 @@ export function initInfoPanel( app ) {
 		const value = readNumber( limitInput );
 		if ( value === null || value < 100 ) {
 
+			toast( 'El límite de triángulos tiene que ser un número de 100 o más. Dejé el que tenías.', 'error' );
 			limitInput.value = app.settings.triangleLimit;
 			return;
 

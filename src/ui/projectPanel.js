@@ -24,7 +24,7 @@ export function initProjectPanel( app ) {
 			downloadBlob( blob, fileName );
 			return true;
 
-		}, 'No se pudo guardar el proyecto' );
+		}, 'No se pudo guardar el proyecto', { help: 'Prueba otra vez. Mientras tanto, tu trabajo sigue guardado en este navegador (autoguardado).' } );
 
 		if ( saved ) toast( `Proyecto guardado: ${ fileName }. Para seguir otro día, ábrelo con "Abrir proyecto".`, 'ok', 7000 );
 

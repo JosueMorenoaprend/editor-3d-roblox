@@ -31,6 +31,9 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
 - **Nuevo: Autoguardado.** Mientras editas, tu trabajo se guarda solo en este navegador. Si cierras
   la pestaña sin querer, al volver verás **“¿Seguimos donde lo dejaste?”** con un botón para
   recuperarlo.
+- Todos los mensajes de error ahora dicen **qué pasó y qué hacer** (y, al final, un detalle técnico
+  por si necesitas pedir ayuda). Si escribes un valor que no sirve (por ejemplo, un límite de 5
+  triángulos), el editor te dice qué escribir.
 
 ## Versión 1
 

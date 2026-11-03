@@ -12,6 +12,7 @@
 //   ui/*.js            los paneles de la interfaz
 import './style.css';
 import { App } from './app.js';
+import { describeError } from './core/errors.js';
 import { Viewer } from './core/viewer.js';
 import { initAdjustPanel } from './ui/adjustPanel.js';
 import { initAnimationPanel } from './ui/animationPanel.js';
@@ -58,10 +59,31 @@ function start() {
 	initProjectPanel( app );
 	initAutosave( app );
 
+	// Fallos que nadie esperaba: se explican igual, sin repetir el mismo aviso muchas veces.
+	let lastUnexpected = '';
+	const unexpected = ( error ) => {
+
+		const text = describeError( error, {
+			action: 'Algo falló sin que lo esperáramos',
+			help: 'Si el editor se comporta raro, recarga la página: tu trabajo se guarda solo en este navegador.',
+		} );
+		if ( text === lastUnexpected ) return;
+		lastUnexpected = text;
+		toast( text, 'error' );
+
+	};
+
 	window.addEventListener( 'unhandledrejection', ( event ) => {
 
 		console.error( event.reason );
-		toast( `Error inesperado: ${ event.reason?.message || event.reason }`, 'error' );
+		unexpected( event.reason );
+
+	} );
+	window.addEventListener( 'error', ( event ) => {
+
+		// Aviso inofensivo del navegador al cambiar el tamaño de la ventana: no es un fallo.
+		if ( String( event.message ).includes( 'ResizeObserver loop' ) ) return;
+		unexpected( event.error || event.message );
 
 	} );
 

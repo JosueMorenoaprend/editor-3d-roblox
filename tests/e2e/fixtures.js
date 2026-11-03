@@ -12,8 +12,14 @@ export const SHOTS_DIR = join( 'test-results', 'capturas' );
 
 export const test = base.extend( {
 
+	/**
+	 * Errores de consola que una prueba espera a propósito (por ejemplo, una textura que falta).
+	 * Se configura con test.use( { allowedConsoleErrors: /texto|otro texto/ } ).
+	 */
+	allowedConsoleErrors: [ null, { option: true } ],
+
 	/** Errores de la consola. Al terminar cada prueba se exige que no haya ninguno. */
-	consoleErrors: [ async ( { page }, use ) => {
+	consoleErrors: [ async ( { page, allowedConsoleErrors }, use ) => {
 
 		const errors = [];
 		// Con E2E_CONSOLE=1 se imprime toda la consola del navegador (para depurar).
@@ -26,7 +32,8 @@ export const test = base.extend( {
 		} );
 		page.on( 'pageerror', ( error ) => errors.push( `Error sin capturar: ${ error.message }` ) );
 		await use( errors );
-		expect( errors, 'La consola del navegador tiene errores' ).toEqual( [] );
+		const unexpected = errors.filter( ( text ) => ! ( allowedConsoleErrors && allowedConsoleErrors.test( text ) ) );
+		expect( unexpected, 'La consola del navegador tiene errores' ).toEqual( [] );
 
 	}, { auto: true } ],
 

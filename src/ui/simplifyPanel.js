@@ -43,7 +43,13 @@ export function initSimplifyPanel( app ) {
 
 	targetInput.addEventListener( 'change', () => {
 
-		if ( target() === null ) targetInput.value = app.settings.triangleLimit;
+		if ( target() === null ) {
+
+			toast( 'El objetivo tiene que ser un número de 50 triángulos o más. Volví a poner el límite de Roblox.', 'error' );
+			targetInput.value = app.settings.triangleLimit;
+
+		}
+
 		autoSelect();
 		render();
 
@@ -75,7 +81,11 @@ export function initSimplifyPanel( app ) {
 		// Se reduce en un Web Worker: la página sigue respondiendo y se puede cancelar.
 		const results = await app.run( 'Reduciendo polígonos…', ( { progress, signal } ) =>
 			simplifyMeshesAsync( meshes, goal, { permissive: permissive.checked }, { onProgress: progress, signal } ),
-		'No se pudo reducir', { cancellable: true, cancelMessage: 'Reducción cancelada: el modelo quedó igual.' } );
+		'No se pudo reducir', {
+			cancellable: true,
+			cancelMessage: 'Reducción cancelada: el modelo quedó igual.',
+			help: 'El modelo quedó igual. Prueba con un objetivo de triángulos un poco mayor o activa el modo agresivo.',
+		} );
 		running = false;
 		render();
 		// Si mientras tanto se abrió otro modelo, el resultado ya no sirve.

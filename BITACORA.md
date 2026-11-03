@@ -4,6 +4,42 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 9 — Actions activado y mensajes de error claros en todo el editor (2026-11-03)
+
+**GitHub Actions:** el usuario avisó que lo activó. Para poder comprobar F0-08 sin tocar `main`, el
+flujo de Pages ahora también corre en los PR, pero **solo** el paso “¿Está activado GitHub Pages?”
+(nunca publica desde un PR). Después del push, GitHub **todavía no registra ninguna ejecución** (ni
+de “Comprobar” ni de Pages, y el PR no tiene checks). Pages tampoco está activado (`has_pages: false`).
+F0-07 y F0-08 siguen ⏳ hasta ver una ejecución real.
+
+**Tarea:** F0-15 (Media).
+
+**Qué hice**
+
+- `describeError()` en `src/core/errors.js`: todos los errores salen como **qué pasó + cómo
+  arreglarlo + (si no era esperado) el detalle técnico al final**, para poder pedir ayuda.
+- Consejos concretos por acción: abrir (descargar el archivo de nuevo), reducir (objetivo mayor o
+  modo agresivo; el modelo quedó igual), exportar (texturas de 1024 px o reducir antes), guardar
+  proyecto (tu trabajo sigue autoguardado).
+- Texturas que faltan en un `.gltf`: ahora dice cómo arreglarlo (elegir todos los archivos juntos o
+  usar el `.glb`).
+- Valores inválidos que antes se corregían en silencio (límite de triángulos < 100, objetivo < 50)
+  ahora avisan qué escribir.
+- Fallos inesperados en cualquier parte (`error` y `unhandledrejection`): aviso amable, sin repetir el
+  mismo varias veces, ignorando el aviso inofensivo “ResizeObserver loop” del navegador.
+- Pruebas e2e: opción `allowedConsoleErrors` (una expresión regular) para pruebas que provocan un
+  error de consola a propósito.
+
+**Cómo lo verifiqué**
+
+- 3 pruebas de Vitest y 2 flujos e2e nuevos (escritorio y móvil).
+- `npm run check` → código 0: **50/50** Vitest y **26/26** Playwright.
+
+**Qué sigue:** volver a revisar Actions después de este push; empezar la **Fase 1** (F1-01: mapa de
+huesos humanoide estándar).
+
+---
+
 ## Ciclo 8 — Autoguardado y “¿Seguimos donde lo dejaste?” (2026-11-03)
 
 **Tarea:** F0-10.

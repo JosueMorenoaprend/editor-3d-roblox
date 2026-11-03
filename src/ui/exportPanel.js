@@ -36,7 +36,7 @@ export function initExportPanel( app ) {
 			const check = await verifyGLB( arrayBuffer, app.settings.triangleLimit );
 			return { blob, check };
 
-		}, 'No se pudo exportar' );
+		}, 'No se pudo exportar', { help: 'Prueba exportar con texturas de 1024 px o reduce los polígonos antes. Tu trabajo no se perdió.' } );
 
 		if ( ! output ) return;
 		const { blob, check } = output;

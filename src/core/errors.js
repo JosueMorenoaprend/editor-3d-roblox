@@ -15,3 +15,20 @@ export class UserError extends Error {
 	}
 
 }
+
+/** Consejo general cuando no sabemos qué falló. */
+export const DEFAULT_HELP = 'Prueba otra vez. Si vuelve a pasar, recarga la página: tu trabajo se guarda solo en este navegador.';
+
+/**
+ * Mensaje para el usuario: qué pasó, cómo arreglarlo y (si no era un error esperado)
+ * el detalle técnico al final, por si hay que pedir ayuda.
+ * @param {unknown} error
+ * @param {{ action?: string, help?: string }} [context] action: qué se estaba haciendo ("No se pudo exportar")
+ */
+export function describeError( error, { action = 'Algo salió mal', help = DEFAULT_HELP } = {} ) {
+
+	const detail = error && error.message ? error.message : String( error );
+	if ( error instanceof UserError ) return `${ action }: ${ detail }`;
+	return `${ action }. ${ help } (Detalle técnico: ${ detail })`;
+
+}

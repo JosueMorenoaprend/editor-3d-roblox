@@ -17,6 +17,8 @@ Cómo leer esta lista:
   Mientras tanto, el paso de Pages ya no rompe nada: si Pages está desactivado, se salta (ciclo 3).
 - **Activar GitHub Actions** en el repositorio (*Settings → Actions → General → Allow all actions
   and reusable workflows → Save*). Sin eso no corre ninguna comprobación automática (F0-07, F0-08).
+  El usuario dijo que ya lo activó (ciclo 9), pero después de 2 pushes GitHub todavía no registra
+  ninguna ejecución: hay que revisar la pestaña *Actions*.
 - **Accesibilidad con axe:** `axe-core` tiene licencia **MPL-2.0**, que no está en la lista permitida
   (MIT, BSD, Apache, CC0). ¿Se permite solo para las pruebas? Se preguntará al llegar a F5-06.
 
@@ -85,10 +87,11 @@ Cómo leer esta lista:
   Contar piezas o explicarlo para no confundir. También pasa al abrir un proyecto: la cabina vuelve
   como 6 mallas. *(encontrado en el ciclo 2)*
   - Comprobación: e2e del carrito: el resultado dice 8 piezas (o lo explica).
-- [ ] **F0-15** · Media · Los errores al abrir archivos dañados ya son claros; revisar el resto de
+- [x] **F0-15** · Media · Los errores al abrir archivos dañados ya son claros; revisar el resto de
   mensajes de error (exportar, reducir, WebGL) para que todos digan **qué pasó y cómo arreglarlo**.
-  *(encontrado en el ciclo 2)*
-  - Comprobación: prueba por cada mensaje de error con su texto en español claro.
+  *(encontrado en el ciclo 2; hecho en el ciclo 9)*
+  - Comprobación: prueba por cada mensaje de error con su texto en español claro. ✔ 3 pruebas de
+    Vitest (`describeError`) + 2 flujos e2e (valores inválidos; `.gltf` al que le falta la textura).
 
 ## Fase 1 — Animación (lo más importante para el usuario)
 
@@ -219,10 +222,10 @@ Cómo leer esta lista:
 
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
-| 0 — Base sólida | 15 | 11 |
+| 0 — Base sólida | 15 | 12 |
 | 1 — Animación | 16 | 0 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 12 | 0 |
-| **Total** | **68** | **11** |
+| **Total** | **68** | **12** |
