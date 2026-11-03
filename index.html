@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="description" content="Editor web para ajustar modelos 3D (GLB) de Tripo AI y prepararlos para Roblox Studio." />
+		<title>Editor 3D para Roblox</title>
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2 29 9v14l-13 7-13-7V9z' fill='%234f8cff'/%3E%3Cpath d='M16 16 29 9M16 16 3 9m13 7v14' stroke='%23fff' stroke-width='2' fill='none'/%3E%3C/svg%3E" />
+	</head>
+	<body>
+		<header class="topbar">
+			<h1 class="brand">Editor 3D <span class="brand-sub">para Roblox</span> <span class="tag">v1</span></h1>
+			<div class="topbar-actions">
+				<button type="button" class="btn btn-primary" id="btn-open">Abrir modelo</button>
+				<button type="button" class="btn" id="btn-export-top" disabled>Exportar GLB</button>
+				<input type="file" id="file-input" accept=".glb,.gltf,.bin,.png,.jpg,.jpeg,.webp" multiple hidden />
+			</div>
+		</header>
+
+		<main class="layout">
+			<section class="viewport" id="viewport" aria-label="Vista 3D">
+				<div class="viewport-tools" id="viewport-tools">
+					<button type="button" class="chip" id="btn-frame" disabled title="Mover la cámara para ver todo el modelo">Encuadrar</button>
+					<button type="button" class="chip" id="btn-wire" aria-pressed="false" disabled title="Ver los triángulos">Malla</button>
+					<button type="button" class="chip" id="btn-bones" aria-pressed="false" disabled title="Ver el esqueleto">Huesos</button>
+					<button type="button" class="chip" id="btn-grid" aria-pressed="true" title="Mostrar u ocultar el piso">Piso</button>
+				</div>
+
+				<div class="empty-state" id="empty-state">
+					<div class="empty-card">
+						<p class="empty-title">Arrastra aquí tu modelo <strong>.glb</strong> o <strong>.gltf</strong></p>
+						<p class="muted">o usa el botón <em>Abrir modelo</em>. Si es un .gltf con archivos aparte (.bin, texturas), elígelos todos juntos.</p>
+					</div>
+				</div>
+				<div class="drop-overlay" id="drop-overlay" hidden>Suelta el archivo para abrirlo</div>
+				<div class="busy" id="busy" hidden><span class="spinner"></span><span id="busy-text">Trabajando…</span></div>
+				<p class="hint">Arrastra para girar · rueda o pellizco para acercar · clic derecho o dos dedos para mover</p>
+			</section>
+
+			<aside class="panel" id="panel" aria-label="Panel de herramientas">
+				<!-- 1. Información -->
+				<details class="section" open>
+					<summary>Información</summary>
+					<div class="section-body" id="info-body">
+						<p class="muted">Abre un modelo para ver su información.</p>
+					</div>
+					<div class="section-body section-foot">
+						<label class="field">
+							<span>Límite de triángulos por malla</span>
+							<input type="number" id="triangle-limit" min="100" step="500" value="20000" inputmode="numeric" />
+						</label>
+						<p class="muted small">Roblox acepta unos 20.000 triángulos por MeshPart. Puedes cambiar el límite si Roblox lo cambia.</p>
+					</div>
+				</details>
+
+				<!-- 2. Ajustes -->
+				<details class="section" open>
+					<summary>Ajustes</summary>
+					<div class="section-body" id="adjust-body">
+						<div class="row">
+							<label class="field grow">
+								<span>Escala</span>
+								<input type="number" id="scale-input" min="0.001" step="0.1" value="1" inputmode="decimal" disabled />
+							</label>
+							<div class="btn-group">
+								<button type="button" class="btn btn-sm" data-scale-mul="0.5" disabled>×½</button>
+								<button type="button" class="btn btn-sm" data-scale-mul="2" disabled>×2</button>
+								<button type="button" class="btn btn-sm" id="btn-scale-reset" disabled>1</button>
+							</div>
+						</div>
+
+						<div class="row">
+							<label class="field grow">
+								<span>Altura deseada</span>
+								<input type="number" id="height-input" min="0.001" step="0.1" inputmode="decimal" disabled />
+							</label>
+							<select id="height-unit" aria-label="Unidad de la altura" disabled>
+								<option value="m">metros</option>
+								<option value="studs">studs</option>
+							</select>
+							<button type="button" class="btn btn-sm" id="btn-height" disabled>Aplicar</button>
+						</div>
+
+						<div class="field">
+							<span>Girar 90°</span>
+							<div class="btn-group wide">
+								<button type="button" class="btn btn-sm" data-rotate="x" disabled>Eje X</button>
+								<button type="button" class="btn btn-sm" data-rotate="y" disabled>Eje Y</button>
+								<button type="button" class="btn btn-sm" data-rotate="z" disabled>Eje Z</button>
+							</div>
+						</div>
+
+						<label class="check">
+							<input type="checkbox" id="keep-grounded" checked />
+							<span>Después de cada ajuste, centrar y apoyar en el suelo</span>
+						</label>
+
+						<div class="btn-group wide">
+							<button type="button" class="btn" id="btn-ground" disabled>Centrar y apoyar en el suelo</button>
+							<button type="button" class="btn btn-ghost" id="btn-reset-transform" disabled>Quitar ajustes</button>
+						</div>
+					</div>
+				</details>
+
+				<!-- 3. Reducir polígonos -->
+				<details class="section" open>
+					<summary>Reducir polígonos</summary>
+					<div class="section-body" id="simplify-body">
+						<p class="muted small">Quita triángulos manteniendo la textura (UV), las normales y, si tiene esqueleto, los pesos de los huesos.</p>
+						<label class="field">
+							<span>Triángulos objetivo (por malla)</span>
+							<input type="number" id="simplify-target" min="50" step="500" value="20000" inputmode="numeric" disabled />
+						</label>
+						<div class="mesh-list" id="simplify-meshes"></div>
+						<label class="check">
+							<input type="checkbox" id="simplify-permissive" />
+							<span>Modo agresivo: si no llega al objetivo, permite cruzar las costuras de la textura (puede manchar un poco los bordes)</span>
+						</label>
+						<div class="btn-group wide">
+							<button type="button" class="btn btn-primary" id="btn-simplify" disabled>Reducir</button>
+							<button type="button" class="btn btn-ghost" id="btn-simplify-undo" disabled>Volver al original</button>
+						</div>
+						<div class="result" id="simplify-result" hidden></div>
+					</div>
+				</details>
+
+				<!-- 4. Animaciones -->
+				<details class="section" open>
+					<summary>Animaciones</summary>
+					<div class="section-body" id="anim-body">
+						<p class="muted" id="anim-empty">Abre un modelo para ver sus animaciones.</p>
+						<div id="anim-controls" hidden>
+							<label class="field">
+								<span>Animación</span>
+								<select id="anim-select"></select>
+							</label>
+							<div class="row">
+								<button type="button" class="btn btn-primary" id="btn-anim-play">Reproducir</button>
+								<button type="button" class="btn" id="btn-anim-stop">Detener</button>
+								<select id="anim-speed" aria-label="Velocidad">
+									<option value="0.25">×0,25</option>
+									<option value="0.5">×0,5</option>
+									<option value="1" selected>×1</option>
+									<option value="2">×2</option>
+								</select>
+							</div>
+							<div class="timeline">
+								<input type="range" id="anim-time" min="0" max="1" step="0.001" value="0" aria-label="Momento de la animación" />
+								<span class="mono small" id="anim-clock">0,00 / 0,00 s</span>
+							</div>
+							<label class="check">
+								<input type="checkbox" id="anim-loop" checked />
+								<span>Repetir</span>
+							</label>
+						</div>
+					</div>
+				</details>
+
+				<!-- 5. Exportar -->
+				<details class="section" open>
+					<summary>Exportar</summary>
+					<div class="section-body" id="export-body">
+						<label class="field">
+							<span>Nombre del archivo</span>
+							<input type="text" id="export-name" placeholder="modelo_roblox" disabled />
+						</label>
+						<label class="field">
+							<span>Tamaño máximo de las texturas</span>
+							<select id="export-texture" disabled>
+								<option value="0">Original</option>
+								<option value="2048">2048 px</option>
+								<option value="1024" selected>1024 px (máximo que usa Roblox)</option>
+								<option value="512">512 px</option>
+							</select>
+						</label>
+						<label class="check">
+							<input type="checkbox" id="export-anims" checked disabled />
+							<span>Incluir animaciones</span>
+						</label>
+						<button type="button" class="btn btn-primary btn-block" id="btn-export" disabled>Descargar .glb</button>
+						<div class="result" id="export-result" hidden></div>
+					</div>
+				</details>
+
+				<p class="muted small footer-note">
+					Todo se procesa en tu navegador: tus modelos no se suben a ningún servidor.
+				</p>
+			</aside>
+		</main>
+
+		<div class="toasts" id="toasts" aria-live="polite"></div>
+		<script type="module" src="/src/main.js"></script>
+	</body>
+</html>
