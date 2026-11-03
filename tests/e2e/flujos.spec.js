@@ -17,6 +17,14 @@ test( 'pantalla inicial: se entiende qué hacer y hay ejemplos para probar', asy
 	await expect( page.getByRole( 'button', { name: 'Abrir modelo' } ) ).toBeEnabled();
 	await expect( page.locator( '[data-sample]' ) ).toHaveCount( 3 );
 	await expectNoHorizontalScroll( page );
+	if ( testInfo.project.name === 'movil' ) {
+
+		// En el celular el panel va debajo de la vista y tiene que crecer con su contenido
+		// (si no, su fondo se corta a la altura de la pantalla).
+		const overflow = await page.locator( '#panel' ).evaluate( ( panel ) => panel.scrollHeight - panel.clientHeight );
+		expect( overflow, 'El contenido del panel se sale de su caja' ).toBeLessThanOrEqual( 1 );
+
+	}
 	await capture( page, testInfo, 'inicio' );
 	await capture( page, testInfo, 'inicio-completa', { fullPage: true } );
 

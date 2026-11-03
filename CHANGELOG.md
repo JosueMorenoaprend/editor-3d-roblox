@@ -18,6 +18,7 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
   de computadora y de celular: abren los ejemplos, animan, reducen, ajustan y exportan.
 - GitHub revisará cada cambio con todas las pruebas (cuando actives Actions; los pasos están en el
   README). La publicación en GitHub Pages ya no sale en rojo si no usas Pages.
+- Arreglado: en el celular, al bajar por el panel, el fondo ya no cambia de color a mitad de camino.
 
 ## Versión 1
 

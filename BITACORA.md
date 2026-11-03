@@ -4,6 +4,28 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 4 — Fondo del panel cortado en móvil (2026-11-03)
+
+**Tarea:** F0-13 (error: primero los errores).
+
+**Qué hice**
+
+- Primero una prueba e2e que lo detecta: en móvil, el contenido del panel no puede salirse de su caja.
+  Con el código anterior fallaba: **1002 px** de contenido fuera de la caja (por eso el fondo se
+  cortaba a la altura de la pantalla).
+- Causa: en pantallas chicas `body` medía exactamente el alto de la pantalla y el contenedor del panel
+  no podía crecer. Arreglo en `src/style.css`: en móvil, `html, body { height: auto }` y el contenedor
+  crece con su contenido (`flex: 1 0 auto`).
+
+**Cómo lo verifiqué**
+
+- La prueba nueva pasa; captura de página completa en móvil sin la franja.
+- `npm run check` en verde.
+
+**Qué sigue:** ciclo 5 — deshacer y rehacer (F0-09).
+
+---
+
 ## Ciclo 3 — GitHub Actions y publicación que no falla (2026-11-03)
 
 **Tarea:** F0-07 (Actions con `npm run check`) y F0-08 (que Pages no rompa nada).

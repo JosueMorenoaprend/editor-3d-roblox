@@ -68,9 +68,10 @@ Cómo leer esta lista:
   la página (hoy la congela de 2 a 10 s con 120.000 triángulos).
   - Comprobación: e2e mide que la página sigue respondiendo durante la reducción y que el resultado
     es igual al de antes.
-- [ ] **F0-13** · Media · Error visual en móvil: al bajar por el panel, el fondo cambia de color a la
-  altura de la pantalla (el panel no crece con su contenido).
-  - Comprobación: captura móvil de página completa sin la franja.
+- [x] **F0-13** · Media · Error visual en móvil: al bajar por el panel, el fondo cambia de color a la
+  altura de la pantalla (el panel no crece con su contenido). *(ciclo 4)*
+  - Comprobación: captura móvil de página completa sin la franja. ✔ + prueba e2e que mide que el
+    contenido del panel no se sale de su caja (antes: 1002 px fuera).
 - [ ] **F0-14** · Baja · Después de exportar, la comprobación dice “13 mallas” para el carrito de 8
   piezas: las mallas con varios materiales se guardan en una parte por material (así funciona glTF).
   Contar piezas o explicarlo para no confundir. *(encontrado en el ciclo 2)*
@@ -206,10 +207,10 @@ Cómo leer esta lista:
 
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
-| 0 — Base sólida | 15 | 6 |
+| 0 — Base sólida | 15 | 7 |
 | 1 — Animación | 16 | 0 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 9 | 0 |
-| **Total** | **65** | **6** |
+| **Total** | **65** | **7** |

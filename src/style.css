@@ -696,9 +696,16 @@ select:disabled {
 		min-height: 56px;
 	}
 
+	/* La página crece con el panel (si no, el fondo del panel se corta a la altura de la pantalla). */
+	html,
+	body {
+		height: auto;
+	}
+
 	.layout {
 		display: flex;
 		flex-direction: column;
+		flex: 1 0 auto;
 		height: auto;
 	}
 
