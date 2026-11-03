@@ -124,6 +124,9 @@ Cada auditoría agrega a `MEJORAS.md` los errores y mejoras nuevas que encuentre
 - **Internet:** si `WebFetch` no resuelve un dominio, prueba `curl` desde la terminal (en la sesión de
   la nube, `curl` sí llegaba a developers.tripo3d.com y create.roblox.com).
 - **Una sola sesión a la vez** trabaja en la rama `mejoras-continuas` (dos sesiones a la vez se pisan).
+- **`.claude/settings.json`** (pedido del usuario): las sesiones de Claude Code en este repositorio
+  arrancan con esfuerzo **max** (`CLAUDE_CODE_EFFORT_LEVEL`), `xhigh` de respaldo y **ultracode**
+  activado. También aplica a las sesiones locales del usuario en este repo.
 
 ## 8. Arquitectura
 

@@ -4,6 +4,19 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Traspaso a una sesión nueva (2026-11-03)
+
+- El usuario pidió seguir en otra sesión en la nube “con todo al máximo”: **Opus 5.5, esfuerzo max y
+  ultracode**. La sesión anterior que mencionó no aparecía en ninguna lista accesible, así que esta
+  sesión **creó una nueva** en el entorno “Default”, sobre la rama `mejoras-continuas`, con el `/goal`
+  del usuario como primer mensaje y el contexto del traspaso en sus instrucciones.
+- `.claude/settings.json`: `CLAUDE_CODE_EFFORT_LEVEL=max` (en `env`), `effortLevel: "xhigh"` de
+  respaldo (el ajuste no acepta `max`) y `ultracode: true`. Fuente: documentación oficial de Claude
+  Code (model-config, settings-reference y env-vars).
+- Desde aquí, la sesión anterior **deja de trabajar en la rama**.
+
+---
+
 ## Ciclo 11 — Detección automática del mapa de huesos (2026-11-03)
 
 **Tarea:** F1-02.
