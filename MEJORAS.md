@@ -99,8 +99,13 @@ Cómo leer esta lista:
   brazos, antebrazos, manos, muslos, piernas y pies (izquierda y derecha). *(ciclo 10)*
   - Comprobación: pruebas unitarias del mapa. ✔ 6 pruebas (`tests/unit/boneMap.test.js`): huesos,
     nombres en español, opcionales, reflejo izquierda↔derecha y validación con mensajes claros.
-- [ ] **F1-02** · Alta · **Detección automática** del mapa para esqueletos de Tripo, Mixamo y R15.
-  - Comprobación: pruebas con esqueletos generados con los nombres de cada uno.
+- [x] **F1-02** · Alta · **Detección automática** del mapa para esqueletos de Tripo, Mixamo y R15. *(ciclo 11)*
+  - Comprobación: pruebas con esqueletos generados con los nombres de cada uno. ✔ 12 pruebas
+    (`tests/unit/boneDetect.test.js`): Mixamo, Unreal, Unity/VRM, VRoid, ActorCore, 3ds Max, el muñeco
+    R15, lados por posición y mensajes cuando no se reconoce.
+  - Pendiente fuera de aquí: Tripo no publica los nombres de su convención `tripo` (la que usa por
+    defecto); el detector lee palabras dentro de los nombres, pero falta probarlo con un GLB real de
+    Tripo (paso T-01 en `PRUEBAS_ROBLOX.md`). Si falla, el editor visual (F1-03) permitirá corregirlo.
 - [ ] **F1-03** · Alta · **Editor visual** para ver y corregir el mapa de huesos.
   - Comprobación: e2e cambia una asignación y se usa al aplicar animaciones.
 - [ ] **F1-04** · Alta · **Importar animaciones GLB** (Tripo, Mixamo convertidas) y pasarlas a mi
@@ -224,9 +229,9 @@ Cómo leer esta lista:
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
 | 0 — Base sólida | 15 | 12 |
-| 1 — Animación | 16 | 1 |
+| 1 — Animación | 16 | 2 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 12 | 0 |
-| **Total** | **68** | **13** |
+| **Total** | **68** | **14** |

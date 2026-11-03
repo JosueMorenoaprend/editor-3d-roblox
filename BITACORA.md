@@ -4,6 +4,45 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 11 — Detección automática del mapa de huesos (2026-11-03)
+
+**Tarea:** F1-02.
+
+**Investigación:** la documentación oficial de Tripo
+(https://developers.tripo3d.com/en/docs/animations-rig.md, leída con `curl` porque WebFetch no resuelve
+ese dominio en esta sesión) dice que el autorig usa por defecto la convención `tripo` y también ofrece
+`mixamo`, `actorcore`, `unity`, `unreal` y `vrm` (esta última con la versión `v3.0-20260909`). **No
+publica los nombres de la convención `tripo`.** Por eso el detector no usa listas fijas.
+
+**Qué hice**
+
+- `src/core/boneDetect.js`:
+  - `tokenize()`: separa cada nombre en palabras y quita prefijos de cada programa (`mixamorig`,
+    `J_Bip_`, `CC_Base_`, `DEF-`, `Bip01`…). Tiene en cuenta que three.js limpia los nombres al abrir
+    (`mixamorig:Hips` → `mixamorigHips`).
+  - `classifyBoneName()`: papel y lado de cada hueso; ignora dedos, extremos (`_End`), giros (`twist`)
+    y ayudantes.
+  - `detectBoneMap()`: elige entre candidatos el más cercano a la raíz; el **pecho** es el hueso del
+    que cuelgan los hombros; la **columna**, el primer hueso del tronco por debajo del pecho; si un
+    nombre no dice el lado, decide la **posición** (izquierda = +X); sin cadera por nombre, usa el
+    padre de las piernas. Al final valida con `validateBoneMap()`.
+  - `guessSkeletonKind()`: “Mixamo”, “Roblox R15”, “Unreal”… (para mostrarlo en la interfaz).
+- `PRUEBAS_ROBLOX.md`: paso T-01 para probar con un GLB real de Tripo.
+
+**Cómo lo verifiqué**
+
+- 12 pruebas nuevas de Vitest con esqueletos generados en 6 convenciones (con dedos, extremos y
+  huesos de giro de distracción), el muñeco R15 y un esqueleto sin lados en los nombres.
+- `npm run check` → código 0: **68/68** Vitest y **26/26** Playwright.
+
+**Cambio de sesión:** a pedido del usuario, el trabajo sigue en otra sesión en la nube (que tiene
+WebFetch). Esta sesión le envió el contexto y deja de trabajar en la rama para no pisarse.
+
+**Qué sigue:** F1-03 — editor visual del mapa de huesos (mostrar el mapa detectado y corregirlo), y
+guardar el mapa en el proyecto (subir `PROJECT_FORMAT`).
+
+---
+
 ## Ciclo 10 — Fase 1: mapa de huesos humanoide estándar (2026-11-03)
 
 **Tarea:** F1-01 (empieza la Fase 1, la más importante para el usuario).

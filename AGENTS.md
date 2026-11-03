@@ -121,6 +121,9 @@ Cada auditoría agrega a `MEJORAS.md` los errores y mejoras nuevas que encuentre
   inesperados, pasa `{ help: 'cómo arreglarlo' }` a `app.run()`: `describeError()` arma el mensaje.
 - **Pruebas que provocan errores de consola a propósito:** `test.use( { allowedConsoleErrors: /texto/ } )`.
 - **No uses `pkill -f "<texto>"`** con un texto que aparezca en tu propio comando: se mata la shell.
+- **Internet:** si `WebFetch` no resuelve un dominio, prueba `curl` desde la terminal (en la sesión de
+  la nube, `curl` sí llegaba a developers.tripo3d.com y create.roblox.com).
+- **Una sola sesión a la vez** trabaja en la rama `mejoras-continuas` (dos sesiones a la vez se pisan).
 
 ## 8. Arquitectura
 
@@ -150,6 +153,7 @@ src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
   history.js            deshacer/rehacer (app.history): comandos { label, undo, redo }
   autosave.js           autoguardado en IndexedDB (un registro con el último proyecto)
   boneMap.js            mapa de huesos humanoide estándar (hips, leftUpperArm…) y su validación
+  boneDetect.js         detecta el mapa solo (palabras en los nombres + forma del esqueleto)
 src/samples/            modelos de prueba generados por código (sin licencias de terceros)
   r15Dummy.js           muñeco R15: 16 huesos, 3 animaciones (Saludar, Caminar, Saltar)
   heavyMesh.js          malla pesada: 120.000 triángulos con textura

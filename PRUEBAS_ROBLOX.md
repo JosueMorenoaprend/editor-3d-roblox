@@ -53,3 +53,18 @@ Cómo anotar el resultado: cambia `[ ]` por `[x]` si funcionó, o escribe debajo
 - [ ] **Pendiente de probar**
 1. Abre un modelo, gíralo 90° en X y cambia la escala a ×2. Exporta.
 2. Importa en Roblox Studio y comprueba que el giro y el tamaño se ven igual que en el editor.
+
+---
+
+## Archivos reales de Tripo (no se pueden descargar desde la nube)
+
+### T-01 · Detección de huesos con un personaje de Tripo
+
+- [ ] **Pendiente de probar**
+1. En Tripo AI genera un personaje con **esqueleto (rig)** y descárgalo como **GLB**. Si Tripo te deja
+   elegir la convención de huesos, prueba primero la que viene por defecto (`tripo`) y, si puedes,
+   también `mixamo`.
+2. Ábrelo en el editor. Cuando exista el panel del mapa de huesos (F1-03), mira si dice
+   **“Mapa completo”** o qué huesos faltan.
+3. Si falta algo, anota aquí los nombres de los huesos del archivo (se ven con el botón *Huesos* o en
+   el panel) para que el detector los aprenda.
