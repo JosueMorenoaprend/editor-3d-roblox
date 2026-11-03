@@ -4,8 +4,9 @@ Editor web hecho con [three.js](https://threejs.org/) para revisar y ajustar mod
 (sobre todo los que genera **Tripo AI**) y dejarlos listos para importarlos en **Roblox Studio**,
 sin tener que aprender Blender.
 
-👉 **Úsalo aquí:** https://josuemorenoaprend.github.io/editor-3d-roblox/
-(funciona cuando GitHub Pages esté activado; mira [Publicar en GitHub Pages](#publicar-en-github-pages)).
+👉 **Dónde usarlo:** se puede publicar gratis en **Vercel** (mira [Publicar en Vercel](#publicar-en-vercel))
+y también en **GitHub Pages**: https://josuemorenoaprend.github.io/editor-3d-roblox/
+(mira [Publicar en GitHub Pages](#publicar-en-github-pages)). Puedes usar uno de los dos o ambos.
 
 Todo se procesa en tu navegador: tus modelos **no se suben a ningún servidor**.
 
@@ -83,6 +84,28 @@ trabajar las animaciones (Mixamo o Tripo) aparte y adaptarlas al personaje.
 
 ---
 
+## Publicar en Vercel
+
+El repositorio ya trae la configuración para Vercel (`vercel.json`). Solo hay que conectarlo **una vez**:
+
+1. Asegúrate de que el código esté en la rama `main` (es decir, que el pull request con el editor
+   ya esté aceptado). Vercel publica lo que hay en `main`.
+2. Entra a https://vercel.com y crea una cuenta gratis con **Continue with GitHub**.
+3. Pulsa **Add New… → Project**.
+4. Busca el repositorio `editor-3d-roblox` y pulsa **Import**.
+   Si no aparece en la lista, usa la opción para darle a Vercel acceso a ese repositorio de GitHub.
+5. Vercel reconoce el proyecto como **Vite**. No cambies nada y pulsa **Deploy**.
+6. En un minuto más o menos te da la dirección de tu editor, del tipo `https://editor-3d-roblox….vercel.app`
+   (el nombre exacto lo elige Vercel; lo puedes cambiar en *Settings → Domains*).
+
+Desde ahí, **cada vez que se suban cambios a `main` se vuelve a publicar solo**, y cada pull request
+recibe su propia dirección de prueba (*Preview*) para revisarlo antes de aceptarlo.
+
+> En Vercel la página vive en la raíz del dominio (`/`) y en GitHub Pages en `/editor-3d-roblox/`.
+> `vite.config.js` elige la ruta correcta solo: Vercel define la variable `VERCEL=1` al compilar.
+
+---
+
 ## Publicar en GitHub Pages
 
 El repositorio ya trae un flujo de **GitHub Actions** (`.github/workflows/deploy.yml`) que compila
@@ -98,6 +121,10 @@ el editor y lo publica. Solo hay que activarlo **una vez**:
 La dirección será: **https://josuemorenoaprend.github.io/editor-3d-roblox/**
 
 En los pull requests el flujo solo **compila** (para avisar si algo se rompió), sin publicar.
+
+Si decides usar **solo Vercel** y no activas Pages, el paso *Publicar* de este flujo fallará en `main`
+(la compilación sí se seguirá revisando). En ese caso puedes activar Pages igual, o borrar el archivo
+`.github/workflows/deploy.yml`.
 
 ---
 
