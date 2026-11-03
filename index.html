@@ -36,6 +36,13 @@
 
 				<div class="empty-state" id="empty-state">
 					<div class="empty-card">
+						<div class="recover" id="recover" hidden>
+							<p><strong>¿Seguimos donde lo dejaste?</strong> Tu trabajo en «<span id="recover-name"></span>» se guardó <span id="recover-when"></span>.</p>
+							<div class="btn-group">
+								<button type="button" class="btn btn-primary" id="btn-recover">Recuperar mi trabajo</button>
+								<button type="button" class="btn btn-ghost" id="btn-recover-discard">Descartar</button>
+							</div>
+						</div>
 						<p class="empty-title">Arrastra aquí tu modelo <strong>.glb</strong> o <strong>.gltf</strong></p>
 						<p class="muted empty-help">o usa el botón <em>Abrir modelo</em>. Si es un .gltf con archivos aparte (.bin, texturas), elígelos todos juntos.</p>
 						<div class="samples">
@@ -208,6 +215,7 @@
 							<button type="button" class="btn" id="btn-project-save" disabled>Guardar proyecto</button>
 							<button type="button" class="btn" id="btn-project-open">Abrir proyecto</button>
 						</div>
+						<p class="muted small autosave-status" id="autosave-status" role="status">Mientras editas, tu trabajo se guarda solo en este navegador.</p>
 					</div>
 				</details>
 

@@ -196,6 +196,34 @@ body {
 	font-size: 17px;
 }
 
+/* "¿Seguimos donde lo dejaste?" (autoguardado). */
+.recover {
+	pointer-events: auto;
+	margin-bottom: 14px;
+	padding: 12px;
+	border-radius: 10px;
+	border: 1px solid rgba(79, 140, 255, 0.6);
+	background: rgba(79, 140, 255, 0.12);
+	text-align: left;
+	font-size: 14px;
+}
+
+.recover p {
+	margin: 0 0 10px;
+}
+
+.recover .btn-group {
+	justify-content: flex-start;
+}
+
+.autosave-status[data-state='ok'] {
+	color: var(--ok);
+}
+
+.autosave-status[data-state='error'] {
+	color: var(--warn);
+}
+
 /* Botones "Probar con un ejemplo" (la tarjeta deja pasar el mouse; los botones no). */
 .samples {
 	margin-top: 16px;

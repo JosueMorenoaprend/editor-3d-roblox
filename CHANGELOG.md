@@ -28,6 +28,9 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
 - **Nuevo: Proyectos.** En la sección *Proyecto*, “Guardar proyecto” descarga un archivo
   `nombre.proyecto.glb` con todo tu trabajo (modelo, ajustes y animaciones). Otro día, ábrelo con
   “Abrir proyecto” y sigue donde lo dejaste; los ajustes se pueden seguir quitando.
+- **Nuevo: Autoguardado.** Mientras editas, tu trabajo se guarda solo en este navegador. Si cierras
+  la pestaña sin querer, al volver verás **“¿Seguimos donde lo dejaste?”** con un botón para
+  recuperarlo.
 
 ## Versión 1
 

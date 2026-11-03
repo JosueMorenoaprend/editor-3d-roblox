@@ -15,6 +15,7 @@ import { App } from './app.js';
 import { Viewer } from './core/viewer.js';
 import { initAdjustPanel } from './ui/adjustPanel.js';
 import { initAnimationPanel } from './ui/animationPanel.js';
+import { initAutosave } from './ui/autosave.js';
 import { $ } from './ui/dom.js';
 import { initExportPanel } from './ui/exportPanel.js';
 import { initHistoryControls } from './ui/historyControls.js';
@@ -26,6 +27,9 @@ import { toast } from './ui/toast.js';
 import { initFileOpening, initViewportTools } from './ui/viewportTools.js';
 
 function start() {
+
+	// Al recargar, empezar arriba (si no, en el celular no se ve la tarjeta "¿Seguimos donde lo dejaste?").
+	if ( 'scrollRestoration' in window.history ) window.history.scrollRestoration = 'manual';
 
 	let viewer;
 	try {
@@ -52,6 +56,7 @@ function start() {
 	initAnimationPanel( app );
 	initExportPanel( app );
 	initProjectPanel( app );
+	initAutosave( app );
 
 	window.addEventListener( 'unhandledrejection', ( event ) => {
 

@@ -146,6 +146,7 @@ src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
   units.js              METERS_PER_STUD (metros ↔ studs)
   errors.js             UserError: errores con mensaje claro para el usuario
   history.js            deshacer/rehacer (app.history): comandos { label, undo, redo }
+  autosave.js           autoguardado en IndexedDB (un registro con el último proyecto)
 src/samples/            modelos de prueba generados por código (sin licencias de terceros)
   r15Dummy.js           muñeco R15: 16 huesos, 3 animaciones (Saludar, Caminar, Saltar)
   heavyMesh.js          malla pesada: 120.000 triángulos con textura
@@ -169,6 +170,9 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
 - **Tareas largas:** `app.run( mensaje, ( { progress, signal } ) => …, error, { cancellable: true } )`
   muestra barra de avance y botón Cancelar. Lo pesado va en un **Web Worker** (ver
   `simplify.worker.js`) para que la página nunca se congele.
+- **Autoguardado** (`src/ui/autosave.js`): se dispara con cada cambio del historial (solo si hay
+  cambios), 1,5 s después, con el mismo formato de proyecto. Por eso es clave que todo cambio pase por
+  `app.history`: lo que no esté en el historial tampoco se autoguarda.
 - **Toda acción que cambie el modelo se guarda en `app.history`** con `push( { label, undo, redo } )`
   (la acción ya está hecha al guardarla). Ejemplos: `adjust()` en `adjustPanel.js` y
   `pushGeometryChange()` en `simplifyPanel.js`. El historial se vacía al abrir otro modelo.

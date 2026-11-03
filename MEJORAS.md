@@ -61,8 +61,9 @@ Cómo leer esta lista:
   - Comprobación: pruebas del historial + e2e: ajustar, reducir, deshacer y rehacer. ✔ 7 pruebas
     unitarias + 2 flujos e2e (teclado y botones; ajustes, reducir y “Volver al original”).
   - Regla para lo que venga: **toda acción nueva que cambie el modelo se guarda en `app.history`**.
-- [ ] **F0-10** · Alta · **Autoguardado** en IndexedDB y “Recuperar tu trabajo” al volver a abrir.
-  - Comprobación: e2e cambia el modelo, recarga la página y lo recupera con sus cambios.
+- [x] **F0-10** · Alta · **Autoguardado** en IndexedDB y “Recuperar tu trabajo” al volver a abrir. *(ciclo 8)*
+  - Comprobación: e2e cambia el modelo, recarga la página y lo recupera con sus cambios. ✔ 2 flujos
+    e2e (recuperar con los ajustes; abrir otro modelo sin cambios no borra lo guardado; “Descartar”).
 - [x] **F0-11** · Alta · **Guardar proyecto / Abrir proyecto** (un archivo que conserva el modelo,
   sus ajustes y sus animaciones). *(ciclo 7)*
   - Comprobación: e2e guarda, vuelve a abrir y compara triángulos, medidas, huesos y animaciones.
@@ -218,10 +219,10 @@ Cómo leer esta lista:
 
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
-| 0 — Base sólida | 15 | 10 |
+| 0 — Base sólida | 15 | 11 |
 | 1 — Animación | 16 | 0 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 12 | 0 |
-| **Total** | **68** | **10** |
+| **Total** | **68** | **11** |

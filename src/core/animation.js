@@ -129,6 +129,26 @@ export class AnimationController extends EventTarget {
 
 	}
 
+	/**
+	 * Ejecuta `fn` con el modelo en su pose de reposo (para guardar o exportar) y después vuelve
+	 * a la pose en que estaba (por ejemplo, una animación en pausa a mitad de camino).
+	 * No se usa mientras una animación está sonando.
+	 */
+	async atRestPose( fn ) {
+
+		if ( this.model ) this.model.restoreRestPose();
+		try {
+
+			return await fn();
+
+		} finally {
+
+			if ( this.mixer && this.action && this.action.isScheduled() ) this.mixer.update( 0 );
+
+		}
+
+	}
+
 	/** Mueve la animación a un momento (en segundos), aunque esté en pausa. */
 	seek( seconds ) {
 

@@ -72,13 +72,13 @@ export async function exportProject( model, { appVersion = '' } = {} ) {
 async function writeGLB( model, { clips, maxTextureSize, textureMime, sceneUserData = {} } ) {
 
 	const container = model.container;
-	const parent = container.parent;
-	const index = parent ? parent.children.indexOf( container ) : - 1;
 
+	// Escena temporal. El contenedor se agrega a su lista de hijos SIN sacarlo de la escena del
+	// visor (como hace GLTFExporter por dentro): así el modelo no "parpadea" al exportar.
 	const scene = new Scene();
 	scene.name = model.baseName;
 	scene.userData = sceneUserData;
-	scene.add( container );
+	scene.children.push( container );
 
 	const restoreTextures = overrideImageFormats( container, textureMime );
 
@@ -97,17 +97,7 @@ async function writeGLB( model, { clips, maxTextureSize, textureMime, sceneUserD
 	} finally {
 
 		restoreTextures();
-		scene.remove( container );
-		if ( parent ) {
-
-			parent.add( container );
-			// Vuelve a su lugar entre los hijos (el orden importa para la interfaz).
-			parent.children.splice( parent.children.indexOf( container ), 1 );
-			parent.children.splice( index, 0, container );
-
-		}
-
-		container.updateMatrixWorld( true );
+		scene.children.length = 0;
 
 	}
 

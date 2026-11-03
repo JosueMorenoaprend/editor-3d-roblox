@@ -4,6 +4,40 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 8 — Autoguardado y “¿Seguimos donde lo dejaste?” (2026-11-03)
+
+**Tarea:** F0-10.
+
+**Qué hice**
+
+- `src/core/autosave.js`: guarda, lee y borra el último trabajo en **IndexedDB** (la base de datos del
+  navegador; nada sale a internet). Si el navegador no lo permite (modo privado, sin espacio), lo
+  dice con un mensaje claro y recomienda “Guardar proyecto”.
+- `src/ui/autosave.js`: 1,5 s después de cada cambio (o deshacer/rehacer) guarda el proyecto (el
+  mismo formato del ciclo 7). Espera si se está reduciendo/exportando o si suena una animación.
+  **Abrir un modelo sin cambiarlo no borra lo guardado antes.** En *Proyecto* se ve
+  “✓ Guardado automático hoy a las 10:32 (26 KB)”.
+- Al abrir el editor, si hay trabajo guardado: tarjeta **“¿Seguimos donde lo dejaste?”** con
+  “Recuperar mi trabajo” y “Descartar”.
+- Arreglo encontrado al diseñarlo: exportar sacaba el modelo de la escena un instante (con el
+  autoguardado habría **parpadeado**). Ahora se exporta sin moverlo, como hace three.js por dentro.
+- `animation.atRestPose()`: guarda en la pose de reposo y luego vuelve a la pose en pausa.
+- Al recargar, la página empieza arriba (en el celular, la tarjeta quedaba fuera de la vista porque el
+  navegador recordaba el scroll).
+
+**Cómo lo verifiqué**
+
+- 2 flujos e2e nuevos (escritorio y móvil): cambiar → esperar el autoguardado → **recargar** →
+  recuperar (con los ajustes, que se pueden quitar); y abrir otro modelo sin cambios → recargar → lo
+  guardado sigue → “Descartar” → recargar → ya no está.
+- Capturas de la tarjeta en escritorio y móvil revisadas.
+- `npm run check` → código 0: **47/47** Vitest y **22/22** Playwright.
+
+**Qué sigue:** quedan de la Fase 0 F0-07/F0-08 (⏳ esperan que actives Actions), F0-14 (Baja) y
+F0-15 (Media, mensajes de error). Después, **Fase 1: animación** (mapa de huesos, F1-01).
+
+---
+
 ## Ciclo 7 — Guardar y abrir proyectos (2026-11-03)
 
 **Tarea:** F0-11 (lo hice antes que el autoguardado F0-10 porque el autoguardado usará este mismo
