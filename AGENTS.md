@@ -135,7 +135,11 @@ src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
   model.js              LoadedModel: el modelo dentro de un "contenedor" con los ajustes
   info.js               triángulos, medidas, huesos, animaciones, texturas
   transform.js          escala, altura, giros de 90°, centrar y apoyar en el suelo
-  simplify.js           reducir polígonos (meshoptimizer)
+  simplify.js           reducir polígonos: plan, original de cada malla, simplifyMeshesAsync (worker)
+  simplifyGeometry.js   el algoritmo (meshoptimizer), sin estado
+  simplify.worker.js    Web Worker que reduce sin congelar la página
+  simplifySync.js       versión en el mismo hilo (pruebas en Node)
+  geometryTransfer.js   empaquetar geometrías para enviarlas a un worker
   animation.js          reproducir animaciones (AnimationMixer)
   exporter.js           exportar .glb (GLTFExporter) y comprobar el resultado
   keyframes.js          pistas de animación con giros en grados
@@ -162,6 +166,9 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
   mallas), `transform` (cambió escala/giro/posición), `settings` (cambió una preferencia).
 - `app.run( mensaje, tarea, prefijoDeError )` muestra “Trabajando…” y convierte los errores en avisos
   en español.
+- **Tareas largas:** `app.run( mensaje, ( { progress, signal } ) => …, error, { cancellable: true } )`
+  muestra barra de avance y botón Cancelar. Lo pesado va en un **Web Worker** (ver
+  `simplify.worker.js`) para que la página nunca se congele.
 - **Toda acción que cambie el modelo se guarda en `app.history`** con `push( { label, undo, redo } )`
   (la acción ya está hecha al guardarla). Ejemplos: `adjust()` en `adjustPanel.js` y
   `pushGeometryChange()` en `simplifyPanel.js`. El historial se vacía al abrir otro modelo.

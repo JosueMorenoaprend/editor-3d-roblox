@@ -14,6 +14,10 @@ function basePath( command, isPreview ) {
 
 export default defineConfig( ( { command, isPreview } ) => ( {
 	base: basePath( command, isPreview ),
+	// Los Web Workers (por ejemplo, el que reduce polígonos) son módulos ES.
+	worker: {
+		format: 'es',
+	},
 	build: {
 		target: 'es2022',
 		// three.js es grande; no es un error que el paquete pase de 500 kB.

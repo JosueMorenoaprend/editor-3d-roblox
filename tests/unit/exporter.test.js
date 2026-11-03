@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { exportGLB, verifyGLB } from '../../src/core/exporter.js';
-import { simplifierReady, simplifyMeshes } from '../../src/core/simplify.js';
+import { simplifierReady, simplifyMeshes } from '../../src/core/simplifySync.js';
 import { centerAndGround, rotate90, scaleToHeight } from '../../src/core/transform.js';
 import { describeIssues, validateGLB } from '../helpers/gltf.js';
 import { openSample, sizeOf } from './helpers.js';

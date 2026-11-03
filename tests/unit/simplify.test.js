@@ -2,8 +2,9 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { BufferGeometry, BufferAttribute, Mesh, MeshBasicMaterial, SkinnedMesh } from 'three';
 import { countTriangles } from '../../src/core/info.js';
 import {
-	checkSimplifiable, getOriginalGeometry, isSimplified, restoreMesh, simplifierReady, simplifyGeometry, simplifyMeshes,
+	checkSimplifiable, getOriginalGeometry, isSimplified, restoreMesh, simplifyMeshesAsync,
 } from '../../src/core/simplify.js';
+import { simplifierReady, simplifyGeometry, simplifyMeshes } from '../../src/core/simplifySync.js';
 import { openSample } from './helpers.js';
 
 beforeAll( () => simplifierReady );
@@ -84,6 +85,30 @@ describe( 'reducir polígonos', () => {
 			expect( skinWeight.getX( i ) + skinWeight.getY( i ) + skinWeight.getZ( i ) + skinWeight.getW( i ) ).toBeCloseTo( 1, 5 );
 
 		}
+
+	} );
+
+	it( 'la versión sin congelar da el mismo resultado, avisa el progreso y se puede cancelar', async () => {
+
+		const { model: a } = openSample( 'pesado', { texture: false } );
+		const { model: b } = openSample( 'pesado', { texture: false } );
+		const [ sync ] = simplifyMeshes( a.meshes, 20000 );
+
+		const progress = [];
+		const [ async ] = await simplifyMeshesAsync( b.meshes, 20000, {}, { onProgress: ( fraction ) => progress.push( fraction ) } );
+		expect( async.after ).toBe( sync.after );
+		expect( countTriangles( b.meshes[ 0 ].geometry ) ).toBe( sync.after );
+		expect( progress.length ).toBeGreaterThan( 2 );
+		expect( progress.at( - 1 ) ).toBe( 1 );
+		for ( let i = 1; i < progress.length; i ++ ) expect( progress[ i ] ).toBeGreaterThanOrEqual( progress[ i - 1 ] );
+
+		// Cancelado antes de empezar: no cambia nada.
+		const { model: c } = openSample( 'pesado', { texture: false } );
+		const controller = new AbortController();
+		controller.abort();
+		await expect( simplifyMeshesAsync( c.meshes, 20000, {}, { signal: controller.signal } ) ).rejects.toThrow();
+		expect( countTriangles( c.meshes[ 0 ].geometry ) ).toBe( 120000 );
+		expect( isSimplified( c.meshes[ 0 ] ) ).toBe( false );
 
 	} );
 

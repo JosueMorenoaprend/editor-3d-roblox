@@ -2,7 +2,7 @@
 import { countTriangles } from '../core/info.js';
 import {
 	applyGeometryState, captureGeometryState, checkSimplifiable, getOriginalGeometry, isSimplified, restoreMesh,
-	simplifierReady, simplifyMeshes,
+	simplifyMeshesAsync,
 } from '../core/simplify.js';
 import { $, escapeHtml, formatInt, readNumber } from './dom.js';
 import { toast } from './toast.js';
@@ -16,21 +16,10 @@ export function initSimplifyPanel( app ) {
 	const undoButton = $( '#btn-simplify-undo' );
 	const result = $( '#simplify-result' );
 
-	let ready = false;
 	/** Mallas marcadas para reducir. */
 	let selected = new Set();
-
-	simplifierReady.then( () => {
-
-		ready = true;
-		render();
-
-	} ).catch( ( error ) => {
-
-		console.error( error );
-		toast( 'No se pudo cargar el simplificador (WebAssembly). Prueba con otro navegador.', 'error' );
-
-	} );
+	/** ¿Hay una reducción en curso? */
+	let running = false;
 
 	function target() {
 
@@ -81,8 +70,16 @@ export function initSimplifyPanel( app ) {
 		if ( meshes.length === 0 ) return;
 
 		const before = captureGeometryState( model.meshes );
-		const results = await app.run( 'Reduciendo polígonos…', () => simplifyMeshes( meshes, goal, { permissive: permissive.checked } ), 'No se pudo reducir' );
-		if ( ! results ) return;
+		running = true;
+		render();
+		// Se reduce en un Web Worker: la página sigue respondiendo y se puede cancelar.
+		const results = await app.run( 'Reduciendo polígonos…', ( { progress, signal } ) =>
+			simplifyMeshesAsync( meshes, goal, { permissive: permissive.checked }, { onProgress: progress, signal } ),
+		'No se pudo reducir', { cancellable: true, cancelMessage: 'Reducción cancelada: el modelo quedó igual.' } );
+		running = false;
+		render();
+		// Si mientras tanto se abrió otro modelo, el resultado ya no sirve.
+		if ( ! results || app.model !== model ) return;
 
 		model.updateLocalBox();
 		showResults( results, goal );
@@ -187,9 +184,9 @@ export function initSimplifyPanel( app ) {
 		} ).join( '' );
 
 		const anySelected = model.meshes.some( ( mesh ) => selected.has( mesh ) );
-		runButton.disabled = ! ready || ! anySelected || goal === null;
-		runButton.textContent = ready ? 'Reducir' : 'Cargando simplificador…';
-		undoButton.disabled = ! model.meshes.some( isSimplified );
+		runButton.disabled = running || ! anySelected || goal === null;
+		runButton.textContent = running ? 'Reduciendo…' : 'Reducir';
+		undoButton.disabled = running || ! model.meshes.some( isSimplified );
 
 	}
 

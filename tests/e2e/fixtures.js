@@ -40,11 +40,14 @@ export async function settle( page ) {
 
 }
 
-/** Guarda una captura en test-results/capturas/<proyecto>-<nombre>.png. */
-export async function capture( page, testInfo, name, options = {} ) {
+/**
+ * Guarda una captura en test-results/capturas/<proyecto>-<nombre>.png.
+ * Con { wait: false } se toma al instante (para cosas que duran poco, como una barra de avance).
+ */
+export async function capture( page, testInfo, name, { wait = true, ...options } = {} ) {
 
 	mkdirSync( SHOTS_DIR, { recursive: true } );
-	await settle( page );
+	if ( wait ) await settle( page );
 	const path = join( SHOTS_DIR, `${ testInfo.project.name }-${ name }.png` );
 	await page.screenshot( { path, ...options } );
 	await testInfo.attach( name, { path, contentType: 'image/png' } );

@@ -45,7 +45,12 @@
 					</div>
 				</div>
 				<div class="drop-overlay" id="drop-overlay" hidden>Suelta el archivo para abrirlo</div>
-				<div class="busy" id="busy" hidden><span class="spinner"></span><span id="busy-text">Trabajando…</span></div>
+				<div class="busy" id="busy" hidden role="status">
+					<span class="spinner"></span>
+					<span id="busy-text">Trabajando…</span>
+					<progress id="busy-progress" max="1" value="0" hidden aria-label="Avance"></progress>
+					<button type="button" class="btn btn-sm" id="busy-cancel" hidden>Cancelar</button>
+				</div>
 				<p class="hint">Arrastra para girar · rueda o pellizco para acercar · clic derecho o dos dedos para mover</p>
 			</section>
 

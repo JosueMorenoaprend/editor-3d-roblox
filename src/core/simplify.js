@@ -1,15 +1,10 @@
-// Reducción de polígonos con el simplificador de meshoptimizer.
+// Reducir polígonos: qué mallas se reducen, su geometría original (para volver atrás)
+// y la reducción en un Web Worker para que la página no se congele.
 //
-// Cómo funciona: meshoptimizer elige qué triángulos quitar y devuelve una lista
-// nueva de triángulos que usa SOLO vértices que ya existían. Los vértices que quedan
-// no se modifican, así que sus UV (textura), normales, colores y pesos de huesos
-// (skinIndex / skinWeight) se conservan exactamente.
-import { BufferAttribute, BufferGeometry } from 'three';
-import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
-import { MeshoptSimplifier } from 'meshoptimizer/simplifier';
+// El algoritmo está en simplifyGeometry.js. Este archivo no lo importa directamente:
+// así el paquete principal no carga meshoptimizer (lo carga el worker cuando hace falta).
 import { countTriangles } from './info.js';
-
-export const simplifierReady = MeshoptSimplifier.ready;
+import { packGeometry, unpackGeometry } from './geometryTransfer.js';
 
 // Geometría original de cada malla, para poder deshacer y para reducir
 // siempre desde el original (da mejor calidad que reducir lo ya reducido).
@@ -66,17 +61,13 @@ export function checkSimplifiable( mesh ) {
 }
 
 /**
- * Reduce varias mallas a un número de triángulos por malla.
- * @param {THREE.Mesh[]} meshes
- * @param {number} targetTriangles triángulos objetivo POR MALLA
- * @param {{ permissive?: boolean }} options permissive: permite cruzar costuras de UV
+ * Decide qué hacer con cada malla. Las mallas que comparten geometría se reducen una sola vez.
+ * @returns {{ targetTriangles: number, items: object[], jobs: { original: import('three').BufferGeometry, targetTriangles: number, options: object }[] }}
  */
-export function simplifyMeshes( meshes, targetTriangles, options = {} ) {
+export function planSimplification( meshes, targetTriangles, options = {} ) {
 
-	const results = [];
-	// Si varias mallas comparten la misma geometría, se reduce una sola vez.
-	const cache = new Map();
-
+	const items = [];
+	const jobs = [];
 	for ( const mesh of meshes ) {
 
 		const check = checkSimplifiable( mesh );
@@ -85,43 +76,204 @@ export function simplifyMeshes( meshes, targetTriangles, options = {} ) {
 
 		if ( ! check.ok ) {
 
-			results.push( { mesh, before, after: countTriangles( mesh.geometry ), skipped: check.reason } );
+			items.push( { mesh, before, after: countTriangles( mesh.geometry ), skipped: check.reason } );
 			continue;
 
 		}
 
 		if ( before <= targetTriangles ) {
 
-			restoreMesh( mesh );
-			results.push( { mesh, before, after: before, skipped: 'Ya tiene menos triángulos que el objetivo.' } );
+			items.push( { mesh, before, after: before, skipped: 'Ya tiene menos triángulos que el objetivo.', restore: true } );
 			continue;
 
 		}
 
-		let simplified = cache.get( original );
-		if ( ! simplified ) {
+		const skinned = mesh.isSkinnedMesh === true;
+		let job = jobs.find( ( j ) => j.original === original && j.options.skinned === skinned );
+		if ( ! job ) {
 
-			simplified = simplifyGeometry( original, targetTriangles, {
-				...options,
-				skinned: mesh.isSkinnedMesh === true,
-			} );
-			cache.set( original, simplified );
+			job = { original, targetTriangles, options: { permissive: options.permissive === true, skinned } };
+			jobs.push( job );
 
 		}
 
-		setGeometry( mesh, simplified.geometry, original );
-		results.push( {
-			mesh,
-			before,
-			after: countTriangles( simplified.geometry ),
-			reached: countTriangles( simplified.geometry ) <= targetTriangles * 1.01,
-		} );
+		items.push( { mesh, before, job } );
 
 	}
 
-	return results;
+	return { targetTriangles, items, jobs };
 
 }
+
+/**
+ * Pone en las mallas las geometrías reducidas.
+ * @param {ReturnType<typeof planSimplification>} plan
+ * @param {Map<object, import('three').BufferGeometry>} outputs geometría reducida de cada trabajo
+ */
+export function applySimplification( plan, outputs ) {
+
+	return plan.items.map( ( item ) => {
+
+		const { mesh, before } = item;
+		if ( item.restore ) restoreMesh( mesh );
+		if ( ! item.job ) return { mesh, before, after: item.after, skipped: item.skipped };
+
+		const geometry = outputs.get( item.job );
+		setGeometry( mesh, geometry, item.job.original );
+		const after = countTriangles( geometry );
+		return { mesh, before, after, reached: after <= plan.targetTriangles * 1.01 };
+
+	} );
+
+}
+
+/**
+ * Reduce varias mallas sin congelar la página (en un Web Worker).
+ * Nada cambia hasta que terminan todas: si se cancela, el modelo queda igual.
+ * @param {import('three').Mesh[]} meshes
+ * @param {number} targetTriangles triángulos objetivo POR MALLA
+ * @param {{ permissive?: boolean }} options
+ * @param {{ onProgress?: ( fraction: number, text: string ) => void, signal?: AbortSignal }} [control]
+ */
+export async function simplifyMeshesAsync( meshes, targetTriangles, options = {}, { onProgress, signal } = {} ) {
+
+	const plan = planSimplification( meshes, targetTriangles, options );
+	const outputs = new Map();
+	const total = plan.jobs.length;
+	for ( const [ i, job ] of plan.jobs.entries() ) {
+
+		signal?.throwIfAborted();
+		const text = total > 1 ? `Reduciendo malla ${ i + 1 } de ${ total }…` : 'Reduciendo polígonos…';
+		onProgress?.( i / total, text );
+		const geometry = await simplifyJob( job, ( fraction ) => onProgress?.( ( i + fraction ) / total, text ), signal );
+		outputs.set( job, geometry );
+
+	}
+
+	signal?.throwIfAborted();
+	onProgress?.( 1, 'Terminando…' );
+	return applySimplification( plan, outputs );
+
+}
+
+// ---------- Web Worker ----------
+
+let worker = null;
+let workerBroken = typeof Worker === 'undefined';
+let nextJobId = 1;
+
+function getWorker() {
+
+	if ( ! worker ) worker = new Worker( new URL( './simplify.worker.js', import.meta.url ), { type: 'module' } );
+	return worker;
+
+}
+
+/** Detiene el worker (al cancelar). Se crea otro la próxima vez. */
+function stopWorker() {
+
+	if ( worker ) worker.terminate();
+	worker = null;
+
+}
+
+async function simplifyJob( job, onStage, signal ) {
+
+	if ( ! workerBroken ) {
+
+		try {
+
+			return await simplifyInWorker( job, onStage, signal );
+
+		} catch ( error ) {
+
+			if ( ! error || error.name !== 'WorkerLoadError' ) throw error;
+			// El navegador no pudo iniciar el worker: se hace en la página (más lento, pero funciona).
+			console.warn( 'No se pudo usar un Web Worker para reducir; se reduce en la página.', error.message );
+			workerBroken = true;
+
+		}
+
+	}
+
+	const { simplifierReady, simplifyGeometry } = await import( './simplifyGeometry.js' );
+	await simplifierReady;
+	signal?.throwIfAborted();
+	return simplifyGeometry( job.original, job.targetTriangles, { ...job.options, onStage } ).geometry;
+
+}
+
+function simplifyInWorker( job, onStage, signal ) {
+
+	return new Promise( ( resolve, reject ) => {
+
+		const target = getWorker();
+		const id = nextJobId ++;
+		let started = false;
+
+		const cleanup = () => {
+
+			target.removeEventListener( 'message', onMessage );
+			target.removeEventListener( 'error', onError );
+			signal?.removeEventListener( 'abort', onAbort );
+
+		};
+
+		const onMessage = ( event ) => {
+
+			const message = event.data;
+			if ( ! message || message.id !== id ) return;
+			started = true;
+			if ( message.type === 'progress' ) {
+
+				onStage( message.fraction );
+
+			} else if ( message.type === 'result' ) {
+
+				cleanup();
+				resolve( unpackGeometry( message.geometry ) );
+
+			} else if ( message.type === 'error' ) {
+
+				cleanup();
+				reject( new Error( message.message ) );
+
+			}
+
+		};
+
+		const onError = ( event ) => {
+
+			cleanup();
+			stopWorker();
+			const error = new Error( event.message || 'El proceso que reduce los polígonos se detuvo.' );
+			// Si falló antes de empezar, el worker no pudo cargarse.
+			if ( ! started ) error.name = 'WorkerLoadError';
+			reject( error );
+
+		};
+
+		const onAbort = () => {
+
+			cleanup();
+			stopWorker();
+			reject( signal.reason ?? new DOMException( 'Cancelado', 'AbortError' ) );
+
+		};
+
+		target.addEventListener( 'message', onMessage );
+		target.addEventListener( 'error', onError );
+		signal?.addEventListener( 'abort', onAbort, { once: true } );
+
+		// Se envía una copia: la geometría original sigue intacta en la página.
+		const { data, transfer } = packGeometry( job.original );
+		target.postMessage( { id, geometry: data, targetTriangles: job.targetTriangles, options: job.options }, transfer );
+
+	} );
+
+}
+
+// ---------- Volver al original, deshacer y liberar memoria ----------
 
 /** Vuelve a poner la geometría original. */
 export function restoreMesh( mesh ) {
@@ -209,237 +361,5 @@ function resetBounds( mesh ) {
 		mesh.boundingSphere = null;
 
 	}
-
-}
-
-/**
- * Reduce una geometría. Devuelve una geometría nueva (no toca la original).
- */
-export function simplifyGeometry( source, targetTriangles, { permissive = false, skinned = false } = {} ) {
-
-	// 1. Copia con atributos "planos" (sin intercalar) y vértices repetidos soldados.
-	//    El simplificador necesita que los vértices idénticos sean uno solo.
-	const geometry = mergeVertices( toPlainGeometry( source ), 1e-6 );
-	const index = geometry.index.array;
-	const vertexCount = geometry.attributes.position.count;
-
-	// 2. Posiciones como Float32Array (por si venían cuantizadas, ej. Int16).
-	const positions = readFloats( geometry.attributes.position, 3 );
-
-	// 3. Atributos que ayudan a decidir qué quitar (como en gltfpack):
-	//    normales (peso 0,5) y colores (peso 1). En modo permisivo también las UV.
-	const extra = [];
-	if ( geometry.attributes.normal ) extra.push( { attribute: geometry.attributes.normal, size: 3, weight: 0.5 } );
-	if ( geometry.attributes.color ) extra.push( { attribute: geometry.attributes.color, size: 3, weight: 1 } );
-	if ( permissive && geometry.attributes.uv ) extra.push( { attribute: geometry.attributes.uv, size: 2, weight: 1 } );
-
-	const stride = extra.reduce( ( sum, e ) => sum + e.size, 0 );
-	const weights = [];
-	const attributeData = new Float32Array( vertexCount * stride );
-	let offset = 0;
-	for ( const { attribute, size, weight } of extra ) {
-
-		const values = readFloats( attribute, size );
-		for ( let v = 0; v < vertexCount; v ++ ) {
-
-			for ( let c = 0; c < size; c ++ ) attributeData[ v * stride + offset + c ] = values[ v * size + c ];
-
-		}
-
-		for ( let c = 0; c < size; c ++ ) weights.push( weight );
-		offset += size;
-
-	}
-
-	// No usamos 'Prune': con objetivos muy bajos borra piezas enteras (ojos, botones...).
-	// Preferimos no llegar al objetivo y avisar, antes que perder partes del modelo.
-	const flags = [];
-	if ( skinned ) flags.push( 'RegularizeLight' ); // triángulos más parejos: se deforman mejor al animar
-	if ( permissive ) flags.push( 'Permissive' ); // permite cruzar costuras de la textura
-
-	// 4. Simplificar cada grupo (material) por separado, repartiendo el objetivo.
-	const totalTriangles = index.length / 3;
-	const groups = geometry.groups.length > 0
-		? geometry.groups
-		: [ { start: 0, count: index.length, materialIndex: undefined } ];
-	const multiGroup = groups.length > 1;
-	const scale = MeshoptSimplifier.getScale( positions, 3 );
-
-	const parts = [];
-	let maxError = 0;
-	for ( const group of groups ) {
-
-		const groupIndex = index.subarray( group.start, group.start + group.count );
-		const groupIndices = new Uint32Array( groupIndex );
-		const share = groupIndices.length / 3 / totalTriangles;
-		const target = Math.max( 1, Math.floor( targetTriangles * share ) ) * 3;
-
-		const groupFlags = multiGroup ? [ ...flags, 'Sparse', 'ErrorAbsolute' ] : flags;
-		// Error máximo = 100 % del tamaño del modelo: dejamos que llegue al objetivo.
-		const targetError = multiGroup ? scale : 1;
-
-		const [ result, error ] = stride > 0
-			? MeshoptSimplifier.simplifyWithAttributes(
-				groupIndices, positions, 3, attributeData, stride, weights, null, target, targetError, groupFlags )
-			: MeshoptSimplifier.simplify( groupIndices, positions, 3, target, targetError, groupFlags );
-
-		maxError = Math.max( maxError, multiGroup ? error / scale : error );
-		parts.push( { indices: result, materialIndex: group.materialIndex } );
-
-	}
-
-	// 5. Unir los grupos y quitar los vértices que quedaron sin usar.
-	const newIndexCount = parts.reduce( ( sum, p ) => sum + p.indices.length, 0 );
-	const newIndex = new Uint32Array( newIndexCount );
-	const newGroups = [];
-	let cursor = 0;
-	for ( const part of parts ) {
-
-		newIndex.set( part.indices, cursor );
-		newGroups.push( { start: cursor, count: part.indices.length, materialIndex: part.materialIndex } );
-		cursor += part.indices.length;
-
-	}
-
-	const output = compact( geometry, newIndex );
-	if ( multiGroup || source.groups.length > 0 ) {
-
-		for ( const g of newGroups ) output.addGroup( g.start, g.count, g.materialIndex ?? 0 );
-
-	}
-
-	output.name = source.name;
-	output.userData = { ...source.userData };
-	output.computeBoundingBox();
-	output.computeBoundingSphere();
-	geometry.dispose();
-
-	return { geometry: output, error: maxError };
-
-}
-
-/** Crea una geometría nueva solo con los vértices usados por `indices`. */
-function compact( geometry, indices ) {
-
-	const [ remap, unique ] = MeshoptSimplifier.compactMesh( indices ); // también renumera `indices`
-	const output = new BufferGeometry();
-
-	for ( const [ name, attribute ] of Object.entries( geometry.attributes ) ) {
-
-		output.setAttribute( name, remapAttribute( attribute, remap, unique ) );
-
-	}
-
-	for ( const [ name, list ] of Object.entries( geometry.morphAttributes ) ) {
-
-		output.morphAttributes[ name ] = list.map( ( attribute ) => {
-
-			const remapped = remapAttribute( attribute, remap, unique );
-			remapped.name = attribute.name;
-			return remapped;
-
-		} );
-
-	}
-
-	output.morphTargetsRelative = geometry.morphTargetsRelative;
-	const indexArray = unique <= 65535 ? new Uint16Array( indices ) : indices;
-	output.setIndex( new BufferAttribute( indexArray, 1 ) );
-	return output;
-
-}
-
-function remapAttribute( attribute, remap, unique ) {
-
-	const size = attribute.itemSize;
-	const source = attribute.array;
-	const target = new source.constructor( unique * size );
-	for ( let i = 0; i < remap.length; i ++ ) {
-
-		const to = remap[ i ];
-		if ( to === 0xffffffff ) continue;
-		for ( let c = 0; c < size; c ++ ) target[ to * size + c ] = source[ i * size + c ];
-
-	}
-
-	return new BufferAttribute( target, size, attribute.normalized );
-
-}
-
-/** Copia una geometría pasando atributos intercalados a atributos normales. */
-function toPlainGeometry( source ) {
-
-	const geometry = new BufferGeometry();
-	for ( const [ name, attribute ] of Object.entries( source.attributes ) ) {
-
-		geometry.setAttribute( name, toPlainAttribute( attribute ) );
-
-	}
-
-	for ( const [ name, list ] of Object.entries( source.morphAttributes ) ) {
-
-		geometry.morphAttributes[ name ] = list.map( toPlainAttribute );
-
-	}
-
-	geometry.morphTargetsRelative = source.morphTargetsRelative;
-	if ( source.index ) {
-
-		geometry.setIndex( new BufferAttribute( new Uint32Array( source.index.array ), 1 ) );
-
-	} else {
-
-		const count = source.attributes.position.count;
-		const indices = new Uint32Array( count );
-		for ( let i = 0; i < count; i ++ ) indices[ i ] = i;
-		geometry.setIndex( new BufferAttribute( indices, 1 ) );
-
-	}
-
-	for ( const group of source.groups ) geometry.addGroup( group.start, group.count, group.materialIndex );
-	return geometry;
-
-}
-
-function toPlainAttribute( attribute ) {
-
-	if ( ! attribute.isInterleavedBufferAttribute ) {
-
-		const copy = new BufferAttribute( attribute.array.slice(), attribute.itemSize, attribute.normalized );
-		copy.name = attribute.name;
-		return copy;
-
-	}
-
-	const { itemSize, count, offset } = attribute;
-	const data = attribute.data;
-	const array = new data.array.constructor( count * itemSize );
-	for ( let i = 0; i < count; i ++ ) {
-
-		for ( let c = 0; c < itemSize; c ++ ) array[ i * itemSize + c ] = data.array[ i * data.stride + offset + c ];
-
-	}
-
-	const copy = new BufferAttribute( array, itemSize, attribute.normalized );
-	copy.name = attribute.name;
-	return copy;
-
-}
-
-/** Lee un atributo como Float32Array (convierte valores cuantizados/normalizados). */
-function readFloats( attribute, size ) {
-
-	const out = new Float32Array( attribute.count * size );
-	for ( let i = 0; i < attribute.count; i ++ ) {
-
-		for ( let c = 0; c < size; c ++ ) {
-
-			out[ i * size + c ] = c < attribute.itemSize ? attribute.getComponent( i, c ) : 0;
-
-		}
-
-	}
-
-	return out;
 
 }

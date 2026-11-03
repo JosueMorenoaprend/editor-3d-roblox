@@ -22,6 +22,9 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
 - **Nuevo: Deshacer y Rehacer.** Botones ↶ ↷ arriba, o **Ctrl+Z** y **Ctrl+Y** (Cmd en Mac). Funciona
   con todos los ajustes, con “Reducir” y con “Volver al original”. Al pasar el mouse por el botón ves
   qué se va a deshacer.
+- **Reducir polígonos ya no congela la página.** Se hace en segundo plano: mientras tanto puedes
+  mover la cámara, ves una **barra de avance** y puedes pulsar **Cancelar** (el modelo queda igual).
+- El editor arranca un poco más rápido: la herramienta de reducir se carga solo cuando la usas.
 
 ## Versión 1
 

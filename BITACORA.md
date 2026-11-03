@@ -4,6 +4,47 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 6 — Reducir polígonos sin congelar la página (2026-11-03)
+
+**Tarea:** F0-12.
+
+**Medida antes:** con la API de *tareas largas* del navegador, la reducción de la malla de 120.000
+triángulos bloqueaba la página todo el tiempo que duraba (aquí 1–1,5 s; en la PC del usuario, ~10 s).
+
+**Qué hice**
+
+- `src/core/simplifyGeometry.js`: el algoritmo (meshoptimizer), sin estado y con `onStage` para
+  avisar el avance.
+- `src/core/simplify.worker.js`: Web Worker que recibe la geometría, la reduce y la devuelve.
+- `src/core/geometryTransfer.js`: empaqueta geometrías como listas de números para enviarlas al
+  worker (copia la original, así nunca se daña) y las vuelve a armar.
+- `src/core/simplify.js`: plan (qué mallas se reducen; las que comparten geometría, una sola vez),
+  aplicación del resultado y `simplifyMeshesAsync()` con avance y cancelación. **Nada cambia hasta que
+  termina todo**: si se cancela, el modelo queda igual. Si el navegador no puede iniciar el worker,
+  reduce en la página (plan B).
+- `src/core/simplifySync.js`: la versión en el mismo hilo, para las pruebas en Node.
+- `app.run()` ahora acepta tareas con **barra de avance** y **botón Cancelar** (servirá también para
+  exportar, autoguardar, etc.).
+- En el celular, el aviso “Trabajando…” queda fijo abajo (siempre a la vista) y los avisos flotantes
+  van justo encima, sin tapar los botones de arriba.
+- `vite.config.js`: workers como módulos ES. **El paquete principal bajó de 828 KB a 777 KB**, porque
+  meshoptimizer ahora solo lo carga el worker (166 KB, cuando hace falta).
+
+**Cómo lo verifiqué**
+
+- Vitest: 4 pruebas nuevas (empaquetado de ida y vuelta, copias que no dañan el original, atributos
+  intercalados, y que la versión asíncrona da el **mismo resultado** que la anterior, avisa el avance
+  en orden y al cancelar no cambia nada).
+- Playwright: nueva prueba que cancela (el modelo queda igual) y luego reduce midiendo las tareas
+  largas: **la más larga dura 0–89 ms** (antes, toda la reducción). Resultado 120.000 → 20.000.
+- Revisé la barra de avance en escritorio y móvil (captura forzada, porque aquí la reducción termina
+  antes de que alcance a salir la foto).
+- `npm run check` → código 0: **43/43** Vitest y **16/16** Playwright.
+
+**Qué sigue:** ciclo 7 — autoguardado en IndexedDB (F0-10) y luego proyectos (F0-11).
+
+---
+
 ## Ciclo 5 — Deshacer y rehacer + auditoría profunda (2026-11-03)
 
 **Auditoría profunda (cada 5 ciclos)**

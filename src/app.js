@@ -143,24 +143,53 @@ export class App extends EventTarget {
 
 	/**
 	 * Ejecuta una tarea mostrando "Trabajando…" y avisa si falla.
+	 * La tarea recibe { progress( fracción, texto ), signal }: con progress() se llena la barra;
+	 * con cancellable: true aparece el botón "Cancelar", que activa `signal` (AbortSignal).
 	 * @template T
 	 * @param {string} message
-	 * @param {() => Promise<T>|T} task
+	 * @param {( control: { progress: ( fraction: number, text?: string ) => void, signal: AbortSignal } ) => Promise<T>|T} task
 	 * @param {string} errorPrefix
+	 * @param {{ cancellable?: boolean, cancelMessage?: string }} [options]
 	 * @returns {Promise<T|undefined>}
 	 */
-	async run( message, task, errorPrefix = 'Algo salió mal' ) {
+	async run( message, task, errorPrefix = 'Algo salió mal', { cancellable = false, cancelMessage = 'Cancelado.' } = {} ) {
 
 		const busy = $( '#busy' );
-		$( '#busy-text' ).textContent = message;
+		const text = $( '#busy-text' );
+		const bar = $( '#busy-progress' );
+		const cancel = $( '#busy-cancel' );
+		const controller = new AbortController();
+		const onCancel = () => controller.abort( new DOMException( 'Cancelado por el usuario', 'AbortError' ) );
+
+		text.textContent = message;
+		bar.hidden = true;
+		bar.value = 0;
+		cancel.hidden = ! cancellable;
+		cancel.addEventListener( 'click', onCancel );
 		busy.hidden = false;
 		this._busyCount ++;
+
+		const progress = ( fraction, label ) => {
+
+			bar.hidden = false;
+			bar.value = Math.min( Math.max( fraction, 0 ), 1 );
+			if ( label ) text.textContent = label;
+
+		};
+
 		try {
 
 			await nextPaint();
-			return await task();
+			return await task( { progress, signal: controller.signal } );
 
 		} catch ( error ) {
+
+			if ( controller.signal.aborted ) {
+
+				toast( cancelMessage );
+				return undefined;
+
+			}
 
 			// Los errores esperados (archivo equivocado…) ya traen un mensaje claro: no son fallos del programa.
 			if ( error instanceof UserError ) console.warn( error.message );
@@ -170,8 +199,15 @@ export class App extends EventTarget {
 
 		} finally {
 
+			cancel.removeEventListener( 'click', onCancel );
 			this._busyCount --;
-			if ( this._busyCount === 0 ) busy.hidden = true;
+			if ( this._busyCount === 0 ) {
+
+				busy.hidden = true;
+				bar.hidden = true;
+				cancel.hidden = true;
+
+			}
 
 		}
 

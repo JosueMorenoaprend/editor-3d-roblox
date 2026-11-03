@@ -66,10 +66,11 @@ Cómo leer esta lista:
 - [ ] **F0-11** · Alta · **Guardar proyecto / Abrir proyecto** (un archivo que conserva el modelo,
   sus ajustes y sus animaciones).
   - Comprobación: e2e guarda, vuelve a abrir y compara triángulos, medidas, huesos y animaciones.
-- [ ] **F0-12** · Alta · **Reducir polígonos en un Web Worker** con barra de progreso, sin congelar
-  la página (hoy la congela de 2 a 10 s con 120.000 triángulos).
+- [x] **F0-12** · Alta · **Reducir polígonos en un Web Worker** con barra de progreso, sin congelar
+  la página (hoy la congela de 2 a 10 s con 120.000 triángulos). *(ciclo 6)*
   - Comprobación: e2e mide que la página sigue respondiendo durante la reducción y que el resultado
-    es igual al de antes.
+    es igual al de antes. ✔ Tarea más larga mientras reduce: 0–89 ms (antes, bloqueada toda la
+    reducción); mismo resultado (120.000 → 20.000) que la versión anterior; Cancelar deja el modelo igual.
 - [x] **F0-13** · Media · Error visual en móvil: al bajar por el panel, el fondo cambia de color a la
   altura de la pantalla (el panel no crece con su contenido). *(ciclo 4)*
   - Comprobación: captura móvil de página completa sin la franja. ✔ + prueba e2e que mide que el
@@ -199,7 +200,7 @@ Cómo leer esta lista:
 - [ ] **F5-04** · Media · **Panel de atajos de teclado.** — Comprobación: e2e lo abre con “?” o un botón.
 - [ ] **F5-05** · Baja · **Arrastrar y soltar en todas partes** (modelos, animaciones, proyectos). — Comprobación: e2e suelta cada tipo de archivo.
 - [ ] **F5-06** · Media · **Accesibilidad**: contraste, uso con teclado y revisión con axe (⏳ licencia de axe-core). — Comprobación: revisión automática sin errores graves.
-- [ ] **F5-07** · Baja · **Carga diferida** de los módulos pesados. — Comprobación: el paquete inicial pesa menos (medido en la compilación).
+- [ ] **F5-07** · Baja · **Carga diferida** de los módulos pesados. — Comprobación: el paquete inicial pesa menos (medido en la compilación). Avance (ciclo 6): meshoptimizer ya se carga solo en el worker (828 → 777 KB).
 - [ ] **F5-08** · Baja · **Uso sin internet (PWA).** — Comprobación: e2e sin red abre el editor.
 - [ ] **F5-09** · Media · **Galería de ejemplos** (muñeco R15, espada, árbol low-poly), que se pueda abrir también con un modelo ya abierto (hoy los ejemplos solo están en la pantalla inicial). — Comprobación: e2e abre cada ejemplo y lo exporta válido.
 - [ ] **F5-10** · Media · **Dibujar solo cuando algo cambia**: hoy el visor dibuja 60 veces por segundo aunque nada se mueva y gasta batería en laptop y tablet. *(auditoría del ciclo 5)* — Comprobación: prueba que cuenta cuadros dibujados con la escena quieta (≈0) y moviéndose.
@@ -212,10 +213,10 @@ Cómo leer esta lista:
 
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
-| 0 — Base sólida | 15 | 8 |
+| 0 — Base sólida | 15 | 9 |
 | 1 — Animación | 16 | 0 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 12 | 0 |
-| **Total** | **68** | **8** |
+| **Total** | **68** | **9** |

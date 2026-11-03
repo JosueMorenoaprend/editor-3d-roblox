@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { History } from '../../src/core/history.js';
-import { simplifierReady, simplifyMeshes, captureGeometryState, applyGeometryState, isSimplified } from '../../src/core/simplify.js';
+import { captureGeometryState, applyGeometryState, isSimplified } from '../../src/core/simplify.js';
+import { simplifierReady, simplifyMeshes } from '../../src/core/simplifySync.js';
 import { countTriangles } from '../../src/core/info.js';
 import { getTransformState, rotate90, setTransformState, setUniformScale } from '../../src/core/transform.js';
 import { openSample } from './helpers.js';
