@@ -112,6 +112,13 @@ Cada auditoría agrega a `MEJORAS.md` los errores y mejoras nuevas que encuentre
   Las pruebas exigen 0 errores y 0 avisos, salvo los de `ALLOWED_WARNINGS` (cada uno con su motivo).
 - **Vitest en Node:** `tests/unit/setup.js` agrega un `FileReader` mínimo para `GLTFExporter`. En Node
   no hay `<canvas>`: las texturas se exportan en las pruebas del navegador (`tests/e2e`).
+- **Playwright:** `tests/e2e/fixtures.js` falla si hay errores en la consola; `E2E_CONSOLE=1` imprime
+  toda la consola del navegador. Las capturas quedan en `test-results/capturas/` (míralas).
+  Al subir archivos con `setInputFiles`, pasa `{ name, mimeType, buffer }` y **no rutas**: Chromium no
+  recibe archivos cuya ruta tiene letras como “ñ” (los títulos de las pruebas van a la ruta).
+- **Errores para el usuario:** lanza `UserError` (`src/core/errors.js`) con un mensaje que diga qué pasó
+  y cómo arreglarlo; `app.run()` lo muestra sin registrarlo como fallo del programa.
+- **No uses `pkill -f "<texto>"`** con un texto que aparezca en tu propio comando: se mata la shell.
 
 ## 8. Arquitectura
 
@@ -133,14 +140,15 @@ src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
   exporter.js           exportar .glb (GLTFExporter) y comprobar el resultado
   keyframes.js          pistas de animación con giros en grados
   units.js              METERS_PER_STUD (metros ↔ studs)
+  errors.js             UserError: errores con mensaje claro para el usuario
 src/samples/            modelos de prueba generados por código (sin licencias de terceros)
   r15Dummy.js           muñeco R15: 16 huesos, 3 animaciones (Saludar, Caminar, Saltar)
   heavyMesh.js          malla pesada: 120.000 triángulos con textura
   multiPart.js          carrito: 8 piezas, varios materiales, geometría compartida
   index.js              SAMPLES y createSample( id )
-src/ui/                 un archivo por panel de la interfaz
+src/ui/                 un archivo por panel de la interfaz (samples.js: botones de ejemplo)
 tests/unit/             pruebas Vitest del núcleo (Node)
-tests/e2e/              pruebas Playwright (flujos reales en el navegador)
+tests/e2e/              pruebas Playwright (flujos reales en el navegador; playwright.config.js)
 tests/helpers/          ayudantes compartidos (validar GLB, etc.)
 bridge/                 (futuro) puente MCP "Claude en vivo"
 ```

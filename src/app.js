@@ -6,9 +6,11 @@
 //   'transform' -> cambió la escala, rotación o posición
 //   'settings'  -> cambió una preferencia (límite de triángulos, etc.)
 import { AnimationController } from './core/animation.js';
+import { UserError } from './core/errors.js';
 import { loadModelFromFiles } from './core/loader.js';
 import { LoadedModel } from './core/model.js';
 import { forgetOriginals } from './core/simplify.js';
+import { SAMPLES, createSample } from './samples/index.js';
 import { $, nextPaint } from './ui/dom.js';
 import { toast } from './ui/toast.js';
 
@@ -76,6 +78,21 @@ export class App extends EventTarget {
 
 	}
 
+	/** Abre uno de los modelos de ejemplo generados por código (ver src/samples). */
+	async openSample( id ) {
+
+		const sample = SAMPLES.find( ( item ) => item.id === id );
+		if ( ! sample ) return;
+		await this.run( 'Creando el ejemplo…', () => {
+
+			const { gltf, fileName } = createSample( id );
+			this.setModel( new LoadedModel( gltf, fileName ) );
+			toast( `Ejemplo abierto: ${ sample.title }`, 'ok' );
+
+		}, 'No se pudo crear el ejemplo' );
+
+	}
+
 	setModel( model ) {
 
 		const previous = this.model;
@@ -116,7 +133,9 @@ export class App extends EventTarget {
 
 		} catch ( error ) {
 
-			console.error( error );
+			// Los errores esperados (archivo equivocado…) ya traen un mensaje claro: no son fallos del programa.
+			if ( error instanceof UserError ) console.warn( error.message );
+			else console.error( error );
 			toast( `${ errorPrefix }: ${ error && error.message ? error.message : error }`, 'error' );
 			return undefined;
 

@@ -29,18 +29,19 @@ Cómo leer esta lista:
   huesos y animaciones, malla pesada (~120.000 triángulos) con textura y modelo de varias piezas. *(ciclo 1)*
   - Comprobación: pruebas que verifican los 16 huesos con nombres R15, los triángulos y las piezas.
     ✔ `tests/unit/samples.test.js`.
-- [ ] **F0-03** · Alta · Cada GLB exportado en las pruebas pasa **gltf-validator con 0 errores**.
+- [x] **F0-03** · Alta · Cada GLB exportado en las pruebas pasa **gltf-validator con 0 errores**. *(ciclos 1 y 2)*
   - Comprobación: pruebas (Vitest y Playwright) que fallan si el validador da algún error.
-  - Avance: Vitest ya lo comprueba con los 3 ejemplos (ciclo 1). Falta en Playwright (con texturas).
-- [ ] **F0-04** · Alta · Pruebas de punta a punta con **Playwright** y Chromium sin ventana (WebGL por
+    ✔ Vitest (3 ejemplos) y Playwright (muñeco, malla pesada con textura y carrito).
+- [x] **F0-04** · Alta · Pruebas de punta a punta con **Playwright** y Chromium sin ventana (WebGL por
   SwiftShader): abrir ejemplo, abrir archivo, ajustar, reducir, animar, exportar y reabrir. Capturas a
-  1280×800 y 390×844. Fallan si hay errores en la consola. Script `npm run test:e2e`.
+  1280×800 y 390×844. Fallan si hay errores en la consola. Script `npm run test:e2e`. *(ciclo 2)*
   - Comprobación: `npm run test:e2e` en verde y capturas en `test-results/capturas/`.
-- [ ] **F0-05** · Alta · Botones **“Probar con un ejemplo”** en la pantalla inicial (para probar sin
-  tener modelos; también los usan las pruebas).
-  - Comprobación: e2e abre cada ejemplo con un clic y muestra su información.
-- [ ] **F0-06** · Alta · `npm run check` = compilación + Vitest + Playwright.
-  - Comprobación: termina con código 0.
+    ✔ 5 flujos × 2 pantallas = 10 pruebas.
+- [x] **F0-05** · Alta · Botones **“Probar con un ejemplo”** en la pantalla inicial (para probar sin
+  tener modelos; también los usan las pruebas). *(ciclo 2)*
+  - Comprobación: e2e abre cada ejemplo con un clic y muestra su información. ✔
+- [x] **F0-06** · Alta · `npm run check` = compilación + Vitest + Playwright. *(ciclo 2)*
+  - Comprobación: termina con código 0. ✔ (unos 2 minutos)
 - [ ] **F0-07** · Alta · **GitHub Actions** ejecuta `npm run check` en cada push y en cada PR.
   Averiguar por qué no corrió nada en el PR #1.
   - Comprobación: aparece una ejecución verde en la pestaña *Actions* de la rama.
@@ -62,6 +63,14 @@ Cómo leer esta lista:
 - [ ] **F0-13** · Media · Error visual en móvil: al bajar por el panel, el fondo cambia de color a la
   altura de la pantalla (el panel no crece con su contenido).
   - Comprobación: captura móvil de página completa sin la franja.
+- [ ] **F0-14** · Baja · Después de exportar, la comprobación dice “13 mallas” para el carrito de 8
+  piezas: las mallas con varios materiales se guardan en una parte por material (así funciona glTF).
+  Contar piezas o explicarlo para no confundir. *(encontrado en el ciclo 2)*
+  - Comprobación: e2e del carrito: el resultado dice 8 piezas (o lo explica).
+- [ ] **F0-15** · Media · Los errores al abrir archivos dañados ya son claros; revisar el resto de
+  mensajes de error (exportar, reducir, WebGL) para que todos digan **qué pasó y cómo arreglarlo**.
+  *(encontrado en el ciclo 2)*
+  - Comprobación: prueba por cada mensaje de error con su texto en español claro.
 
 ## Fase 1 — Animación (lo más importante para el usuario)
 
@@ -189,10 +198,10 @@ Cómo leer esta lista:
 
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
-| 0 — Base sólida | 13 | 2 |
+| 0 — Base sólida | 15 | 6 |
 | 1 — Animación | 16 | 0 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 9 | 0 |
-| **Total** | **63** | **2** |
+| **Total** | **65** | **6** |

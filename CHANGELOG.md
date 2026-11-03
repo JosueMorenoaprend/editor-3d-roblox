@@ -9,7 +9,13 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
   comprueban que abrir, medir, ajustar, reducir y exportar siguen funcionando. Cada archivo GLB que
   exportan pasa el **validador oficial de glTF** sin errores.
 - Hay **3 modelos de ejemplo hechos por código** (un muñeco R15 con 16 huesos y 3 animaciones, una
-  malla pesada con textura y un carrito de 8 piezas). Pronto podrás abrirlos con un botón.
+  malla pesada con textura y un carrito de 8 piezas).
+- **Nuevo: “Prueba con un ejemplo”.** En la pantalla inicial hay 3 botones para abrir esos ejemplos
+  con un clic y probar todo sin tener modelos propios.
+- Si abres un archivo que no es un modelo, o que está dañado, el editor ahora te dice qué pasó y qué
+  hacer (por ejemplo, descargarlo otra vez desde Tripo AI).
+- Las pruebas automáticas ahora también usan el editor como lo harías tú, en un navegador, en tamaño
+  de computadora y de celular: abren los ejemplos, animan, reducen, ajustan y exportan.
 
 ## Versión 1
 

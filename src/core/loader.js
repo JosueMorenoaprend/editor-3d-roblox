@@ -3,6 +3,7 @@ import { LoadingManager } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader, DRACO_GLTF_CONFIG } from 'three/addons/loaders/DRACOLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { UserError } from './errors.js';
 
 // Decodificador Draco (versión para glTF). Vite copia sus archivos al compilar
 // y solo se descargan si el modelo viene comprimido con Draco.
@@ -45,7 +46,8 @@ export async function loadModelFromFiles( fileList ) {
 	const main = files.find( ( f ) => MODEL_EXT.test( f.name ) );
 	if ( ! main ) {
 
-		throw new Error( 'No encontré ningún archivo .glb o .gltf entre los que elegiste.' );
+		throw new UserError( 'No encontré ningún archivo .glb o .gltf entre los que elegiste. ' +
+			'Elige un archivo que termine en .glb o .gltf (Tripo AI los descarga en GLB).' );
 
 	}
 
@@ -79,14 +81,18 @@ export async function loadModelFromFiles( fileList ) {
 
 		if ( missing.size > 0 ) {
 
-			throw new Error(
+			throw new UserError(
 				`Este .gltf usa archivos externos que no elegiste (${ [ ...missing ].join( ', ' ) }). ` +
-				'Elige o arrastra todos los archivos juntos, o usa la versión .glb.'
+				'Elige o arrastra todos los archivos juntos, o usa la versión .glb.', { cause: error }
 			);
 
 		}
 
-		throw error;
+		throw new UserError(
+			`No pude leer "${ main.name }": el archivo está dañado o no es un modelo glTF válido. ` +
+			'Prueba descargarlo otra vez (por ejemplo, desde Tripo AI) o exportarlo de nuevo como GLB. ' +
+			`Detalle técnico: ${ error && error.message ? error.message : error }`, { cause: error }
+		);
 
 	} finally {
 

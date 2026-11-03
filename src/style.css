@@ -185,6 +185,43 @@ body {
 	font-size: 17px;
 }
 
+/* Botones "Probar con un ejemplo" (la tarjeta deja pasar el mouse; los botones no). */
+.samples {
+	margin-top: 16px;
+	padding-top: 14px;
+	border-top: 1px solid var(--border);
+	pointer-events: auto;
+}
+
+.sample-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 8px;
+	margin-top: 10px;
+}
+
+.sample-btn {
+	flex: 1 1 110px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+	padding: 8px 10px;
+	white-space: normal;
+	line-height: 1.25;
+}
+
+.sample-title {
+	font-weight: 650;
+}
+
+.sample-desc {
+	font-size: 11px;
+	font-weight: 400;
+	color: var(--muted);
+}
+
 .drop-overlay {
 	position: absolute;
 	inset: 10px;
@@ -680,6 +717,25 @@ select:disabled {
 
 	.hint {
 		display: none;
+	}
+
+	/* La tarjeta inicial va debajo de los botones de la vista y más compacta. */
+	.empty-state {
+		place-items: start center;
+		padding: 56px 12px 12px;
+	}
+
+	.empty-card {
+		padding: 14px 16px;
+	}
+
+	.empty-help {
+		display: none;
+	}
+
+	.samples {
+		margin-top: 10px;
+		padding-top: 10px;
 	}
 }
 

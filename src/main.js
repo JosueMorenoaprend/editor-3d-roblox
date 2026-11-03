@@ -18,6 +18,7 @@ import { initAnimationPanel } from './ui/animationPanel.js';
 import { $ } from './ui/dom.js';
 import { initExportPanel } from './ui/exportPanel.js';
 import { initInfoPanel } from './ui/infoPanel.js';
+import { initSamples } from './ui/samples.js';
 import { initSimplifyPanel } from './ui/simplifyPanel.js';
 import { toast } from './ui/toast.js';
 import { initFileOpening, initViewportTools } from './ui/viewportTools.js';
@@ -41,6 +42,7 @@ function start() {
 	const app = new App( viewer );
 	initViewportTools( app );
 	initFileOpening( app );
+	initSamples( app );
 	initInfoPanel( app );
 	initAdjustPanel( app );
 	initSimplifyPanel( app );

@@ -35,6 +35,18 @@ export async function validateGLB( bytes, uri = 'modelo.glb' ) {
 
 }
 
+/** Lee el JSON de un GLB (para revisar imágenes, animaciones, nodos…). */
+export function readGLBJson( bytes ) {
+
+	const data = bytes instanceof Uint8Array ? bytes : new Uint8Array( bytes );
+	const view = new DataView( data.buffer, data.byteOffset, data.byteLength );
+	if ( view.getUint32( 0, true ) !== 0x46546C67 ) throw new Error( 'No es un GLB (falta la firma "glTF").' );
+	const jsonLength = view.getUint32( 12, true );
+	const text = new TextDecoder().decode( data.subarray( 20, 20 + jsonLength ) );
+	return JSON.parse( text );
+
+}
+
 /** Texto legible con los problemas, para los mensajes de las pruebas. */
 export function describeIssues( messages ) {
 

@@ -4,6 +4,48 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 2 — Ejemplos con un clic y pruebas de punta a punta (2026-11-03)
+
+**Tarea:** F0-04 (Playwright), con F0-05 (botones de ejemplo, necesarios para las pruebas), la parte
+de Playwright de F0-03 y F0-06 (`npm run check` completo).
+
+**Qué hice**
+
+- Pantalla inicial: **“¿No tienes un modelo a mano? Prueba con un ejemplo”** con 3 botones (muñeco
+  R15, malla pesada, carrito). `app.openSample( id )` en `src/app.js`, botones en `src/ui/samples.js`.
+- `src/core/errors.js`: `UserError` para errores que el usuario puede arreglar. Abrir un archivo que no
+  es GLB o está dañado ahora dice **qué pasó y qué hacer** (“descárgalo otra vez desde Tripo…”) y no
+  ensucia la consola como si fuera un fallo del programa.
+- Playwright (`playwright.config.js`, `tests/e2e/`): compila y sirve el editor, y recorre 5 flujos en
+  escritorio (1280×800) y móvil (390×844): pantalla inicial; muñeco (animar, exportar, validar y
+  reabrir); malla pesada (aviso, reducir, ver la malla, exportar con textura); carrito (girar, altura
+  en studs, exportar); archivos equivocados. Falla si hay **cualquier error en la consola**.
+- Cada GLB descargado pasa `gltf-validator` (0 errores) y se revisa su contenido (piel, nombres de
+  animaciones, textura PNG).
+- `npm run check` = compilación + Vitest + Playwright.
+
+**Problemas encontrados y arreglados en el ciclo**
+
+- En móvil, la tarjeta de la pantalla inicial tapaba los botones de la vista (la agregué yo en este
+  ciclo): ahora va debajo de ellos, más compacta, y sin el párrafo largo sobre .gltf.
+- Volver a abrir el GLB exportado fallaba solo en la prueba: Chromium **no recibe archivos cuya ruta
+  lleva “ñ”** (la carpeta de resultados se llamaba “…muñeco…”). La prueba ahora entrega el contenido
+  del archivo en vez de la ruta. No afecta a los usuarios (ellos eligen el archivo a mano).
+
+**Nuevas tareas:** F0-14 (la comprobación cuenta 13 mallas en el carrito de 8 piezas, porque glTF
+guarda una parte por material) y F0-15 (revisar el resto de mensajes de error).
+
+**Cómo lo verifiqué**
+
+- `npm run check` → código 0: compilación OK, **32/32** pruebas de Vitest y **10/10** de Playwright
+  (unos 2 minutos).
+- Miré las capturas de escritorio y móvil: pantalla inicial, muñeco saludando, malla pesada reducida
+  con la malla visible, carrito ajustado a 10 studs y la página completa en móvil.
+
+**Qué sigue:** ciclo 3 — GitHub Actions con `npm run check` (F0-07) y que Pages no rompa nada (F0-08).
+
+---
+
 ## Ciclo 1 — Pruebas del núcleo y modelos de prueba (2026-11-03)
 
 **Tarea:** F0-01 (Vitest) y F0-02 (modelos de prueba por código), más el primer paso de F0-03.
