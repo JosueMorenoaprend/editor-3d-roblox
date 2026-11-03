@@ -1,62 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { AnimationMixer, Bone, Euler, Group, Quaternion, Vector3 } from 'three';
+import { AnimationMixer, Vector3 } from 'three';
 import { AnimationController } from '../../src/core/animation.js';
 import { detectBoneMap } from '../../src/core/boneDetect.js';
 import { BONE_TEST_NAME, STEP_SECONDS, createBoneTestClip } from '../../src/core/boneTest.js';
-import { LoadedModel } from '../../src/core/model.js';
 import { rotate90, setUniformScale } from '../../src/core/transform.js';
-import { openSample } from './helpers.js';
-
-// Humanoide sencillo en pose T (metros): [nombre, padre, posición en el mundo]. Mira a +Z; su izquierda es +X.
-const T_POSE = [
-	[ 'Hips', null, [ 0, 1, 0 ] ],
-	[ 'Spine', 'Hips', [ 0, 1.15, 0 ] ],
-	[ 'Chest', 'Spine', [ 0, 1.35, 0 ] ],
-	[ 'Neck', 'Chest', [ 0, 1.5, 0 ] ],
-	[ 'Head', 'Neck', [ 0, 1.6, 0 ] ],
-	[ 'HeadEnd', 'Head', [ 0, 1.8, 0 ] ],
-	...[ [ 'Left', 1 ], [ 'Right', - 1 ] ].flatMap( ( [ s, x ] ) => [
-		[ `${ s }Shoulder`, 'Chest', [ 0.05 * x, 1.45, 0 ] ],
-		[ `${ s }UpperArm`, `${ s }Shoulder`, [ 0.15 * x, 1.45, 0 ] ],
-		[ `${ s }LowerArm`, `${ s }UpperArm`, [ 0.4 * x, 1.45, 0 ] ],
-		[ `${ s }Hand`, `${ s }LowerArm`, [ 0.65 * x, 1.45, 0 ] ],
-		[ `${ s }Finger`, `${ s }Hand`, [ 0.75 * x, 1.45, 0.01 ] ],
-		[ `${ s }UpperLeg`, 'Hips', [ 0.1 * x, 0.95, 0 ] ],
-		[ `${ s }LowerLeg`, `${ s }UpperLeg`, [ 0.1 * x, 0.5, 0 ] ],
-		[ `${ s }Foot`, `${ s }LowerLeg`, [ 0.1 * x, 0.08, 0 ] ],
-		[ `${ s }Toes`, `${ s }Foot`, [ 0.1 * x, 0.02, 0.12 ] ],
-	] ),
-];
-
-/**
- * Crea el humanoide como si se abriera de un archivo. Con `twisted`, cada hueso tiene sus ejes girados
- * al azar (como en Mixamo), pero las articulaciones quedan exactamente en el mismo lugar.
- */
-function buildModel( twisted ) {
-
-	const scene = new Group();
-	const made = new Map();
-	const worldRotation = new Map();
-	let seed = 7;
-	const random = () => ( seed = ( seed * 16807 ) % 2147483647 ) / 2147483647;
-	for ( const [ name, parentName, position ] of T_POSE ) {
-
-		const bone = new Bone();
-		bone.name = name;
-		const parent = parentName ? made.get( parentName ) : null;
-		const parentPosition = parentName ? new Vector3( ...T_POSE.find( ( item ) => item[ 0 ] === parentName )[ 2 ] ) : new Vector3();
-		const parentRotation = parent ? worldRotation.get( parent ) : new Quaternion();
-		bone.position.copy( new Vector3( ...position ).sub( parentPosition ).applyQuaternion( parentRotation.clone().invert() ) );
-		if ( twisted ) bone.quaternion.setFromEuler( new Euler( random() * 6, random() * 6, random() * 6 ) );
-		worldRotation.set( bone, parentRotation.clone().multiply( bone.quaternion ) );
-		( parent || scene ).add( bone );
-		made.set( name, bone );
-
-	}
-
-	return new LoadedModel( { scene, animations: [] }, twisted ? 'girado.glb' : 'recto.glb' );
-
-}
+import { buildTPoseHumanoid, openSample } from './helpers.js';
 
 /** Posición de cada hueso (en el espacio del modelo) en un momento de la animación. */
 function poseAt( model, clip, time ) {
@@ -116,8 +64,8 @@ describe( 'animación de prueba del mapa de huesos', () => {
 
 	it( 'se ve igual aunque cada hueso tenga sus ejes girados (como en Mixamo)', () => {
 
-		const straight = buildModel( false );
-		const twisted = buildModel( true );
+		const straight = buildTPoseHumanoid( { twisted: false } );
+		const twisted = buildTPoseHumanoid( { twisted: true } );
 		const boneMap = detectBoneMap( straight.container ).boneMap;
 		expect( detectBoneMap( twisted.container ).boneMap ).toEqual( boneMap );
 		expect( Object.keys( boneMap ) ).toHaveLength( 21 );
@@ -141,7 +89,7 @@ describe( 'animación de prueba del mapa de huesos', () => {
 
 	it( 'cada parte se mueve hacia donde se espera', () => {
 
-		const model = buildModel( true );
+		const model = buildTPoseHumanoid( { twisted: true } );
 		const { clip, steps } = createBoneTestClip( model, model.boneMap );
 		const rest = poseAt( model, clip, 0 );
 		const at = ( key ) => poseAt( model, clip, peak( steps, key ) );

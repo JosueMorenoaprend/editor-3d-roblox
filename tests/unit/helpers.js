@@ -25,3 +25,6 @@ export function sizeOf( box ) {
 	return [ box.max.x - box.min.x, box.max.y - box.min.y, box.max.z - box.min.z ];
 
 }
+
+// Humanoide en pose T (también lo usan las pruebas e2e).
+export { buildTPoseHumanoid } from '../helpers/humanoid.js';

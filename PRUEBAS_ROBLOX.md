@@ -54,6 +54,15 @@ Cómo anotar el resultado: cambia `[ ]` por `[x]` si funcionó, o escribe debajo
 1. Abre un modelo, gíralo 90° en X y cambia la escala a ×2. Exporta.
 2. Importa en Roblox Studio y comprueba que el giro y el tamaño se ven igual que en el editor.
 
+## R-05 · Animación agregada desde otro archivo
+
+- [ ] **Pendiente de probar**
+1. Abre tu personaje (de Tripo con rig, o el muñeco R15 de ejemplo).
+2. En *Animaciones*, pulsa **Agregar animaciones de otro archivo…** y elige un GLB con animación (paso
+   T-02). Pulsa **Agregar** y exporta con **Incluir animaciones**.
+3. En Roblox Studio, impórtalo con **Importar 3D** y reproduce la animación: ¿se mueve igual que en el
+   editor? ¿Brazos y piernas giran hacia el lado correcto? Anota cualquier aviso del importador.
+
 ---
 
 ## Archivos reales de Tripo (no se pueden descargar desde la nube)
@@ -72,3 +81,15 @@ Cómo anotar el resultado: cambia `[ ]` por `[x]` si funcionó, o escribe debajo
 4. Si falta algo o se mueve lo que no es, corrígelo en **Ver y corregir cada hueso** (con ▶ ves qué se
    mueve) y anota aquí los nombres de los huesos del archivo que tuviste que elegir a mano, para que
    el detector los aprenda.
+
+### T-02 · Pasar una animación real de Tripo o de Mixamo a tu personaje
+
+- [ ] **Pendiente de probar**
+1. Consigue una animación en GLB: en Tripo AI, un personaje con rig y una animación (por ejemplo, correr);
+   o en Mixamo, una animación descargada en FBX y convertida a GLB (por ejemplo, con Blender).
+2. En el editor, abre **tu** personaje y, en *Animaciones*, pulsa **Agregar animaciones de otro archivo…**
+   y elige ese GLB.
+3. Pulsa **▶ Ver** y mira la vista 3D: ¿los brazos, las piernas y la cabeza se mueven como en la animación
+   original? Fíjate en: antebrazos girados de más, pies que se hunden en el piso o flotan, el personaje
+   que avanza (si querías que corra en el lugar).
+4. Anota aquí qué se ve mal (con una captura si puedes) y de dónde salió la animación (Tripo o Mixamo).

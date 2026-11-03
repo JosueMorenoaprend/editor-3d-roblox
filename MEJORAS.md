@@ -17,8 +17,11 @@ Cómo leer esta lista:
   Mientras tanto, el paso de Pages ya no rompe nada: si Pages está desactivado, se salta (ciclo 3).
 - **Activar GitHub Actions** en el repositorio (*Settings → Actions → General → Allow all actions
   and reusable workflows → Save*). Sin eso no corre ninguna comprobación automática (F0-07, F0-08).
-  El usuario dijo que ya lo activó (ciclo 9), pero después de 2 pushes GitHub todavía no registra
-  ninguna ejecución: hay que revisar la pestaña *Actions*.
+  El usuario dijo que ya lo activó (ciclo 9), pero después de varios pushes (el último revisado,
+  `e4a6731` del ciclo 12) GitHub sigue con 0 flujos, 0 ejecuciones y 0 checks. En el ciclo 12 se le
+  pidió (también en el PR #2) copiar el mensaje de <https://github.com/JosueMorenoaprend/editor-3d-roblox/actions>
+  y revisar *Settings → Actions → General → Actions permissions*; si el mensaje habla de la cuenta, es
+  cosa del soporte de GitHub.
 - **Accesibilidad con axe:** `axe-core` tiene licencia **MPL-2.0**, que no está en la lista permitida
   (MIT, BSD, Apache, CC0). ¿Se permite solo para las pruebas? Se preguntará al llegar a F5-06.
 
@@ -119,9 +122,17 @@ Cómo leer esta lista:
     el proyecto → recargar → el mapa vuelve con las correcciones → GLB para Roblox válido. La primera
     animación hecha con el mapa es la de prueba (8 pruebas de Vitest: giros iguales en esqueletos con
     los ejes girados, como Mixamo); F1-04 y F1-06 usarán el mismo mapa y la misma forma de girar.
-- [ ] **F1-04** · Alta · **Importar animaciones GLB** (Tripo, Mixamo convertidas) y pasarlas a mi
-  personaje con `SkeletonUtils.retargetClip`, con vista previa.
-  - Comprobación: prueba unitaria de retarget entre dos esqueletos distintos + e2e.
+- [x] **F1-04** · Alta · **Importar animaciones GLB** (Tripo, Mixamo convertidas) y pasarlas a mi
+  personaje con `SkeletonUtils.retargetClip`, con vista previa. *(ciclo 13)*
+  - Comprobación: prueba unitaria de retarget entre dos esqueletos distintos + e2e. ✔ En vez de
+    `SkeletonUtils.retargetClip` (copia matrices globales: solo sirve si los dos esqueletos tienen la misma
+    pose de reposo y los mismos ejes), `core/retarget.js` pasa cada parte con el mapa de huesos: giros en
+    el espacio del personaje, poses de reposo alineadas (pose T ↔ brazos abajo) y cadera escalada al largo
+    de las piernas. 11 pruebas de Vitest (en cada cuadro, cada tramo de brazos y piernas apunta igual en
+    los dos personajes, < 0,5°; Mixamo con ejes girados → R15 y al revés; saltar; archivos sin cuerpo;
+    nombres repetidos; errores) + e2e (escritorio y móvil): personaje sin animaciones → elegir un GLB de
+    Mixamo sin cuerpo → ▶ Ver → Agregar → reproducir → deshacer/rehacer → exportar: GLB válido y la
+    animación mueve los huesos del personaje. En *Animaciones*: “Agregar animaciones de otro archivo…”.
 - [ ] **F1-05** · Alta · **Importar animaciones FBX** (Mixamo) y pasarlas a mi personaje.
   - Comprobación: prueba con un FBX generado por código + e2e.
 - [ ] **F1-06** · Alta · **Generadores de animación con deslizadores**: caminar, correr y respirar en
@@ -156,6 +167,14 @@ Cómo leer esta lista:
   la izquierda y de la cadera a la cabeza) en vez de suponer que mira a +Z. Hoy, si un modelo mira a
   otro lado, los lados sin nombre y los movimientos generados salen cambiados. *(auditoría del ciclo 12)*
   - Comprobación: pruebas con un esqueleto que mira a −Z y a +X: mismo mapa y mismos movimientos.
+- [ ] **F1-19** · Baja · **Pasar también los dedos** al importar animaciones: el mapa estándar no tiene
+  dedos, así que hoy las manos de una animación de Mixamo o Tripo quedan quietas (el R15 de Roblox no
+  tiene dedos, pero un personaje de Tripo sí). *(ciclo 13)*
+  - Comprobación: prueba con dos esqueletos con dedos: los dedos del destino siguen a los del origen.
+- [ ] **F1-20** · Media · Probar el retarget con **animaciones reales** de Tripo y de Mixamo (paso T-02 de
+  `PRUEBAS_ROBLOX.md`): giro de los antebrazos (“twist”), pies que se hunden o flotan, personajes en pose
+  A. Corregir lo que se vea mal. *(ciclo 13)*
+  - Comprobación: el usuario (o Claude local) anota el resultado de T-02 y las correcciones tienen prueba.
 
 ## Fase 2 — Conexión con IA
 
@@ -249,9 +268,9 @@ Cómo leer esta lista:
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
 | 0 — Base sólida | 16 | 12 |
-| 1 — Animación | 18 | 3 |
+| 1 — Animación | 20 | 4 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 13 | 0 |
-| **Total** | **72** | **15** |
+| **Total** | **74** | **16** |

@@ -1,4 +1,5 @@
 // Panel "Animaciones": elegir, reproducir, pausar, detener y moverse en el tiempo.
+import { listBones } from '../core/boneMap.js';
 import { $, escapeHtml, formatNumber } from './dom.js';
 
 export function initAnimationPanel( app ) {
@@ -37,7 +38,9 @@ export function initAnimationPanel( app ) {
 
 			controls.hidden = true;
 			empty.hidden = false;
-			empty.textContent = model ? 'Este modelo no trae animaciones.' : 'Abre un modelo para ver sus animaciones.';
+			empty.textContent = ! model ? 'Abre un modelo para ver sus animaciones.'
+				: hasBones( model ) ? 'Este personaje todavía no tiene animaciones: agrégalas desde otro archivo.'
+					: 'Este modelo no trae animaciones.';
 			return;
 
 		}
@@ -88,7 +91,7 @@ export function initAnimationPanel( app ) {
 
 	}
 
-	app.on( 'model', renderList );
+	app.on( [ 'model', 'clips' ], renderList );
 	anim.addEventListener( 'change', renderState );
 	anim.addEventListener( 'tick', renderTime );
 	renderList();
@@ -99,5 +102,11 @@ export function initAnimationPanel( app ) {
 function seconds( value ) {
 
 	return value.toFixed( 2 ).replace( '.', ',' );
+
+}
+
+function hasBones( model ) {
+
+	return listBones( model.container ).length > 0;
 
 }

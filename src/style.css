@@ -711,6 +711,65 @@ select:disabled {
 	accent-color: var(--accent);
 }
 
+/* Agregar animaciones de otro archivo. */
+.anim-import {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding-top: 10px;
+	border-top: 1px solid var(--border);
+}
+
+#anim-empty:not([hidden]) + #anim-controls[hidden] + .anim-import {
+	border-top: none;
+	padding-top: 0;
+}
+
+.anim-import-result {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 4px;
+	padding: 10px 12px;
+	border-radius: 8px;
+	border: 1px solid rgba(79, 140, 255, 0.5);
+	background: rgba(79, 140, 255, 0.08);
+	font-size: 13px;
+}
+
+.anim-import-result p {
+	margin: 0;
+}
+
+.anim-import-warn {
+	color: var(--warn);
+}
+
+.anim-import-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.anim-import-list li {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.anim-import-list .check {
+	color: var(--text);
+	align-items: center;
+}
+
+.anim-import-list .btn {
+	flex: none;
+}
+
 /* ---------- Mapa de huesos ---------- */
 .bonemap-controls {
 	display: flex;

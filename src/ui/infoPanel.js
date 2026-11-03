@@ -95,7 +95,7 @@ export function initInfoPanel( app ) {
 
 	}
 
-	app.on( [ 'model', 'geometry', 'transform', 'settings' ], render );
+	app.on( [ 'model', 'geometry', 'transform', 'settings', 'clips' ], render );
 	render();
 
 }

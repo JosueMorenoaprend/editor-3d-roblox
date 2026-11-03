@@ -75,6 +75,12 @@ export function initExportPanel( app ) {
 	}
 
 	app.on( 'model', render );
+	// Al agregar o quitar animaciones, solo cambia la casilla (el nombre que escribiste se queda).
+	app.on( 'clips', () => {
+
+		animsCheck.disabled = ! app.model || app.model.clips.length === 0;
+
+	} );
 	render();
 
 }

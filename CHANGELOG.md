@@ -43,6 +43,11 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
   vista 3D. Con **▶** ves moverse un hueso y con **Probar el mapa** se mueve cada parte por turnos, para
   comprobar que todo está bien. Los cambios se pueden deshacer y se guardan en tu proyecto. Es lo que
   usarán las próximas funciones de animación.
+- **Nuevo: Agregar animaciones de otro archivo.** En *Animaciones*, elige un GLB con animación (de Tripo AI
+  o de Mixamo convertido, aunque traiga solo la animación sin el cuerpo) y el editor pasa sus movimientos a
+  los huesos de tu personaje, aunque los dos esqueletos sean distintos (por ejemplo, de Mixamo a un R15).
+  Con **▶ Ver** la ves en tu personaje antes de agregarla; después aparece en la lista, se exporta con
+  tu modelo y se puede deshacer.
 
 ## Versión 1
 

@@ -161,6 +161,9 @@ src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
   boneMap.js            mapa de huesos humanoide estándar (hips, leftUpperArm…), validación y limpieza
   boneDetect.js         detecta el mapa solo (palabras en los nombres + forma del esqueleto)
   boneTest.js           animación de prueba del mapa: giros en el espacio del personaje → cada hueso
+  skeletonPose.js       pose de reposo en el espacio del modelo y hacia dónde apunta cada hueso
+  retarget.js           pasar una animación de un personaje a otro con sus mapas de huesos
+  animationImport.js    leer las animaciones de otro GLB (con o sin cuerpo) y pasarlas a mi personaje
 src/samples/            modelos de prueba generados por código (sin licencias de terceros)
   r15Dummy.js           muñeco R15: 16 huesos, 3 animaciones (Saludar, Caminar, Saltar)
   heavyMesh.js          malla pesada: 120.000 triángulos con textura
@@ -169,9 +172,11 @@ src/samples/            modelos de prueba generados por código (sin licencias d
 src/ui/                 un archivo por panel de la interfaz (samples.js: botones de ejemplo)
   boneMapPanel.js       sección "Mapa de huesos" (corregir a mano, ▶, Probar el mapa)
   boneHighlight.js      marca rosa del hueso elegido en la vista 3D
+  animationImport.js    "Agregar animaciones de otro archivo" (en Animaciones), con ▶ Ver y deshacer
 tests/unit/             pruebas Vitest del núcleo (Node)
 tests/e2e/              pruebas Playwright (flujos reales en el navegador; playwright.config.js)
-tests/helpers/          ayudantes compartidos (validar GLB, FileReader para Node, personaje con huesos raros)
+tests/helpers/          ayudantes compartidos (validar GLB, FileReader para Node, personaje con huesos raros,
+                        humanoide en pose T, archivo de animación tipo Mixamo)
 bridge/                 (futuro) puente MCP "Claude en vivo"
 ```
 
@@ -181,11 +186,13 @@ bridge/                 (futuro) puente MCP "Claude en vivo"
   posición) van en el contenedor, así nunca chocan con las animaciones, que mueven los nodos de adentro.
 - `App` es un `EventTarget`. Eventos: `model` (se abrió o cerró un modelo), `geometry` (cambiaron las
   mallas), `transform` (cambió escala/giro/posición), `settings` (cambió una preferencia), `bonemap`
-  (cambió `model.boneMap`).
+  (cambió `model.boneMap`), `clips` (se agregaron o quitaron animaciones de `model.clips`; usa
+  `app.animation.addClips/removeClips`, que no dejan el reproductor apuntando a una animación borrada).
 - **Mapa de huesos** (`model.boneMap`, clave estándar → nombre del hueso): al abrir, el del proyecto o,
   si no hay, el detectado. Todo lo que anime (generadores, retarget, guion de IA) debe usarlo, y girar
   los huesos **en el espacio del personaje** (mira a +Z, izquierda +X) con `P⁻¹·D·P·L` como en
-  `boneTest.js`, para que funcione igual con ejes de hueso girados (Mixamo).
+  `boneTest.js`, para que funcione igual con ejes de hueso girados (Mixamo). Para pasar animaciones entre
+  personajes usa `retargetClip()` (`retarget.js`), no `SkeletonUtils.retargetClip` de three.js.
 - **Vistas previas:** `app.animation.playPreview( clip )` reproduce una vez un clip que no es del modelo
   (no se exporta); exportar y guardar lo detienen y el autoguardado espera, como con las animaciones.
 - `app.run( mensaje, tarea, prefijoDeError )` muestra “Trabajando…” y convierte los errores en avisos

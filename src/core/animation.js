@@ -77,11 +77,38 @@ export class AnimationController extends EventTarget {
 
 	}
 
-	/** Para la v2: agregar animaciones nuevas (por ejemplo, de Mixamo ya adaptadas). */
+	/** Agrega animaciones al modelo (por ejemplo, las de otro archivo ya pasadas a este personaje). */
 	addClips( clips ) {
 
 		if ( ! this.model ) return;
 		this.model.clips.push( ...clips );
+		this._emit();
+
+	}
+
+	/** Quita animaciones del modelo (por ejemplo, al deshacer "Agregar animaciones"). */
+	removeClips( clips ) {
+
+		if ( ! this.model ) return;
+		const current = this.action ? this.action.getClip() : null;
+		const previewed = this.preview ? this.preview.clip : null;
+		if ( clips.includes( current ) || clips.includes( previewed ) ) this.stop();
+		for ( const clip of clips ) {
+
+			const index = this.model.clips.indexOf( clip );
+			if ( index >= 0 ) this.model.clips.splice( index, 1 );
+			if ( this.mixer ) this.mixer.uncacheClip( clip );
+
+		}
+
+		// Si la animación elegida ya no existe, queda elegida la primera.
+		if ( this.action && ! this.preview && ! this.clips.includes( this.action.getClip() ) ) {
+
+			this.action = null;
+			if ( this.clips.length > 0 ) this.select( 0 );
+
+		}
+
 		this._emit();
 
 	}

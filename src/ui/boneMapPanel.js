@@ -6,7 +6,8 @@ import { detectBoneMap, guessSkeletonKind } from '../core/boneDetect.js';
 import {
 	HUMANOID_BONES, REQUIRED_BONES, boneLabel, humanoidBone, listBones, sameBoneMap, validateBoneMap,
 } from '../core/boneMap.js';
-import { createBoneTestClip, nextBoneKey } from '../core/boneTest.js';
+import { createBoneTestClip } from '../core/boneTest.js';
+import { nextBoneKey } from '../core/skeletonPose.js';
 import { BoneHighlight } from './boneHighlight.js';
 import { $, escapeHtml, formatInt } from './dom.js';
 import { toast } from './toast.js';

@@ -6,6 +6,7 @@
 //   'transform' -> cambió la escala, rotación o posición
 //   'settings'  -> cambió una preferencia (límite de triángulos, etc.)
 //   'bonemap'   -> cambió el mapa de huesos (model.boneMap), por ejemplo al corregirlo a mano
+//   'clips'     -> cambió la lista de animaciones del modelo (se agregaron o quitaron)
 import { AnimationController } from './core/animation.js';
 import { UserError, describeError } from './core/errors.js';
 import { History } from './core/history.js';

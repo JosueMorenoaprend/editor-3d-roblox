@@ -4,6 +4,72 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 13 — Agregar animaciones de otro archivo (retarget) (2026-11-03)
+
+**Auditoría:** el código de partida es el commit del ciclo 12 (`e4a6731`), que acababa de pasar
+`npm run check` (82/82 Vitest, 30/30 Playwright) con sus capturas revisadas. Actions: sigue en 0 ejecuciones
+después de ese push (pasos para el usuario en el PR #2 y en `MEJORAS.md`).
+
+**Tarea:** F1-04 (Alta).
+
+**Investigación:** `SkeletonUtils.retargetClip` de three.js 0.186 copia las matrices globales del hueso
+de origen al de destino (con `localOffsets` para corregir a mano). Solo funciona si los dos esqueletos
+tienen la misma pose de reposo y los mismos ejes en cada hueso, y eso casi nunca pasa entre Mixamo, Tripo
+y el R15. Por eso escribí un retarget propio con el mapa de huesos.
+
+**Qué hice**
+
+- `core/skeletonPose.js`: lo que comparten la prueba del mapa y el retarget: `RestPose` (pose de reposo
+  en el espacio del modelo, sin tocar la escena), `boneDirection()` (hacia dónde apunta cada hueso),
+  `findBones()` y `nextBoneKey()`.
+- `core/retarget.js` → `retargetClip( origen, destino, clip )`. En cada cuadro (30 por segundo) y para
+  cada parte: D = giro actual del origen · su reposo⁻¹ (en el espacio del personaje); A = giro que lleva
+  la dirección de reposo del destino a la del origen (pose T ↔ brazos abajo); el hueso del destino queda
+  con D · A · su reposo, pasado a local con el giro de su padre de ese cuadro. Si no se sabe hacia dónde
+  apunta un hueso (la mano del R15 no tiene dedos), usa la A de la parte de la que cuelga. La cadera se
+  desplaza escalada al largo de las piernas. Lee la animación evaluando cada pista (sin `AnimationMixer`)
+  y deja al origen como estaba.
+- `core/animationImport.js` → `importAnimations( gltf, nombre, miPersonaje )`: exige el mapa completo de
+  mi personaje, que el archivo traiga animaciones y que su esqueleto tenga cadera; los archivos **sin
+  cuerpo** (solo animación) no tienen huesos para three.js, así que se toma como esqueleto todo el árbol de
+  los nodos animados. No repite nombres (“Saludar (2)”) y avisa qué partes no tiene el archivo.
+- `AnimationController.removeClips()` (para deshacer) y evento nuevo `clips`: *Animaciones*,
+  *Información* y la casilla “Incluir animaciones” se actualizan al agregar o quitar.
+- `ui/animationImport.js`: en *Animaciones*, **Agregar animaciones de otro archivo…** (solo si el modelo
+  tiene esqueleto) → lista de lo encontrado con **▶ Ver** (vista previa en mi personaje) y casillas →
+  **Agregar** (con deshacer). Un personaje con esqueleto y sin animaciones ahora dice “todavía no tiene
+  animaciones: agrégalas desde otro archivo”.
+
+**Errores encontrados y arreglados en el ciclo** (los dos se vieron en las capturas, no en las pruebas)
+
+- Con un archivo sin cuerpo que mueve solo algunas partes, solo los nodos animados se tomaban como
+  huesos: faltaba saber hacia dónde apuntaban los demás, el R15 no se alineaba con la pose T del origen
+  (un brazo quedaba colgando) y salía una lista falsa de “partes que el archivo no mueve”.
+- Las manos del R15 (sin dedos) quedaban dobladas 90° respecto del antebrazo.
+- Para cada uno, primero una prueba que fallaba (1,5708 rad = 90° en la mano) y después el arreglo.
+
+**Cómo lo verifiqué**
+
+- Vitest: 11 pruebas nuevas (retarget y animaciones de otro archivo). En cada cuadro, cada tramo de
+  brazos y piernas del destino apunta igual que en el origen (< 0,5°), de Mixamo con ejes girados al R15 y
+  al revés (con sus 3 animaciones). Comprobé que esas pruebas **fallan** si se quita la alineación de las
+  poses de reposo.
+- Playwright: 2 flujos nuevos (escritorio y móvil): personaje sin animaciones + GLB de Mixamo sin cuerpo →
+  ▶ Ver → Agregar → reproducir → deshacer/rehacer → exportar (GLB válido; la animación mueve los huesos
+  del personaje, ninguno `mixamorig…`); y los errores (mapa incompleto, archivo sin animaciones, modelo
+  sin esqueleto).
+- Capturas revisadas: lo encontrado (escritorio y celular) y la vista previa (R15 en pose T levantando el
+  brazo izquierdo, con las manos derechas).
+- `npm run check` → código 0: **93/93** Vitest y **34/34** Playwright.
+
+**Nuevas tareas:** F1-19 (pasar también los dedos, Baja) y F1-20 (probar el retarget con animaciones
+reales de Tripo y Mixamo, Media; pasos en T-02 de `PRUEBAS_ROBLOX.md`).
+
+**Qué sigue:** F1-05 (importar animaciones FBX de Mixamo) o F1-06 (generadores de caminar, correr y
+respirar), que ya pueden usar el mapa y `skeletonPose.js`.
+
+---
+
 ## Ciclo 12 — Editor visual del mapa de huesos (2026-11-03)
 
 **Auditoría:** `npm run check` en verde al empezar (68/68 Vitest, 26/26 Playwright). Capturas revisadas
