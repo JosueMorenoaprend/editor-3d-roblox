@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+# Modelos de prueba: no los subas al repositorio
+pruebas/
+# Resultados de las pruebas (capturas, reportes)
+test-results/
+playwright-report/

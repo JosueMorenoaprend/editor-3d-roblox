@@ -1,0 +1,52 @@
+# Comprueba cada cambio: compila el editor y ejecuta TODAS las pruebas (npm run check).
+# Corre en cada push a cualquier rama (los PR muestran el resultado del último commit)
+# y también a mano desde la pestaña Actions → "Comprobar" → Run workflow.
+#
+# Si no aparece ninguna ejecución en la pestaña Actions, GitHub Actions está desactivado:
+# Settings → Actions → General → "Allow all actions and reusable workflows" → Save.
+name: Comprobar
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Si subes otro cambio a la misma rama, la comprobación anterior se cancela.
+concurrency:
+  group: comprobar-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Compilar y probar (npm run check)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Instalar Chromium para las pruebas
+        run: npx playwright install --with-deps chromium
+
+      - name: Compilar y ejecutar todas las pruebas
+        run: npm run check
+
+      # Capturas de pantalla y resultados, para verlos sin instalar nada:
+      # en la ejecución, sección "Artifacts" → capturas-y-resultados.
+      - name: Guardar capturas y resultados
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: capturas-y-resultados
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 14

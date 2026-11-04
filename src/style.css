@@ -1,0 +1,1242 @@
+:root {
+	--bg: #14161b;
+	--surface: #1d2027;
+	--surface-2: #252932;
+	--border: #323846;
+	--text: #e8ebf1;
+	--muted: #9aa3b5;
+	--accent: #4f8cff;
+	--accent-strong: #3a74e0;
+	--ok: #3ecf8e;
+	--warn: #ffb547;
+	--danger: #ff6b6b;
+	/* Hueso elegido: mismo color que la marca en la vista 3D (BONE_COLOR en ui/boneHighlight.js). */
+	--bone: #ff4fb4;
+	--radius: 10px;
+	--panel-width: 360px;
+	--topbar-height: 56px;
+	color-scheme: dark;
+	font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, sans-serif;
+	font-size: 15px;
+	line-height: 1.45;
+	color: var(--text);
+	background: var(--bg);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	height: 100%;
+	background: var(--bg);
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	min-height: 100dvh;
+}
+
+[hidden] {
+	display: none !important;
+}
+
+/* ---------- Barra superior ---------- */
+.topbar {
+	height: var(--topbar-height);
+	flex: none;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 0 16px;
+	background: var(--surface);
+	border-bottom: 1px solid var(--border);
+}
+
+.brand {
+	margin: 0;
+	font-size: 17px;
+	font-weight: 650;
+	white-space: nowrap;
+}
+
+.brand-sub {
+	color: var(--muted);
+	font-weight: 500;
+}
+
+.tag {
+	display: inline-block;
+	margin-left: 4px;
+	padding: 1px 7px;
+	font-size: 11px;
+	font-weight: 600;
+	border-radius: 999px;
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	color: var(--muted);
+	vertical-align: middle;
+}
+
+.topbar-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.btn-icon {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.btn-icon svg {
+	flex: none;
+}
+
+/* ---------- Distribución ---------- */
+.layout {
+	flex: 1;
+	min-height: 0;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) var(--panel-width);
+	height: calc(100dvh - var(--topbar-height));
+}
+
+.viewport {
+	position: relative;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+	background: #1b1e24;
+}
+
+.viewport canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+	touch-action: none;
+}
+
+.panel {
+	min-height: 0;
+	overflow-y: auto;
+	background: var(--surface);
+	border-left: 1px solid var(--border);
+	padding: 8px 12px 16px;
+}
+
+/* ---------- Vista 3D ---------- */
+.viewport-tools {
+	position: absolute;
+	top: 12px;
+	left: 12px;
+	right: 12px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	z-index: 2;
+	pointer-events: none;
+}
+
+.viewport-tools > * {
+	pointer-events: auto;
+}
+
+.chip {
+	font: inherit;
+	font-size: 13px;
+	padding: 6px 12px;
+	border-radius: 999px;
+	border: 1px solid var(--border);
+	background: rgba(29, 32, 39, 0.85);
+	color: var(--text);
+	cursor: pointer;
+	backdrop-filter: blur(6px);
+}
+
+.chip:hover:not(:disabled) {
+	border-color: var(--accent);
+}
+
+.chip[aria-pressed='true'] {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: #fff;
+}
+
+.chip:disabled {
+	opacity: 0.45;
+	cursor: default;
+}
+
+.empty-state {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	padding: 24px;
+	pointer-events: none;
+	z-index: 1;
+}
+
+.empty-card {
+	max-width: 420px;
+	text-align: center;
+	padding: 28px 24px;
+	border: 2px dashed var(--border);
+	border-radius: 16px;
+	background: rgba(20, 22, 27, 0.6);
+}
+
+.empty-title {
+	margin: 0 0 8px;
+	font-size: 17px;
+}
+
+/* "¿Seguimos donde lo dejaste?" (autoguardado). */
+.recover {
+	pointer-events: auto;
+	margin-bottom: 14px;
+	padding: 12px;
+	border-radius: 10px;
+	border: 1px solid rgba(79, 140, 255, 0.6);
+	background: rgba(79, 140, 255, 0.12);
+	text-align: left;
+	font-size: 14px;
+}
+
+.recover p {
+	margin: 0 0 10px;
+}
+
+.recover .btn-group {
+	justify-content: flex-start;
+}
+
+.autosave-status[data-state='ok'] {
+	color: var(--ok);
+}
+
+.autosave-status[data-state='error'] {
+	color: var(--warn);
+}
+
+/* Botones "Probar con un ejemplo" (la tarjeta deja pasar el mouse; los botones no). */
+.samples {
+	margin-top: 16px;
+	padding-top: 14px;
+	border-top: 1px solid var(--border);
+	pointer-events: auto;
+}
+
+.sample-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 8px;
+	margin-top: 10px;
+}
+
+.sample-btn {
+	flex: 1 1 110px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+	padding: 8px 10px;
+	white-space: normal;
+	line-height: 1.25;
+}
+
+.sample-title {
+	font-weight: 650;
+}
+
+.sample-desc {
+	font-size: 11px;
+	font-weight: 400;
+	color: var(--muted);
+}
+
+.drop-overlay {
+	position: absolute;
+	inset: 10px;
+	display: grid;
+	place-items: center;
+	z-index: 5;
+	font-size: 20px;
+	font-weight: 600;
+	border: 3px dashed var(--accent);
+	border-radius: 16px;
+	background: rgba(79, 140, 255, 0.15);
+	pointer-events: none;
+}
+
+.busy {
+	position: absolute;
+	left: 50%;
+	bottom: 48px;
+	transform: translateX(-50%);
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 16px;
+	z-index: 6;
+	border-radius: 999px;
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+.spinner {
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	border: 2px solid var(--border);
+	border-top-color: var(--accent);
+	animation: spin 0.8s linear infinite;
+}
+
+/* Ancho mínimo: así el aviso no "salta" cuando cambia el texto o aparece la barra. */
+.busy:has(progress:not([hidden])) {
+	min-width: min(380px, calc(100vw - 24px));
+}
+
+.busy #busy-text {
+	flex: 1;
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.busy progress {
+	width: 110px;
+	height: 8px;
+	accent-color: var(--accent);
+}
+
+.busy .btn {
+	min-height: 30px;
+	padding: 4px 10px;
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.hint {
+	position: absolute;
+	left: 12px;
+	right: 12px;
+	bottom: 8px;
+	margin: 0;
+	font-size: 12px;
+	color: var(--muted);
+	text-align: center;
+	pointer-events: none;
+	z-index: 1;
+}
+
+/* ---------- Panel ---------- */
+.section {
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--bg);
+	margin-top: 8px;
+}
+
+.section > summary {
+	cursor: pointer;
+	padding: 10px 12px;
+	font-weight: 650;
+	list-style: none;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	user-select: none;
+}
+
+.section > summary::-webkit-details-marker {
+	display: none;
+}
+
+.section > summary::after {
+	content: '▾';
+	color: var(--muted);
+	transition: transform 0.15s;
+}
+
+.section:not([open]) > summary::after {
+	transform: rotate(-90deg);
+}
+
+.section-body {
+	padding: 0 12px 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.section-foot {
+	border-top: 1px solid var(--border);
+	padding-top: 10px;
+}
+
+.row {
+	display: flex;
+	align-items: flex-end;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.grow {
+	flex: 1;
+	min-width: 110px;
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 13px;
+	color: var(--muted);
+}
+
+.check {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	font-size: 13px;
+	color: var(--muted);
+	cursor: pointer;
+}
+
+.check input {
+	margin: 2px 0 0;
+	accent-color: var(--accent);
+}
+
+input[type='number'],
+input[type='text'],
+select {
+	font: inherit;
+	font-size: 14px;
+	color: var(--text);
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	padding: 7px 9px;
+	min-height: 36px;
+	width: 100%;
+}
+
+.row select {
+	width: auto;
+}
+
+input:focus-visible,
+select:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 1px;
+}
+
+input:disabled,
+select:disabled {
+	opacity: 0.5;
+}
+
+.btn {
+	font: inherit;
+	font-size: 14px;
+	font-weight: 550;
+	color: var(--text);
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	padding: 7px 14px;
+	min-height: 36px;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.btn:hover:not(:disabled) {
+	border-color: var(--accent);
+}
+
+.btn:disabled {
+	opacity: 0.45;
+	cursor: default;
+}
+
+.btn-primary {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+	background: var(--accent-strong);
+}
+
+.btn-ghost {
+	background: transparent;
+}
+
+.btn-sm {
+	padding: 6px 10px;
+}
+
+.btn-block {
+	width: 100%;
+}
+
+.btn-group {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+
+.btn-group.wide > .btn {
+	flex: 1;
+}
+
+.muted {
+	color: var(--muted);
+	margin: 0;
+}
+
+.small {
+	font-size: 12px;
+}
+
+.mono {
+	font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+.footer-note {
+	margin-top: 12px;
+	text-align: center;
+}
+
+/* ---------- Información ---------- */
+.stats {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 4px 12px;
+	margin: 0;
+	font-size: 14px;
+}
+
+.stats dt {
+	color: var(--muted);
+}
+
+.stats dd {
+	margin: 0;
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+	overflow-wrap: anywhere;
+}
+
+.alert {
+	border-radius: 8px;
+	padding: 9px 11px;
+	font-size: 13px;
+	border: 1px solid;
+}
+
+.alert-warn {
+	color: #ffe2b0;
+	background: rgba(255, 181, 71, 0.12);
+	border-color: rgba(255, 181, 71, 0.5);
+}
+
+.alert-ok {
+	color: #c4f3dc;
+	background: rgba(62, 207, 142, 0.1);
+	border-color: rgba(62, 207, 142, 0.45);
+}
+
+.alert-error {
+	color: #ffd0d0;
+	background: rgba(255, 107, 107, 0.12);
+	border-color: rgba(255, 107, 107, 0.5);
+}
+
+.alert strong {
+	color: inherit;
+}
+
+.mesh-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+.mesh-table th,
+.mesh-table td {
+	padding: 5px 4px;
+	border-top: 1px solid var(--border);
+	text-align: left;
+	vertical-align: top;
+}
+
+.mesh-table th {
+	color: var(--muted);
+	font-weight: 500;
+	border-top: none;
+}
+
+.mesh-table .num {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.mesh-name {
+	overflow-wrap: anywhere;
+}
+
+.badge {
+	display: inline-block;
+	padding: 1px 7px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.badge-ok {
+	color: var(--ok);
+	background: rgba(62, 207, 142, 0.12);
+}
+
+.badge-warn {
+	color: var(--warn);
+	background: rgba(255, 181, 71, 0.14);
+}
+
+.badge-info {
+	color: #a9c5ff;
+	background: rgba(79, 140, 255, 0.14);
+}
+
+.anim-list {
+	margin: 0;
+	padding-left: 18px;
+	font-size: 13px;
+	color: var(--muted);
+}
+
+/* ---------- Reducir polígonos ---------- */
+.mesh-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.mesh-option {
+	display: flex;
+	gap: 8px;
+	align-items: flex-start;
+	padding: 8px 10px;
+	border-radius: 8px;
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	font-size: 13px;
+	cursor: pointer;
+}
+
+.mesh-option input {
+	margin-top: 3px;
+	accent-color: var(--accent);
+}
+
+.mesh-option.disabled {
+	opacity: 0.7;
+	cursor: not-allowed;
+}
+
+.mesh-option-main {
+	flex: 1;
+	min-width: 0;
+}
+
+.mesh-option-title {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.mesh-option-note {
+	color: var(--muted);
+	font-size: 12px;
+	margin-top: 2px;
+}
+
+.result {
+	font-size: 13px;
+}
+
+.result ul {
+	margin: 4px 0 0;
+	padding-left: 18px;
+}
+
+/* ---------- Animaciones ---------- */
+#anim-controls {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.timeline {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.timeline input[type='range'] {
+	flex: 1;
+	accent-color: var(--accent);
+}
+
+/* Crear una animación, crear a mano con keyframes y agregar animaciones de otro archivo. */
+.anim-create,
+.anim-keys,
+.anim-import {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding-top: 10px;
+	border-top: 1px solid var(--border);
+}
+
+/* Si no hay animaciones todavía, el primer bloque va pegado al mensaje (sin línea arriba). */
+#anim-empty:not([hidden]) + #anim-controls[hidden] + .anim-create {
+	border-top: none;
+	padding-top: 0;
+}
+
+.anim-root {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 8px;
+}
+
+.anim-root p {
+	margin: 0;
+}
+
+.anim-subtitle {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 650;
+}
+
+.generator-buttons {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 6px;
+}
+
+.generator-buttons .btn {
+	padding-inline: 6px;
+}
+
+.anim-create .btn[aria-pressed='true'] {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: #fff;
+}
+
+.anim-create-editor {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 4px;
+	padding: 10px 12px;
+	border-radius: 8px;
+	border: 1px solid rgba(79, 140, 255, 0.5);
+	background: rgba(79, 140, 255, 0.08);
+}
+
+.anim-keys-editor {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 10px 12px;
+	border-radius: 8px;
+	border: 1px solid rgba(255, 79, 180, 0.5);
+	background: rgba(255, 79, 180, 0.06);
+}
+
+.anim-keys-editor p {
+	margin: 0;
+}
+
+.keys-duration {
+	width: 110px;
+}
+
+/* Línea de tiempo con las marcas (◆) de los keyframes de la parte elegida. */
+.keys-timeline {
+	position: relative;
+}
+
+.keys-timeline input[type='range'] {
+	width: 100%;
+	accent-color: var(--bone);
+}
+
+.keys-marks {
+	position: absolute;
+	left: 8px;
+	right: 8px;
+	top: 50%;
+	height: 0;
+	pointer-events: none;
+}
+
+.keys-mark {
+	position: absolute;
+	width: 9px;
+	height: 9px;
+	transform: translate(-50%, -50%) rotate(45deg);
+	background: var(--bone);
+	border: 1px solid #fff;
+}
+
+.keys-mark.current {
+	width: 12px;
+	height: 12px;
+	box-shadow: 0 0 0 2px rgba(255, 79, 180, 0.4);
+}
+
+.keys-status {
+	color: var(--muted);
+}
+
+.anim-create-params {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.slider input[type='range'] {
+	width: 100%;
+	accent-color: var(--accent);
+}
+
+.slider-label {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.slider-label output {
+	color: var(--text);
+	font-variant-numeric: tabular-nums;
+}
+
+.anim-import-result {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 4px;
+	padding: 10px 12px;
+	border-radius: 8px;
+	border: 1px solid rgba(79, 140, 255, 0.5);
+	background: rgba(79, 140, 255, 0.08);
+	font-size: 13px;
+}
+
+.anim-import-result p {
+	margin: 0;
+}
+
+.anim-import-warn {
+	color: var(--warn);
+}
+
+.anim-import-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.anim-import-list li {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.anim-import-list .check {
+	color: var(--text);
+	align-items: center;
+}
+
+.anim-import-list .btn {
+	flex: none;
+}
+
+/* Exportar: elegir qué animaciones van en el archivo. */
+.export-clips {
+	margin: 0;
+	padding: 0 0 0 26px;
+	border: none;
+	min-width: 0;
+}
+
+.export-clips legend {
+	padding: 0;
+	margin-bottom: 4px;
+}
+
+.export-clip-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+/* ---------- Mapa de huesos ---------- */
+.bonemap-controls {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.bonemap-controls .alert ul {
+	margin: 6px 0;
+	padding-left: 18px;
+}
+
+.bonemap-now {
+	margin: 0;
+	padding: 7px 10px;
+	border-radius: 8px;
+	color: #ffd1ec;
+	background: rgba(255, 79, 180, 0.1);
+	border: 1px solid rgba(255, 79, 180, 0.4);
+}
+
+.bonemap-now:empty {
+	display: none;
+}
+
+/* Lista plegable dentro de una sección. */
+.subsection {
+	border-top: 1px solid var(--border);
+	padding-top: 6px;
+}
+
+.subsection > summary {
+	cursor: pointer;
+	list-style: none;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: #a9c5ff;
+	user-select: none;
+}
+
+.subsection > summary::-webkit-details-marker {
+	display: none;
+}
+
+.subsection > summary::before {
+	content: '▸';
+	transition: transform 0.15s;
+}
+
+.subsection[open] > summary::before {
+	transform: rotate(90deg);
+}
+
+.bonemap-list {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	margin-top: 8px;
+}
+
+.bonemap-group {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+
+.bonemap-group legend {
+	padding: 0;
+	margin-bottom: 4px;
+	font-size: 12px;
+	font-weight: 650;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.bonemap-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) auto;
+	align-items: center;
+	gap: 4px 6px;
+	padding: 3px 4px;
+	border-radius: 8px;
+}
+
+.bonemap-row.active {
+	background: rgba(255, 79, 180, 0.1);
+	box-shadow: inset 0 0 0 1px var(--bone);
+}
+
+.bonemap-row label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	font-size: 13px;
+	color: var(--text);
+	overflow-wrap: anywhere;
+}
+
+.bonemap-row select {
+	min-height: 32px;
+	padding: 4px 6px;
+	font-size: 13px;
+}
+
+.bonemap-icon {
+	flex: none;
+	display: inline-grid;
+	place-items: center;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	font-size: 11px;
+	font-weight: 700;
+	color: var(--muted);
+	background: var(--surface-2);
+}
+
+.bonemap-row[data-state='ok'] .bonemap-icon {
+	color: var(--ok);
+	background: rgba(62, 207, 142, 0.14);
+}
+
+.bonemap-row[data-state='missing'] .bonemap-icon,
+.bonemap-row[data-state='problem'] .bonemap-icon {
+	color: #1d2027;
+	background: var(--warn);
+}
+
+.bonemap-row[data-state='missing'] select,
+.bonemap-row[data-state='problem'] select {
+	border-color: var(--warn);
+}
+
+.bonemap-try {
+	min-height: 32px;
+	padding: 4px 10px;
+}
+
+.bonemap-issue {
+	grid-column: 1 / -1;
+	margin: 0;
+	font-size: 12px;
+	color: var(--warn);
+}
+
+/* ---------- Avisos flotantes ---------- */
+.toasts {
+	position: fixed;
+	right: 16px;
+	bottom: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	z-index: 50;
+	max-width: min(420px, calc(100vw - 32px));
+}
+
+.toast {
+	padding: 10px 14px;
+	border-radius: 10px;
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+	font-size: 14px;
+	animation: toast-in 0.18s ease-out;
+}
+
+.toast-error {
+	border-color: var(--danger);
+}
+
+.toast-ok {
+	border-color: var(--ok);
+}
+
+@keyframes toast-in {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+}
+
+/* ---------- Pantallas chicas: la vista arriba y el panel debajo ---------- */
+@media (max-width: 820px) {
+	:root {
+		--topbar-height: auto;
+	}
+
+	.topbar {
+		flex-wrap: wrap;
+		padding: 8px 16px;
+		height: auto;
+		min-height: 56px;
+	}
+
+	/* La página crece con el panel (si no, el fondo del panel se corta a la altura de la pantalla). */
+	html,
+	body {
+		height: auto;
+	}
+
+	.layout {
+		display: flex;
+		flex-direction: column;
+		flex: 1 0 auto;
+		height: auto;
+	}
+
+	.viewport {
+		height: 55vh;
+		min-height: 280px;
+		flex: none;
+	}
+
+	.panel {
+		border-left: none;
+		border-top: 1px solid var(--border);
+		overflow: visible;
+		padding: 4px 16px 24px;
+	}
+
+	.hint {
+		display: none;
+	}
+
+	/* El aviso "Trabajando…" siempre a la vista, aunque hayas bajado por el panel. */
+	.busy {
+		position: fixed;
+		bottom: 16px;
+		max-width: calc(100vw - 24px);
+		gap: 8px;
+		padding: 8px 12px;
+		font-size: 14px;
+	}
+
+	.busy progress {
+		width: 64px;
+	}
+
+	/* Los avisos flotantes van encima de la barra de avance (abajo), sin tapar los botones de arriba. */
+	.toasts {
+		bottom: 72px;
+		left: 12px;
+		right: 12px;
+		max-width: none;
+	}
+
+	/* La tarjeta inicial va debajo de los botones de la vista y más compacta. */
+	.empty-state {
+		place-items: start center;
+		padding: 56px 12px 12px;
+	}
+
+	.empty-card {
+		padding: 14px 16px;
+	}
+
+	.empty-help {
+		display: none;
+	}
+
+	.samples {
+		margin-top: 10px;
+		padding-top: 10px;
+	}
+}
+
+@media (max-width: 1000px) {
+	/* Deshacer y rehacer: solo el ícono. */
+	.btn-icon .btn-label {
+		display: none;
+	}
+}
+
+@media (max-width: 520px) {
+	.bonemap-row {
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.bonemap-row label {
+		grid-column: 1 / -1;
+	}
+
+	.brand-sub,
+	.tag,
+	.hide-narrow {
+		display: none;
+	}
+
+	.topbar {
+		padding: 8px 12px;
+	}
+
+	.topbar-actions {
+		gap: 6px;
+	}
+
+	.topbar-actions .btn {
+		padding: 7px 10px;
+	}
+}
+
+/* "Ajustar esta animación" (debajo del reproductor) */
+.anim-tools summary {
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 600;
+	padding: 4px 0;
+}
+
+.anim-tools-body {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: 8px;
+}

@@ -1,0 +1,85 @@
+# Publica el editor en GitHub Pages al subir cambios a main (o a mano desde Actions).
+#
+# Si GitHub Pages NO está activado (o no usa "GitHub Actions" como origen), este flujo
+# no publica nada y termina en verde con un aviso: así nunca sale en rojo por eso.
+# Para activarlo: Settings → Pages → Build and deployment → Source: "GitHub Actions".
+#
+# En los pull requests solo revisa si Pages está activado (nunca publica desde un PR).
+# Las pruebas de cada cambio están en ci.yml ("Comprobar").
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Una publicación nunca se cancela a la mitad; la revisión de un PR sí (si llega otro commit).
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('pages-pr-{0}', github.ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  pages-status:
+    name: ¿Está activado GitHub Pages?
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.status.outputs.enabled }}
+    steps:
+      - name: Revisar la configuración de Pages
+        id: status
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          build_type=$(gh api "repos/${{ github.repository }}/pages" --jq '.build_type' 2>/dev/null || echo "desactivado")
+          if [ "$build_type" = "workflow" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "GitHub Pages está activado con GitHub Actions: se publica."
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=No se publicó en GitHub Pages::Pages está '$build_type'. Para publicar aquí: Settings → Pages → Source: GitHub Actions. Si usas solo Vercel, no hace falta hacer nada."
+          fi
+
+  build:
+    name: Compilar
+    needs: pages-status
+    if: needs.pages-status.outputs.enabled == 'true' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar
+        run: npm run build
+
+      - name: Preparar GitHub Pages
+        uses: actions/configure-pages@v6
+
+      - name: Subir la página compilada
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    name: Publicar
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
