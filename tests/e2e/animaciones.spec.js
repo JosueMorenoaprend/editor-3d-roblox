@@ -170,3 +170,35 @@ test( 'agregar una animación FBX de Mixamo', async ( { page }, testInfo ) => {
 	await expect( page.locator( '#anim-select option' ) ).toHaveCount( 4 );
 
 } );
+
+test( 'ajustar una animación: velocidad, recortar, repetir sin saltos y combinar (con deshacer)', async ( { page }, testInfo ) => {
+
+	const select = page.locator( '#anim-select' );
+	const lastToast = page.locator( '.toast' ).last();
+	await page.goto( './' );
+	await openSample( page, 'Muñeco R15' );
+	await select.selectOption( '1' ); // Caminar (1 s)
+	await page.locator( '#anim-tools summary' ).click();
+	await page.locator( '#anim-tools-speed' ).fill( '0.5' );
+	await page.locator( '#btn-anim-speed' ).click();
+	await expect( select.locator( 'option:checked' ) ).toHaveText( 'Caminar (2 s)' );
+	await page.locator( '#anim-trim-from' ).fill( '0.5' );
+	await page.locator( '#anim-trim-to' ).fill( '1.5' );
+	await page.locator( '#btn-anim-trim' ).click();
+	await expect( select.locator( 'option:checked' ) ).toHaveText( 'Caminar (1 s)' );
+	await page.locator( '#btn-anim-loop' ).click();
+	await expect( lastToast ).toContainText( '«Caminar» ahora se repite sin saltos' );
+	await page.locator( '#anim-combine' ).selectOption( { label: 'Saltar' } );
+	await page.locator( '#btn-anim-combine' ).click();
+	await expect( lastToast ).toContainText( 'agregué «Caminar + Saltar»' );
+	await expect( page.locator( '#anim-select option' ) ).toHaveCount( 4 );
+	await expect( select.locator( 'option:checked' ) ).toHaveText( 'Caminar + Saltar (2,4 s)' );
+	await captureScrolledTo( page, testInfo, 'ajustar-animacion', '#anim-tools' );
+
+	// Ctrl+Z quita la combinada.
+	await page.keyboard.press( 'Control+z' );
+	await expect( page.locator( '#anim-select option' ) ).toHaveCount( 3 );
+	const { bytes } = await exportAndValidate( page, testInfo, 'muneco_ajustado.glb' );
+	expect( readGLBJson( bytes ).animations.find( ( item ) => item.name === 'Caminar' ) ).toBeTruthy();
+
+} );

@@ -19,6 +19,7 @@ import { initAdjustPanel } from './ui/adjustPanel.js';
 import { initAnimationCreate } from './ui/animationCreate.js';
 import { initAnimationImport } from './ui/animationImport.js';
 import { initAnimationPanel } from './ui/animationPanel.js';
+import { initClipTools } from './ui/clipTools.js';
 import { initAutosave } from './ui/autosave.js';
 import { initBoneMapPanel } from './ui/boneMapPanel.js';
 import { $ } from './ui/dom.js';
@@ -61,6 +62,7 @@ function start() {
 	initSimplifyPanel( app );
 	initBoneMapPanel( app );
 	initAnimationPanel( app );
+	initClipTools( app );
 	initAnimationCreate( app );
 	initKeyframePanel( app );
 	initAnimationImport( app );

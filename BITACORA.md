@@ -4,6 +4,39 @@ Una entrada por ciclo: qué se hizo, cómo se verificó y qué sigue. La más nu
 
 ---
 
+## Ciclo 28 — Ajustar animaciones: bucle, velocidad, recorte y combinar (2026-11-04)
+
+**Auditoría:** punto de partida, el commit del ciclo 27 (`9827519`). Actions: sin ejecuciones.
+
+**Tarea:** F1-15 (Media).
+
+**Qué hice**
+
+- `core/clipTools.js`: `changeSpeed`, `trimClip`, `makeSeamless` y `combineClips`. Devuelven animaciones nuevas
+  (la original no cambia). Las pistas se arman tomando el valor de la original en sus keyframes, así también
+  sirven con pistas “cubic spline” (cambiar solo los tiempos habría dejado mal sus tangentes). Los tiempos se
+  redondean a 0,1 ms y nunca se repiten (glTF lo exige). Combinar deja 0,2 s de transición y pone en reposo
+  lo que una animación no mueve (con la pose de reposo del modelo).
+- Sección **Ajustar esta animación** (un desplegable debajo del reproductor, `ui/clipTools.js`): las tres
+  primeras reemplazan a la animación elegida y combinar agrega una nueva; todo con deshacer.
+
+**Problema en el camino:** la primera mezcla de “repetir sin saltos” duraba 0,12 s en una animación de 0,6 s y
+el muslo giraba 23° de un cuadro al siguiente; la prueba “nunca más de 0,25 rad entre dos cuadros” lo detectó.
+Ahora la mezcla dura un cuarto de la animación, al menos 0,3 s y como mucho la mitad. Los avisos decían
+«Listo: cambiar la velocidad en…»; ahora dicen «cambié la velocidad de…», «recorté…».
+
+**Cómo lo verifiqué**
+
+- Vitest: 4 pruebas nuevas (una por operación, contra los valores de la animación original).
+- Playwright (escritorio y móvil): velocidad ×0,5 (Caminar pasa a 2 s) → recortar 0,5–1,5 (1 s) → repetir sin
+  saltos → combinar con Saltar («Caminar + Saltar», 2,4 s) → Ctrl+Z la quita → GLB válido. Captura del
+  celular revisada.
+- `npm run check` → código 0: **149/149** Vitest y **68/68** Playwright.
+
+**Qué sigue:** F1-09 (estilos para los generadores), F1-17 y F1-18.
+
+---
+
 ## Ciclo 27 — Generadores Saludar, Atacar y Bailar (2026-11-03)
 
 **Auditoría:** punto de partida, el commit del ciclo 26 (`d831bea`). Actions: sin ejecuciones.

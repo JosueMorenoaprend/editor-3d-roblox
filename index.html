@@ -200,6 +200,37 @@
 								<span>Repetir</span>
 							</label>
 							<button type="button" class="btn btn-sm" id="btn-keys-edit" title="Abre la animación elegida en el editor de keyframes" hidden>✎ Editar con keyframes</button>
+							<details class="anim-tools" id="anim-tools" hidden>
+								<summary>Ajustar esta animación</summary>
+								<div class="anim-tools-body">
+									<button type="button" class="btn btn-sm btn-block" id="btn-anim-loop" title="El final se acerca poco a poco a como empieza">Repetir sin saltos</button>
+									<div class="row">
+										<label class="field grow">
+											<span>Velocidad (× 2 = el doble de rápido)</span>
+											<input type="number" id="anim-tools-speed" min="0.1" max="10" step="0.1" value="2" inputmode="decimal" />
+										</label>
+										<button type="button" class="btn btn-sm" id="btn-anim-speed">Cambiar velocidad</button>
+									</div>
+									<div class="row">
+										<label class="field grow">
+											<span>Desde (s)</span>
+											<input type="number" id="anim-trim-from" min="0" step="0.05" value="0" inputmode="decimal" />
+										</label>
+										<label class="field grow">
+											<span>Hasta (s)</span>
+											<input type="number" id="anim-trim-to" min="0" step="0.05" inputmode="decimal" />
+										</label>
+										<button type="button" class="btn btn-sm" id="btn-anim-trim">Recortar</button>
+									</div>
+									<div class="row">
+										<label class="field grow">
+											<span>Combinar con (va después)</span>
+											<select id="anim-combine"></select>
+										</label>
+										<button type="button" class="btn btn-sm" id="btn-anim-combine">Combinar</button>
+									</div>
+								</div>
+							</details>
 							<div class="alert alert-warn anim-root" id="anim-root" hidden>
 								<p id="anim-root-text"></p>
 								<button type="button" class="btn btn-sm" id="btn-anim-in-place">Dejar en el lugar</button>

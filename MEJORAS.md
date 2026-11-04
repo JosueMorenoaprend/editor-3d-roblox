@@ -31,7 +31,8 @@ Cómo leer esta lista:
 2. ~~**F1-05**~~ (hecha en el ciclo 18).
 3. ~~**F1-10**~~ (ciclo 19), ~~**F1-21**~~ (ciclo 20), ~~**F1-22**~~ (ciclo 21), ~~**F1-23**~~ (ciclo 22),
    ~~**F1-11**~~ (ciclo 23), ~~**F1-24**~~ (ciclo 24), ~~**F1-26**~~ (ciclo 25), ~~**F1-25**~~ (ciclo 26) y
-   ~~**F1-08**~~ (ciclo 27). Siguen las Media de la Fase 1 (F1-15, F1-09…).
+   ~~**F1-08**~~ (ciclo 27) y ~~**F1-15**~~ (ciclo 28). Siguen las Media de la Fase 1 (F1-09, F1-17, F1-18,
+   F1-12, F1-13).
 4. **F5-14** y **F5-13** (Media): el panel ya es muy largo, sobre todo en el celular.
 5. Fase 2 (conexión con IA): el guion de animación usa el mapa y los giros “en el espacio del personaje”
    que ya existen (F2-01, F2-02).
@@ -221,8 +222,16 @@ Cómo leer esta lista:
     lugar” marcada; en *Animaciones*, aviso y botón **Dejar en el lugar** (con deshacer). 6 pruebas de
     Vitest + e2e (escritorio y móvil) que lee del GLB que la cadera de las dos animaciones no avanza.
     Los generadores ya salen en el lugar.
-- [ ] **F1-15** · Media · **Loop sin saltos, recortar, cambiar velocidad y combinar** animaciones.
-  - Comprobación: pruebas unitarias de cada operación.
+- [x] **F1-15** · Media · **Loop sin saltos, recortar, cambiar velocidad y combinar** animaciones. *(ciclo 28)*
+  - Comprobación: pruebas unitarias de cada operación. ✔ `core/clipTools.js` (devuelven animaciones nuevas,
+    con pistas lineales aunque la original fuera “cubic spline”): `changeSpeed`, `trimClip` (el tramo empieza
+    en 0), `makeSeamless` (el último tramo —un cuarto, entre 0,3 s y la mitad— se acerca suave al principio)
+    y `combineClips` (una después de la otra con 0,2 s de transición; lo que una no mueve queda en reposo).
+    4 pruebas de Vitest (mismas poses al doble de velocidad; el recorte coincide con el original; sin saltos:
+    último cuadro = primero y nunca más de 0,25 rad entre dos cuadros; la combinada coincide con cada parte y
+    deja las piernas en reposo mientras saluda) + e2e (escritorio y móvil) de la sección **Ajustar esta
+    animación** (debajo del reproductor): velocidad ×0,5 → recortar → repetir sin saltos → combinar con
+    Saltar → Ctrl+Z → GLB válido. Captura del celular revisada.
 - [x] **F1-16** · Alta · **Exportar una o varias animaciones** (elegir cuáles) dentro del GLB. *(ciclo 17)*
   - Comprobación: e2e exporta 2 de 3 animaciones, reabre y el validador da 0 errores. ✔ En *Exportar*,
     debajo de “Incluir animaciones”, “Cuáles van en el archivo” con una casilla por animación (se recuerda
@@ -416,9 +425,9 @@ Cómo leer esta lista:
 | Fase | Tareas | Hechas |
 | --- | --- | --- |
 | 0 — Base sólida | 17 | 13 |
-| 1 — Animación | 26 | 18 |
+| 1 — Animación | 26 | 19 |
 | 2 — Conexión con IA | 8 | 0 |
 | 3 — Edición de modelos | 10 | 0 |
 | 4 — Roblox | 7 | 0 |
 | 5 — Experiencia | 15 | 0 |
-| **Total** | **83** | **31** |
+| **Total** | **83** | **32** |

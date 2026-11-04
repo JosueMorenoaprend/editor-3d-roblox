@@ -93,6 +93,9 @@ Lo que cambió para quien usa el editor. Lo más nuevo va arriba.
 - El aviso del guardado automático dice si incluye tu animación a medio hacer (y cuántos keyframes tiene).
 - **Nuevo: Saludar, Atacar y Bailar** en *Crear una animación*: saludar con la mano, un golpe desde la guardia
   (sirve también con una espada en la mano) y un baile simple, cada uno con sus deslizadores.
+- **Nuevo: Ajustar esta animación** (debajo del reproductor): **Repetir sin saltos**, **Cambiar velocidad**,
+  **Recortar** (desde / hasta) y **Combinar** con otra (una después de la otra, con una transición corta).
+  Todo se puede deshacer.
 
 ## Versión 1
 

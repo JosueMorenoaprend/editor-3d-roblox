@@ -174,6 +174,7 @@ src/core/               lógica 3D sin interfaz (se prueba con Vitest en Node)
   inPlace.js            medir cuánto avanza una animación y dejarla en el lugar (X/Z fijas)
   keyframeAnimation.js  borrador con keyframes (giros por hueso; fromClip edita una que ya existe) → clip
   poseTools.js          copiar, pegar y reflejar poses (grados por parte, en el espacio del personaje)
+  clipTools.js          ajustar animaciones: repetir sin saltos, recortar, velocidad, combinar (clips nuevos)
   generators.js         generadores Caminar, Correr, Respirar, Saltar, Caer, Agacharse, Saludar, Atacar y Bailar (pose por fase →
                         clip en el lugar, en bucle; piernas con los pies apoyados por ley de cosenos)
 src/samples/            modelos de prueba generados por código (sin licencias de terceros)
@@ -188,7 +189,8 @@ src/ui/                 un archivo por panel de la interfaz (samples.js: botones
   animationCreate.js    "Crear una animación" (en Animaciones): generadores con deslizadores
   keyframePanel.js      "Crear a mano con keyframes" (en Animaciones): parte del cuerpo, deslizadores, anillos
                         3D (TransformControls, se cargan al abrir) y línea de tiempo
-  clipHistory.js        agregar animaciones al personaje con deshacer (lo usan los tres anteriores)
+  clipTools.js          "Ajustar esta animación" (debajo del reproductor), con deshacer
+  clipHistory.js        agregar animaciones al personaje con deshacer (lo usan los cuatro anteriores)
 tests/unit/             pruebas Vitest del núcleo (Node)
 tests/e2e/              pruebas Playwright (flujos reales en el navegador; playwright.config.js)
 tests/helpers/          ayudantes compartidos (validar GLB, FileReader para Node, personaje con huesos raros,

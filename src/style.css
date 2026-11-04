@@ -1225,3 +1225,18 @@ select:disabled {
 		padding: 7px 10px;
 	}
 }
+
+/* "Ajustar esta animación" (debajo del reproductor) */
+.anim-tools summary {
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 600;
+	padding: 4px 0;
+}
+
+.anim-tools-body {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: 8px;
+}
